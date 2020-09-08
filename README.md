@@ -8,9 +8,9 @@
 
 # Stage 4 - Automate IBM Cloud
 
-## General needs for automation
-### Identity and Access Management
-### Creation of Storage location
-### Role permitting access from Kentik account into specific customer account resources
-### Enablement of VPC Flowlogs
-### Creation of pointer to Flowlog storage location
+# General needs for automation
+## Identity and Access Management
+## Creation of Storage location
+## Role permitting access from Kentik account into specific customer account resources
+## Enablement of VPC Flowlogs
+## Creation of pointer to Flowlog storage location
