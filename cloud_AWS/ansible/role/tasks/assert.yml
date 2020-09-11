@@ -1,0 +1,5 @@
+---
+  - name: Verify VPC IDs List is set
+    assert:
+      that: vpc_id_list != None and vpc_id_list is defined and vpc_id_list | length > 0
+      fail_msg: "Missing vpc_id_list variable."

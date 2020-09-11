@@ -1,0 +1,26 @@
+{
+    "Parameters": {
+        "ResourceId": {
+            "Type": "String"
+        },
+        "LogDestination": {
+            "Type": "String"
+        }
+    },
+    "Resources": {
+        "VPCFlowLogsToBucket": {
+            "Type": "AWS::EC2::FlowLog",
+            "Properties": {
+                "ResourceId": {
+                    "Ref": "ResourceId"
+                },
+                "ResourceType": "VPC",
+                "LogDestination": {
+                    "Ref": "LogDestination"
+                },
+                "LogDestinationType": "s3",
+                "TrafficType": "ALL"
+            }
+        }
+    }
+}

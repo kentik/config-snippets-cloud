@@ -1,0 +1,32 @@
+---
+  - name: Create EC2 Access Policy
+    iam_managed_policy:
+      policy_name: "{{ iam_role_prefix }}EC2Access"
+      policy: "{{ lookup('file', 'aws_iam_ec2_access_policy.json') }}"
+      policy_description: "Defines required accesses for Kentik platform to EC2 resources"
+      state: present
+
+  - name: Create S3 RW Access Policy
+    iam_managed_policy:
+      policy_name: "{{ iam_role_prefix }}S3RWAccess"
+      policy: "{{ lookup('file', 'aws_iam_s3_rw_access_policy.json') }}"
+      policy_description: "Defines read-write accesses for Kentik platform to S3 resources"
+      state: present
+
+  - name: Create S3 RO Access Policy
+    iam_managed_policy:
+      policy_name: "{{ iam_role_prefix }}S3ROAccess"
+      policy: "{{ lookup('file', 'aws_iam_s3_ro_access_policy.json') }}"
+      policy_description: "Defines read-only accesses for Kentik platform to S3 resources"
+      state: present
+
+  - name: Create Kentik Role
+    iam_role:
+      name: "{{ iam_role_prefix }}AnsibleIngestRole"
+      assume_role_policy_document: "{{ lookup('file', 'aws_iam_role.json') }}"
+      managed_policy:
+      - "{{ iam_role_prefix }}EC2Access"
+      - "{{ iam_role_prefix }}{{ 'S3RWAccess' if s3_rw_access else 'S3ROAccess' }}"
+      description: "This role allows Kentik to ingest the VPC flow logs"
+      state: present
+    register: kentik_role

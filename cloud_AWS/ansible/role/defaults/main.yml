@@ -1,0 +1,8 @@
+---
+ansible_python_interpreter: "/usr/bin/python3"
+
+# Prefix to use with S3 buckets names
+s3_bucket_prefix: "kentik"
+
+# Prefix to use with IAM roles
+iam_role_prefix: "Kentik"

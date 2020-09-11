@@ -1,0 +1,82 @@
+name: aws-ansible
+
+# Run this workflow only on pushes 
+# to the cloud_AWS/ansible directory
+on:
+  push:
+    paths: 'cloud_AWS/ansible/**'
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  # Static Analysis of the Ansible role and its code
+  # Stuff like linters, etc.
+  static-analysis:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: (HELPER) Checkout Code
+        uses: actions/checkout@v2
+      
+      - name: Lint Role 
+        uses: docker://yokogawa/ansible-lint:v4.3.4
+        with:
+          entrypoint: ansible-lint
+          args: cloud_AWS/ansible/role/
+       
+  # Dynamic analysis of the Ansible role and its code
+  # Stuff like unit tests, E2E tests, etc.
+  dynamic-analysis:
+    runs-on: ubuntu-latest
+    
+    # The LocalStack mocks the AWS services, enabling
+    # local development without any costs
+    services:
+      localstack:
+        image: localstack/localstack
+        ports:
+          - 4566:4566
+        env:
+          SERVICES: s3,ec2,iam,cloudformation
+
+    steps:
+      - name: (HELPER) Checkout Code
+        uses: actions/checkout@v2
+
+      - name: (HELPER) Setup Python 3
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+          architecture: 'x64'
+
+      - name: (HELPER) Install Python Libs
+        run: |
+          python3 -m pip install --upgrade pip
+          pip3 install ansible==2.9.13
+          pip3 install botocore==1.17.58
+          pip3 install boto3==1.14.58
+
+      - name: Run Ansible Playbook
+        run: ansible-playbook cloud_AWS/ansible/role/tests/main.yml -i cloud_AWS/ansible/role/tests/inventory.yml
+        env:
+          S3_URL: http://127.0.0.1:4566
+          EC2_URL: http://127.0.0.1:4566
+          AWS_REGION: "us-east-1"
+          AWS_ACCESS_KEY_ID: "dumb-access-key"
+          AWS_SECRET_ACCESS_KEY: "dumb-secret-key"
+
+      # Some sort of more sophisticated testing can 
+      # be injected here for ensuring the resource 
+      # creation and thei properties. 
+      # Check the example below.
+      #
+      #
+      # Confirm somehow the resources have been created
+      #- name: Confirm Apply Succeeded
+      #  uses: docker://amazon/aws-cli:2.0.7
+      #  env:
+      #    AWS_ACCESS_KEY_ID: "fake-access-key"
+      #    AWS_SECRET_ACCESS_KEY: "fake-secret-key"
+      #  with:
+      #    args: --endpoint-url=http://localstack:4566 s3api head-bucket --bucket <bucket-name>

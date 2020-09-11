@@ -1,0 +1,13 @@
+{
+  "Statement" : [
+    {
+      "Action" : "sts:AssumeRole",
+      "Effect" : "Allow",
+      "Principal" : {
+        "AWS" : "arn:aws:iam::834693425129:role/eks-ingest-node"
+      },
+      "Sid" : ""
+    }
+  ],
+  "Version" : "2008-10-17"
+}
