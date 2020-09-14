@@ -35,7 +35,7 @@ module "aws_vpc" {
 }
 
 module "kentik_integration" {
-  source           = "github.com/boscard/config-snippets-cloud/cloud_AWS/terraform/module"
+  source           = "../../"
 
   rw_s3_access     = true
   s3_bucket_prefix = "butique-cluster-logs"
