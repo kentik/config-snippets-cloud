@@ -25,9 +25,9 @@ vpc_id = vpc-016bf0a811bbe963a
 ```
 Installing boutique app:
 ```
-aws eks --region us-east-2 update-kubeconfig --name boutique-k8s-kentik
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v0.35.0/deploy/static/provider/aws/deploy.yaml
-kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/microservices-demo/v0.2.0/release/kubernetes-manifests.yaml
+$ aws eks --region us-east-2 update-kubeconfig --name boutique-k8s-kentik
+$ kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v0.35.0/deploy/static/provider/aws/deploy.yaml
+$ kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/microservices-demo/v0.2.0/release/kubernetes-manifests.yaml
 ```
 To get public endpoint of application we need to find it external-ip:
 ```
