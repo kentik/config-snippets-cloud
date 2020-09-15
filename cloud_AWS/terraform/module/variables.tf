@@ -19,3 +19,9 @@ variable "iam_role_prefix" {
   type        = string
   default     = "Kentik"
 }
+
+variable "store_logs_more_frequently" {
+  description = "Adds option to store data in 1 minute interval (default is 10 minutes)"
+  type        = bool
+  default     = false
+}

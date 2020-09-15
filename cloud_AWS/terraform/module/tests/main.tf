@@ -32,16 +32,18 @@ resource "aws_vpc" "test-vpc" {
 
 ## Use module for single-vpc integration ##
 module "single_vpc_integration" {
-  source            = "../"
-  vpc_id_list       = [aws_vpc.test-vpc.0.id]
-  rw_s3_access      = true
-  s3_bucket_prefix  = "single"
+  source                     = "../"
+  vpc_id_list                = [aws_vpc.test-vpc.0.id]
+  rw_s3_access               = true
+  store_logs_more_frequently = false
+  s3_bucket_prefix           = "single"
 }
 
 ## Use module for multi-vpc integration ##
 module "multi_vpc_integration" {
-  source            = "../"
-  vpc_id_list       = [aws_vpc.test-vpc.1.id, aws_vpc.test-vpc.2.id]
-  rw_s3_access      = true
-  s3_bucket_prefix  = "multi"
+  source                     = "../"
+  vpc_id_list                = [aws_vpc.test-vpc.1.id, aws_vpc.test-vpc.2.id]
+  rw_s3_access               = true
+  store_logs_more_frequently = true
+  s3_bucket_prefix           = "multi"
 }

@@ -15,8 +15,9 @@ resource "aws_s3_bucket_public_access_block" "vpc_logs" {
 
 resource "aws_flow_log" "vpc_logs" {
   for_each = toset(var.vpc_id_list)
-  log_destination = aws_s3_bucket.vpc_logs[each.key].arn
+  log_destination = "${aws_s3_bucket.vpc_logs[each.key].arn}/"
   log_destination_type = "s3"
   traffic_type = "ALL"
+  max_aggregation_interval = (var.store_logs_more_frequently == false ? 600 : 60 )
   vpc_id = each.key
 }
