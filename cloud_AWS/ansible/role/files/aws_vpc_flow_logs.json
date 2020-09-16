@@ -5,6 +5,9 @@
         },
         "LogDestination": {
             "Type": "String"
+        },
+        "MaxAggregationInterval": {
+            "Type": "Number"
         }
     },
     "Resources": {
@@ -19,6 +22,9 @@
                     "Ref": "LogDestination"
                 },
                 "LogDestinationType": "s3",
+                "MaxAggregationInterval": {
+                    "Ref": "MaxAggregationInterval"
+                },
                 "TrafficType": "ALL"
             }
         }
