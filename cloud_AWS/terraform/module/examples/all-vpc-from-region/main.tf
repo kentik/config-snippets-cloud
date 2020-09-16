@@ -13,6 +13,6 @@ module "kentik_aws_integration" {
   source = "../../"
 
   rw_s3_access = true
-  vpc_id_list = data.aws_vpcs.all-vpc.ids
+  vpc_id_list  = data.aws_vpcs.all-vpc.ids
 }
 
