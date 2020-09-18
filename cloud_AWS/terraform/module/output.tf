@@ -4,7 +4,7 @@ output "iam_role_arn" {
 
 output "bucket_name_list" {
   value = [
-    for bucketobject in aws_s3_bucket.vpc_logs:
+    for bucketobject in aws_s3_bucket.vpc_logs :
     bucketobject.bucket
   ]
 }

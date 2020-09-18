@@ -52,6 +52,7 @@ module "kentik_aws_integration" {
 | vpc\_id\_list | List of VPC ids for which Kentik should gather logs | `list(string)` | `[]` | yes |
 | s3\_bucket\_prefix | Prefix to use with s3 bucket name | `string` | `kentik` | no |
 | iam\_role\_prefix | Prefix to use with IAM roles | `string` | `Kentik` | no |
+| store\_logs\_more\_frequently | Allows to chose how often save logs to s3. Default is once per 10 minutes. When enabled it saves once per minute | `bool` | `false` | no |
 
 ## Outputs
 

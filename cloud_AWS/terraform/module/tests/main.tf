@@ -4,22 +4,22 @@ terraform {
 }
 
 provider "aws" {
-  version                     = ">= 2.28.1"	
-  region                      = "us-east-1"
-  
-  access_key                  = "dump-access-key"
-  secret_key                  = "dump-secret-key"
-  
+  version = ">= 2.28.1"
+  region  = "us-east-1"
+
+  access_key = "dump-access-key"
+  secret_key = "dump-secret-key"
+
   skip_credentials_validation = true
   skip_requesting_account_id  = true
   skip_metadata_api_check     = true
 
-  s3_force_path_style         = true
+  s3_force_path_style = true
 
   endpoints {
-    iam		= "http://localstack:4566"
-    s3 		= "http://localstack:4566"
-    ec2		= "http://localstack:4566"
+    iam = "http://localstack:4566"
+    s3  = "http://localstack:4566"
+    ec2 = "http://localstack:4566"
   }
 }
 
@@ -32,16 +32,18 @@ resource "aws_vpc" "test-vpc" {
 
 ## Use module for single-vpc integration ##
 module "single_vpc_integration" {
-  source            = "../"
-  vpc_id_list       = [aws_vpc.test-vpc.0.id]
-  rw_s3_access      = true
-  s3_bucket_prefix  = "single"
+  source                     = "../"
+  vpc_id_list                = [aws_vpc.test-vpc.0.id]
+  rw_s3_access               = true
+  store_logs_more_frequently = false
+  s3_bucket_prefix           = "single"
 }
 
 ## Use module for multi-vpc integration ##
 module "multi_vpc_integration" {
-  source            = "../"
-  vpc_id_list       = [aws_vpc.test-vpc.1.id, aws_vpc.test-vpc.2.id]
-  rw_s3_access      = true
-  s3_bucket_prefix  = "multi"
+  source                     = "../"
+  vpc_id_list                = [aws_vpc.test-vpc.1.id, aws_vpc.test-vpc.2.id]
+  rw_s3_access               = true
+  store_logs_more_frequently = true
+  s3_bucket_prefix           = "multi"
 }
