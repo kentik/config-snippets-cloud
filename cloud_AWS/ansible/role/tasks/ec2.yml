@@ -1,0 +1,13 @@
+---
+  - name: Configure Flow Logs for VPCs
+    cloudformation:
+      stack_name: "{{ '-'.join((item, 'flow-logs')) }}"
+      template_body: "{{ lookup ('file', 'aws_vpc_flow_logs.json') |string }}"
+      template_parameters:
+        ResourceId: "{{ item }}"
+        LogDestination: "arn:aws:s3:::{{ [s3_bucket_prefix, item, 'flow-logs'] | join('-') }}/"
+        MaxAggregationInterval: "{{ '60' if store_logs_more_frequently else '600' }}"
+      on_create_failure: "DELETE"
+      state: 'present'
+    notify: finished_aws
+    with_items: "{{ vpc_id_list | mandatory }}"

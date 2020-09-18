@@ -1,0 +1,11 @@
+---
+  - name: Create S3 Bucket for VPCs
+    cloudformation:
+      stack_name: "{{ '-'.join((s3_bucket_prefix, item, 'flow-logs')) }}"
+      template_body: "{{ lookup ('file', 'aws_s3_public_access.json') |string }}"
+      template_parameters:
+        BucketName: "{{ [s3_bucket_prefix, item, 'flow-logs'] | join('-') }}"
+      on_create_failure: "DELETE"
+      state: 'present'
+    register: kentik_buckets
+    with_items: "{{ vpc_id_list | mandatory }}"

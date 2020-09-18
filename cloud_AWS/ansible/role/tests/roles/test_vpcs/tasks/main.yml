@@ -1,0 +1,16 @@
+---
+  - name: Create VPCs
+    ec2_vpc_net:
+      name: "{{ '-'.join(('test-vpc', item)) }}"
+      cidr_block: 10.10.0.0/16
+    register: created_vpcs
+    check_mode: no
+    with_items:
+    - "1"
+    - "2"
+    - "3"
+
+  - name: Create Arrays for module
+    set_fact:
+      single_vpc_ids: "[ '{{ created_vpcs.results.0.vpc.id }}' ]"
+      multi_vpc_ids: "[ '{{ created_vpcs.results.1.vpc.id }}', '{{ created_vpcs.results.2.vpc.id }}' ]"

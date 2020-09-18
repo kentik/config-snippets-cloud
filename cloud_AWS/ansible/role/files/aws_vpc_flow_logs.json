@@ -1,0 +1,33 @@
+{
+    "Parameters": {
+        "ResourceId": {
+            "Type": "String"
+        },
+        "LogDestination": {
+            "Type": "String"
+        },
+        "MaxAggregationInterval": {
+            "Type": "Number"
+        }
+    },
+    "Resources": {
+        "VPCFlowLogsToBucket": {
+            "Type": "AWS::EC2::FlowLog",
+            "Properties": {
+                "ResourceId": {
+                    "Ref": "ResourceId"
+                },
+                "ResourceType": "VPC",
+                "LogDestination": {
+                    "Ref": "LogDestination"
+                },
+                "LogDestinationType": "s3",
+                "LogFormat": "${version} ${account-id} ${interface-id} ${srcaddr} ${dstaddr} ${srcport} ${dstport} ${protocol} ${packets} ${bytes} ${start} ${end} ${action} ${log-status}",
+                "MaxAggregationInterval": {
+                    "Ref": "MaxAggregationInterval"
+                },
+                "TrafficType": "ALL"
+            }
+        }
+    }
+}

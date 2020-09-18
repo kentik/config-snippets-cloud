@@ -1,0 +1,13 @@
+---
+galaxy_info:
+  role_name: kentik_aws_integration
+  author: CodiLime Ltd.
+  description: Ansible role which creates AWS resources required for Kentik to enable integration
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+  - name: Amazon
+    versions:
+    - all
+
+allow_duplicates: true

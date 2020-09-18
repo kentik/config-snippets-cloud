@@ -1,0 +1,23 @@
+{
+    "Parameters": {
+        "BucketName": {
+            "Type": "String"
+        }
+    },
+    "Resources": {
+        "S3BucketBlockPublicAccess": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+                "BucketName": {
+                    "Ref": "BucketName"
+                },
+                "PublicAccessBlockConfiguration": {
+                    "BlockPublicAcls" : true,
+                    "BlockPublicPolicy" : true,
+                    "IgnorePublicAcls" : true,
+                    "RestrictPublicBuckets" : true
+                }
+            }
+        }
+    }
+}

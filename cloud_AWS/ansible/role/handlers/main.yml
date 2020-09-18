@@ -1,0 +1,21 @@
+---
+  - name: Create S3 Buckets empty list
+    set_fact:
+      bucket_name_list: "[]"
+    listen: finished_aws
+
+  - name: Save S3 Buckets
+    set_fact:
+      bucket_name_list: "{{ bucket_name_list }} + [ 'arn:aws:s3:::{{ item.stack_resources.0.physical_resource_id }}' ]"
+    listen: finished_aws
+    with_items: "{{ kentik_buckets.results }}"
+    loop_control:
+      label: "{{ item.stack_resources.0.physical_resource_id }}"
+
+  - name: Inform of Results
+    listen: finished_aws
+    debug:
+      msg: [
+        "S3 Buckets ARNs: {{ bucket_name_list }}",
+        "IAM Role ARN: {{ kentik_role.arn }}"
+      ]

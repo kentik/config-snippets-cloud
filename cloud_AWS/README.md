@@ -2,3 +2,4 @@
 
 Currently supported:
 * [terraform](terraform/module)
+* [ansible](ansible/role)
