@@ -50,7 +50,7 @@ jobs:
     # local development without any costs
     services:
       localstack:
-        image: localstack/localstack
+        image: localstack/localstack:0.11.5
         ports:
           - 4566:4566
         env:
