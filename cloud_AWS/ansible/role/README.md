@@ -47,7 +47,7 @@ Note however, instead of copying the role into your Ansible directory structure,
 ## Note
 * this role requires user to have the AWS access configured. Please refer to the [AWS documentation](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html) for guidance.
 * this role uses the AWS CloudFormation for creating S3 Buckets and enabling VPC Flow Logs. It is due to lack of dedicated Ansible modules for these tasks. In fact, module for S3 exists, however it does not support every configuration option.
-* this role requires additional Python's modules. Please refer to [PiP](https://pip.pypa.io/en/stable/) to install them, otherwise the role will fail.
+* this role requires additional Python's modules. Please refer to the [PiP](https://pip.pypa.io/en/stable/) to install them, otherwise the role will fail.
 * this role creates AWS resources only. This won't register VPC in Kentik platform automaticaly.
 
 ## Requirements
