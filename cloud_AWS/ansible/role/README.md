@@ -40,6 +40,10 @@ Note however, instead of copying the role into your Ansible directory structure,
       - "vpc-081ec835f3EXAMPLE"
 ```
 
+## Demo
+
+![](.docs/demo.gif)
+
 ## Examples
 
 * [Prepare single VPC](examples/single-vpc)
