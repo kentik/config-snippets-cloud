@@ -6,7 +6,7 @@ First, notice there are no VPC Flow Logs configured yet.
 
 ![](.assets/gifs/checkFlowLogs.gif)
 
-Next, check the S3 buckets. There is no bucket with terraform in name.
+Next, check the S3 buckets. There is no bucket with `terraform` string in name. It means that our module was not executed.
 
 ![](.assets/gifs/checkS3Bucket.gif)
 
@@ -26,7 +26,7 @@ Now when we have basic structure let's update module parameters.
 
 ![](.assets/gifs/fillModuleParams.gif)
 
-It is important to provide proper source for module. Fortunately we can use modules directly from GitHub.
+It is important to provide proper source string for module. Fortunately we can use modules directly from GitHub.
 
 ![](.assets/gifs/updateModuleAddress.gif)
 
