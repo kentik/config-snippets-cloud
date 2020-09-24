@@ -71,7 +71,7 @@ As you can see, at the end of the execution you will be informed of the results 
 
 Let's check the AWS resources again starting with the Flow Logs. As you can see, they are in place. Notice an `ACTIVE` status, meaning the configuration is correct and logging is working.
 
-![](.gifs/checkFlowLogsAgain.gif)
+![](.gifs/checkFlowLogAgain.gif)
 
 Next verify the IAM policies. Three of them have been just created, one for the EC2 access and two for the S3 access. Note however only the `DemoS3RWAccess` policy is used since we set the `rw_s3_access: true` variable inside the playbook.
 
@@ -81,11 +81,10 @@ The S3 bucket for our logs is there as well, although it is still empty.
 
 ![](.gifs/checkS3Again.gif)
 
-As the last thing we will check the CloudFormation. You may be surprised to see them, however it's not without a good reason. The Ansible lacks module for both S3 bucket public access and more importantly the VPC Flow Logs. So we could choose to execute the AWS CLI inside the role or to find out some other way to provide the needed resources. To avoid using any external commands and thus to make our role the first-class citizen of Ansible, we decided to use supoorted CloudFormation module.
+As the last thing we will check the CloudFormation. You may be surprised to see them, however it's not without a good reason. The Ansible lacks modules for both - the S3 bucket public access and more importantly the VPC Flow Logs. So we could choose to either execute the AWS CLI inside the role or to find out some other way to provide the needed resources. To avoid using any external commands and thus to make our role the first-class citizen of Ansible, we decided to use supoorted CloudFormation module.
 
 ![](.gifs/checkCloudFormationAgain.gif) 
 
 Everything seem to be in place, so let's move to the last stage and onboard the cloud to Kentik. Remember the playbook's output? We will use it now. 
 
 ![](.gifs/onboardKentik.gif)
-
