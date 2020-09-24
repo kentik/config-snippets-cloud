@@ -88,3 +88,5 @@ As the last thing we will check the CloudFormation. You may be surprised to see 
 Everything seem to be in place, so let's move to the last stage and onboard the cloud to Kentik. Remember the playbook's output? We will use it now. 
 
 ![](.gifs/onboardKentik.gif)
+
+And we're done! Now we have to wait a moment for the Kentik to provision our cloud and start ingest data.
