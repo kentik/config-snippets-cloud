@@ -15,7 +15,6 @@ data "aws_vpcs" "all-vpc" {}
 module "kentik_aws_integration" {
   source = "github.com/kentik/config-snippets-cloud/cloud_AWS/terraform/module"
 
-  region = "us-east-1"
   rw_s3_access = true
   vpc_id_list = data.aws_vpcs.all-vpc.ids
 }
@@ -26,6 +25,9 @@ module "kentik_aws_integration" {
 * [Prepare single VPC](examples/single-vpc)
 * [Prepare all VPCs from certain region](examples/all-vpc-from-region)
 * [Create EKS cluster with Boutique and configured VPC](examples/boutique-eks)
+
+## Demo
+* [Demo showing how add single VPC to Kentik portal using this module](examples)
 
 ## Note
 * this project use `for_each` in code. If it is meant to be used with VPC creation, VPC should be created first for example using `terraform apply -target="aws_vpc.test-vpc"`
