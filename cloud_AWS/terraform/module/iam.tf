@@ -72,7 +72,8 @@ resource "aws_iam_policy" "kentik_s3_ro_access" {
       "Effect": "Allow",
       "Action": [
         "s3:Get*",
-        "s3:List*"
+        "s3:List*",
+        "s3:HeadBucket"
       ],
       "Resource": "*"
     }
