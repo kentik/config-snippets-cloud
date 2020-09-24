@@ -27,7 +27,7 @@ module "kentik_aws_integration" {
 * [Create EKS cluster with Boutique and configured VPC](examples/boutique-eks)
 
 ## Demo
-* [Demo showing how add single VPC to Kentik portal using this module](examples)
+* [Demo showing how add single VPC to Kentik portal using this module](demo)
 
 ## Note
 * this project use `for_each` in code. If it is meant to be used with VPC creation, VPC should be created first for example using `terraform apply -target="aws_vpc.test-vpc"`
