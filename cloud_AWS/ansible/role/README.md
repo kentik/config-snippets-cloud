@@ -44,6 +44,10 @@ Note however, instead of copying the role into your Ansible directory structure,
 
 * [Prepare single VPC](examples/single-vpc)
 
+## Demo
+
+* [Integrate role into existing playbook](demo)
+
 ## Note
 * this role requires user to have the AWS access configured. Please refer to the [AWS documentation](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html) for guidance.
 * this role uses the AWS CloudFormation for creating S3 Buckets and enabling VPC Flow Logs. It is due to lack of dedicated Ansible modules for these tasks. In fact, module for S3 exists, however it does not support every configuration option.
