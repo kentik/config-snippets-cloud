@@ -3,6 +3,12 @@ variable "region" {
   default = "us-east-2"
 }
 
+variable "aws_profile" {
+  type = string
+  default = "default"
+  description = "(optional) aws profile to use"
+}
+
 variable "cluster_name" {
   type    = string
   default = "boutique-k8s-kentik"
