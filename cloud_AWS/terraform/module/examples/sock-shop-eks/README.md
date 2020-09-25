@@ -52,7 +52,7 @@ $ curl {{ DNS NAME }}
 ### Clean environment
 ```
 $ terraform destroy
-Error: error deleting S3 Bucket (butique-cluster-logs-vpc-016bf0a811bbe963a-flow-logs): BucketNotEmpty: The bucket you tried to delete is not empty
+Error: error deleting S3 Bucket (sock-shop-cluster-logs-vpc-056445edb0295f98e-flow-logs): BucketNotEmpty: The bucket you tried to delete is not empty
         status code: 409, request id: ***, host id: ***
 
 # This is because we have data on s3 bucket - we need to clean it and destroy again
