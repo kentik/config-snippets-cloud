@@ -11,7 +11,7 @@ variable "aws_profile" {
 
 variable "cluster_name" {
   type    = string
-  default = "boutique-k8s-kentik"
+  default = "sock-shop-k8s-kentik"
 }
 
 variable "worker_node_type" {
