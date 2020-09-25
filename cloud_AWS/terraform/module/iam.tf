@@ -5,99 +5,29 @@ resource "aws_iam_role" "kentik_role" {
   tags = {
     Provisioner = "Terraform"
   }
-  assume_role_policy = <<EOF
-{
-  "Statement" : [
-    {
-      "Action" : "sts:AssumeRole",
-      "Effect" : "Allow",
-      "Principal" : {
-        "AWS" : "arn:aws:iam::834693425129:role/eks-ingest-node"
-      },
-      "Sid" : ""
-    }
-  ],
-  "Version" : "2008-10-17"
-}
-EOF
-
+  assume_role_policy = file("${path.module}/files/kentikIngestRole.json")
 }
 
 resource "aws_iam_policy" "kentik_ec2_access" {
   name        = "${var.iam_role_prefix}EC2Access"
   description = "Defines required accesses for Kentik platform to EC2 resources"
   path        = "/"
-  policy      = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": "ec2:Describe*",
-      "Resource": "*"
-    },
-    {
-      "Effect": "Allow",
-      "Action": "elasticloadbalancing:Describe*",
-      "Resource": "*"
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "cloudwatch:ListMetrics",
-        "cloudwatch:GetMetricStatistics",
-        "cloudwatch:Describe*"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Effect": "Allow",
-      "Action": "autoscaling:Describe*",
-      "Resource": "*"
-    }
-  ]
-}
-EOF
+  policy      = file("${path.module}/files/kentikEC2Access.json")
 }
 
 resource "aws_iam_policy" "kentik_s3_ro_access" {
   name        = "${var.iam_role_prefix}S3ROAccess"
   description = "Defines read-only accesses for Kentik platform to S3 resources"
   path        = "/"
-  policy      = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "s3:Get*",
-        "s3:List*",
-        "s3:HeadBucket"
-      ],
-      "Resource": "*"
-    }
-  ]
-}
-EOF
+  policy      = templatefile("${path.module}/templates/kentikS3RO.json.tmpl",{buckets_list = [for bucketobject in aws_s3_bucket.vpc_logs : bucketobject.bucket]})
 }
 
 resource "aws_iam_policy" "kentik_s3_rw_access" {
   name        = "${var.iam_role_prefix}S3RWAccess"
   description = "Defines read-write accesses for Kentik platform to S3 resources"
   path        = "/"
-  policy      = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": "s3:*",
-      "Resource": "*"
-    }
-  ]
-}
-EOF
+  policy      = templatefile("${path.module}/templates/kentikS3RW.json.tmpl",{buckets_list = [for bucketobject in aws_s3_bucket.vpc_logs : bucketobject.bucket]})
+
 }
 
 resource "aws_iam_policy_attachment" "kentik_s3_access" {
