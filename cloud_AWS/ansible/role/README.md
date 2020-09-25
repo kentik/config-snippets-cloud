@@ -71,5 +71,6 @@ Note however, instead of copying the role into your Ansible directory structure,
 | vpc\_id\_list | List of VPC ids for which Kentik should gather logs | `list(string)` | `[]` | yes |
 | rw\_s3\_access | If set to true, Kentik platform will be able to delete old logs from s3 buckets | `bool` | `false` | no |
 | s3\_bucket\_prefix | Prefix to use with s3 bucket name | `string` | `kentik` | no |
+| s3\_bucket\_path | Path on S3 bucket for saving logs | `string` | `` | no |
 | iam\_role\_prefix | Prefix to use with IAM roles | `string` | `Kentik` | no |
 | store\_logs\_more\_frequently | Allows to choose how often save logs to s3. Default is once per 10 minutes. When enabled it saves once per minute | `bool` | `false` | no |

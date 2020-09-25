@@ -6,7 +6,7 @@
 
   - name: Save S3 Buckets
     set_fact:
-      bucket_name_list: "{{ bucket_name_list }} + [ 'arn:aws:s3:::{{ item.stack_resources.0.physical_resource_id }}' ]"
+      bucket_name_list: "{{ bucket_name_list }} + [ '{{ item.stack_resources.0.physical_resource_id }}' ]"
     listen: finished_aws
     with_items: "{{ kentik_buckets.results }}"
     loop_control:
