@@ -26,5 +26,5 @@ variable "worker_node_count" {
 
 variable "k8s_version" {
   type    = string
-  default = "1.14"
+  default = "1.16"
 }
