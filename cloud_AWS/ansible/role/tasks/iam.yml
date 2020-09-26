@@ -1,18 +1,4 @@
 ---
-  - name: Create S3 Buckets empty list
-    set_fact:
-      bucket_name_list: "[]"
-
-  - name: Save S3 Buckets List for IAM
-    set_fact:
-      bucket_name_list: "{{ bucket_name_list }} + [ 
-                           \"arn:aws:s3:::{{ [s3_bucket_prefix, item, 'flow-logs' if not s3_bucket_path else 'flow-logs/' + s3_bucket_path] | join('-') }}/\",
-                           \"arn:aws:s3:::{{ [s3_bucket_prefix, item, 'flow-logs' if not s3_bucket_path else 'flow-logs/' + s3_bucket_path] | join('-') }}/*\" 
-                        ]"
-    with_items: "{{ vpc_id_list }}"
-    loop_control:
-      label: "{{ item }}"
-
   - name: Create EC2 Access Policy
     iam_managed_policy:
       policy_name: "{{ iam_role_prefix }}EC2Access"
@@ -23,14 +9,14 @@
   - name: Create S3 RW Access Policy
     iam_managed_policy:
       policy_name: "{{ iam_role_prefix }}S3RWAccess"
-      policy: "{{ lookup('template', 'aws_iam_s3_rw_access_policy.j2') }}"
+      policy: "{{ lookup('template', 'aws_iam_s3_access_policy.j2') }}"
       policy_description: "Defines read-write accesses for Kentik platform to S3 resources"
       state: present
 
   - name: Create S3 RO Access Policy
     iam_managed_policy:
       policy_name: "{{ iam_role_prefix }}S3ROAccess"
-      policy: "{{ lookup('template', 'aws_iam_s3_ro_access_policy.j2') }}"
+      policy: "{{ lookup('template', 'aws_iam_s3_access_policy.j2') }}"
       policy_description: "Defines read-only accesses for Kentik platform to S3 resources"
       state: present
 
