@@ -57,8 +57,17 @@ jobs:
           pip3 install botocore==1.17.58
           pip3 install boto3==1.14.58
 
-      - name: Run Ansible Playbook
-        run: ansible-playbook cloud_AWS/ansible/role/tests/main.yml -i cloud_AWS/ansible/role/tests/inventory.yml
+      - name: Run Ansible Playbook for single VPC
+        run: ansible-playbook cloud_AWS/ansible/role/tests/single.yml
+        env:
+          S3_URL: http://127.0.0.1:4566
+          EC2_URL: http://127.0.0.1:4566
+          AWS_REGION: "us-east-1"
+          AWS_ACCESS_KEY_ID: "dumb-access-key"
+          AWS_SECRET_ACCESS_KEY: "dumb-secret-key"
+
+      - name: Run Ansible Playbook for many VPCs
+        run: ansible-playbook cloud_AWS/ansible/role/tests/many.yml
         env:
           S3_URL: http://127.0.0.1:4566
           EC2_URL: http://127.0.0.1:4566

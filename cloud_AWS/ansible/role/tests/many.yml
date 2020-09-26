@@ -1,0 +1,11 @@
+- hosts: 127.0.0.1
+  connection: local
+  gather_facts: false
+  roles:
+  - role: test_vpcs
+  - role: "{{ playbook_dir }}/../"
+    vars:
+      iam_role_prefix: "Many"
+      s3_bucket_path: "many/path"
+      store_logs_more_frequently: true
+      vpc_id_list: "{{ multi_vpc_ids }}"

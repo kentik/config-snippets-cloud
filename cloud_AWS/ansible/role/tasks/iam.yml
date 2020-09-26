@@ -6,18 +6,11 @@
       policy_description: "Defines required accesses for Kentik platform to EC2 resources"
       state: present
 
-  - name: Create S3 RW Access Policy
+  - name: Create S3 Access Policy
     iam_managed_policy:
-      policy_name: "{{ iam_role_prefix }}S3RWAccess"
+      policy_name: "{{ iam_role_prefix }}S3Access"
       policy: "{{ lookup('template', 'aws_iam_s3_access_policy.j2') }}"
-      policy_description: "Defines read-write accesses for Kentik platform to S3 resources"
-      state: present
-
-  - name: Create S3 RO Access Policy
-    iam_managed_policy:
-      policy_name: "{{ iam_role_prefix }}S3ROAccess"
-      policy: "{{ lookup('template', 'aws_iam_s3_access_policy.j2') }}"
-      policy_description: "Defines read-only accesses for Kentik platform to S3 resources"
+      policy_description: "Defines accesses for Kentik platform to S3 resources"
       state: present
 
   - name: Create Kentik Role
@@ -26,7 +19,7 @@
       assume_role_policy_document: "{{ lookup('file', 'aws_iam_role.json') }}"
       managed_policy:
       - "{{ iam_role_prefix }}EC2Access"
-      - "{{ iam_role_prefix }}{{ 'S3RWAccess' if rw_s3_access else 'S3ROAccess' }}"
+      - "{{ iam_role_prefix }}S3Access"
       description: "This role allows Kentik to ingest the VPC flow logs"
       state: present
     register: kentik_role
