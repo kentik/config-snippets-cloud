@@ -1,0 +1,14 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: front-end
+  namespace: sock-shop
+spec:
+  host: front-end
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 2
+      http:
+        http1MaxPendingRequests: 1
+        maxRequestsPerConnection: 1  # KeepAlive is disabled
