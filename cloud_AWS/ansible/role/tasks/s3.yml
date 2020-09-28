@@ -8,4 +8,5 @@
       on_create_failure: "DELETE"
       state: 'present'
     register: kentik_buckets
+    when: not s3_flowlogs_bucket
     with_items: "{{ vpc_id_list | mandatory }}"

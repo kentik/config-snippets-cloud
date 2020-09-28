@@ -7,6 +7,9 @@ store_logs_more_frequently: false
 # Prefix to use with S3 buckets names
 s3_bucket_prefix: "kentik"
 
+# Existing S3 bucket for storing logs
+s3_flowlogs_bucket: ""
+
 # Path for logs on the S3 bucket
 s3_flowlogs_path: ""
 

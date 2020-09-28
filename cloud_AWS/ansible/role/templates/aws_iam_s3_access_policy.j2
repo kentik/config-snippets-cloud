@@ -2,31 +2,97 @@
   "Version": "2012-10-17",
   "Statement": [
     {
+      "Sid": "AllowToSeeBucketList",
       "Action": [
         "s3:ListAllMyBuckets",
+        "s3:GetBucketLocation",
+{% if not s3_flowlogs_path %}
         "s3:ListBucket",
+{% endif %}
         "s3:HeadBucket"
       ],
       "Effect": "Allow",
       "Resource": [
+{% if s3_flowlogs_bucket %}
+        "arn:aws:s3:::{{ s3_flowlogs_bucket }}"
+{% else %}
 {% for v in vpc_id_list %}
         "arn:aws:s3:::{{ s3_bucket_prefix }}-{{ v }}-flow-logs"{{ ',' if not loop.last else '' }}
 {% endfor %}
+{% endif %}
       ]
     },
+{% if s3_flowlogs_path %}
+    {
+      "Sid": "AllowRootAndPathListing",
+      "Action": [
+        "s3:ListBucket"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+{% if s3_flowlogs_bucket %}
+        "arn:aws:s3:::{{ s3_flowlogs_bucket }}"
+{% else %}
+{% for v in vpc_id_list %}
+        "arn:aws:s3:::{{ s3_bucket_prefix }}-{{ v }}-flow-logs"{{ ',' if not loop.last else '' }}
+{% endfor %}
+{% endif %}
+      ],
+      "Condition": {
+        "StringEquals": {
+          "s3_prefix": [
+            "",
+{% set path = namespace(so_far = "") %}
+{% for v in s3_flowlogs_path.split("/") %}
+{% set path.so_far = path.so_far + v + ('/' if not loop.last else '') %}
+            "{{ path.so_far }}"{{ ',' if not loop.last else '' }} 
+{% endfor %}
+          ],
+          "s3:delimiter": [ "/" ]
+        }
+      }
+    },
+    {
+      "Sid": "AllowListingOfFolder",
+      "Action": [
+        "s3:ListBucket"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+{% if s3_flowlogs_bucket %}
+        "arn:aws:s3:::{{ s3_flowlogs_bucket }}"
+{% else %}
+{% for v in vpc_id_list %}
+        "arn:aws:s3:::{{ s3_bucket_prefix }}-{{ v }}-flow-logs"{{ ',' if not loop.last else '' }}
+{% endfor %}
+{% endif %}
+      ],
+      "Condition": {
+        "StringEquals": {
+          "s3_prefix": [ "{{ s3_flowlogs_path }}/*" ],
+          "s3:delimiter": [ "/" ]
+        }
+      }
+    },
+{% endif %}
     {
       "Effect": "Allow",
 {% if rw_s3_access is sameas true %}
       "Action": "s3:*",
 {% else %}
       "Action": [
-        "s3:Get*"
+        "s3:Get*",
+        "s3:List*",
       ],
 {% endif %}
       "Resource": [
+{% if s3_flowlogs_bucket %}
+        "arn:aws:s3:::{{ s3_flowlogs_bucket }}{{ '/' + s3_flowlogs_path if s3_flowlogs_path else ''}}/*"
+{% else %}
 {% for v in vpc_id_list %}
         "arn:aws:s3:::{{ s3_bucket_prefix }}-{{ v }}-flow-logs{{ '/' + s3_flowlogs_path if s3_flowlogs_path else ''}}/*"{{ ',' if not loop.last else '' }}
 {% endfor %}
+{% endif %}
       ]
     }
   ]
