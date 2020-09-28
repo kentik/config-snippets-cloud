@@ -6,12 +6,19 @@ variable "rw_s3_access" {
 variable "vpc_id_list" {
   description = "List of VPC ids for which Kentik should gather logs"
   type        = list(string)
+  default     = [""]
 }
 
 variable "s3_bucket_prefix" {
   description = "Prefix to use with s3 bucket name"
   type        = string
   default     = "kentik"
+}
+
+variable "s3_flowlogs_path" {
+  description = "Path on the S3 bucket for saving logs"
+  type        = string
+  default     = ""
 }
 
 variable "iam_role_prefix" {

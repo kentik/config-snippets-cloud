@@ -15,7 +15,7 @@ resource "aws_s3_bucket_public_access_block" "vpc_logs" {
 
 resource "aws_flow_log" "vpc_logs" {
   for_each                 = toset(var.vpc_id_list)
-  log_destination          = "${aws_s3_bucket.vpc_logs[each.key].arn}/"
+  log_destination          = (var.s3_flowlogs_path == "" ? "${aws_s3_bucket.vpc_logs[each.key].arn}/" : "${aws_s3_bucket.vpc_logs[each.key].arn}/${var.s3_flowlogs_path}/")
   log_destination_type     = "s3"
   log_format               = "$${version} $${account-id} $${interface-id} $${srcaddr} $${dstaddr} $${srcport} $${dstport} $${protocol} $${packets} $${bytes} $${start} $${end} $${action} $${log-status}"
   traffic_type             = "ALL"
