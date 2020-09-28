@@ -25,7 +25,6 @@
 {% endif %}
       "Resource": [
 {% for v in vpc_id_list %}
-        "arn:aws:s3:::{{ s3_bucket_prefix }}-{{ v }}-flow-logs{{ '/' + s3_bucket_path if s3_bucket_path else ''}}/",
         "arn:aws:s3:::{{ s3_bucket_prefix }}-{{ v }}-flow-logs{{ '/' + s3_bucket_path if s3_bucket_path else ''}}/*"{{ ',' if not loop.last else '' }}
 {% endfor %}
       ]
