@@ -9,6 +9,8 @@ As output you will get *aws_cli* command to configure *kubectl*, IAM role and s3
 > If you would like to use non-default aws profile add ```-var='aws_profile={{ your profile}}'``` to each terraform command
 
 > when ```-target``` parameter is used terraform displays warning about non-complete changes.
+> This is an expected behaviour.
+
 > This parameter is a workaround to one of terraform's problem. Sometimes resource can be
 > determined only after creation (```terraform apply```) you can read more about this [here](https://github.com/hashicorp/terraform/issues/4149)
 
