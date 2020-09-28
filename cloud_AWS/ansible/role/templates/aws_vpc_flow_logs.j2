@@ -3,9 +3,6 @@
         "ResourceId": {
             "Type": "String"
         },
-        "LogDestination": {
-            "Type": "String"
-        },
         "MaxAggregationInterval": {
             "Type": "Number"
         }
@@ -18,9 +15,11 @@
                     "Ref": "ResourceId"
                 },
                 "ResourceType": "VPC",
-                "LogDestination": {
-                    "Ref": "LogDestination"
-                },
+{% if s3_flowlogs_bucket %}
+                "LogDestination": "arn:aws:s3:::{{ s3_flowlogs_bucket }}/{{ s3_flowlogs_path + '/' if s3_flowlogs_path else '' }}{{ item }}",
+{% else %}
+                "LogDestination": "arn:aws:s3:::{{ s3_bucket_prefix }}-{{ item }}-flow-logs/{{ s3_flowlogs_path + '/' if s3_flowlogs_path else '' }}",
+{% endif %}
                 "LogDestinationType": "s3",
                 "LogFormat": "${version} ${account-id} ${interface-id} ${srcaddr} ${dstaddr} ${srcport} ${dstport} ${protocol} ${packets} ${bytes} ${start} ${end} ${action} ${log-status}",
                 "MaxAggregationInterval": {
