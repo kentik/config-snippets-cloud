@@ -1,4 +1,8 @@
 ---
+  - name: Prepare the S3 Bucket Path
+    set_fact:
+      s3_bucket_path: "{{ s3_bucket_path | regex_replace('^\\/|\\/$', '')}}"
+
   - name: Create EC2 Access Policy
     iam_managed_policy:
       policy_name: "{{ iam_role_prefix }}EC2Access"
