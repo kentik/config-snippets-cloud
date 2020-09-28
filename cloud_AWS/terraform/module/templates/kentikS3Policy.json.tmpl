@@ -3,12 +3,22 @@
   "Statement": [
     {
       "Effect": "Allow",
+      "Action": [
+        "s3:List*",
+        "s3:HeadBucket"],
+      "Resource": ${jsonencode([
+        for bucket in buckets_list : bucket
+      ])}
+    },
+    {
+      "Effect": "Allow",
       "Action": ${jsonencode([
         for action in actions_list : action
       ])},
       "Resource": ${jsonencode([
-        for bucket in buckets_list : bucket
+        for bucket in buckets_list : "${bucket}/${sub_path}"
       ])}
     }
+
   ]
 }
