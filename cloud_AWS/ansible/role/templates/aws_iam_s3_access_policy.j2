@@ -2,13 +2,25 @@
   "Version": "2012-10-17",
   "Statement": [
     {
+      "Action": [
+        "s3:ListAllMyBuckets",
+        "s3:ListBucket",
+        "s3:HeadBucket"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+{% for v in vpc_id_list %}
+        "arn:aws:s3:::{{ s3_bucket_prefix }}-{{ v }}-flow-logs"{{ ',' if not loop.last else '' }}
+{% endfor %}
+      ]
+    },
+    {
       "Effect": "Allow",
 {% if rw_s3_access is sameas true %}
       "Action": "s3:*",
 {% else %}
       "Action": [
-        "s3:Get*",
-        "s3:List*"
+        "s3:Get*"
       ],
 {% endif %}
       "Resource": [
