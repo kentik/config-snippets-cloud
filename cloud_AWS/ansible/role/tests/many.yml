@@ -6,6 +6,6 @@
   - role: "{{ playbook_dir }}/../"
     vars:
       iam_role_prefix: "Many"
-      s3_bucket_path: "many/path"
+      s3_flowlogs_path: "many/path"
       store_logs_more_frequently: true
       vpc_id_list: "{{ multi_vpc_ids }}"

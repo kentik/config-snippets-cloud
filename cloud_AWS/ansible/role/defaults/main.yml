@@ -8,7 +8,7 @@ store_logs_more_frequently: false
 s3_bucket_prefix: "kentik"
 
 # Path for logs on the S3 bucket
-s3_bucket_path: ""
+s3_flowlogs_path: ""
 
 # If set to true, Kentik platform will be able to delete old logs from s3 bucket
 rw_s3_access: false

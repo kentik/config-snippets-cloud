@@ -6,6 +6,6 @@
   - role: "{{ playbook_dir }}/../"
     vars:
       iam_role_prefix: "Single"
-      s3_bucket_path: "single/path"
+      s3_flowlogs_path: "single/path"
       rw_s3_access: true
       vpc_id_list: "{{ single_vpc_ids }}"

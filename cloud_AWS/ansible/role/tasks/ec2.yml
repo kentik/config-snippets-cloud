@@ -5,7 +5,7 @@
       template_body: "{{ lookup ('file', 'aws_vpc_flow_logs.json') |string }}"
       template_parameters:
         ResourceId: "{{ item }}"
-        LogDestination: "arn:aws:s3:::{{ [s3_bucket_prefix, item, 'flow-logs' if not s3_bucket_path else 'flow-logs/' + s3_bucket_path] | join('-') }}/"
+        LogDestination: "arn:aws:s3:::{{ [s3_bucket_prefix, item, 'flow-logs' if not s3_flowlogs_path else 'flow-logs/' + s3_flowlogs_path] | join('-') }}/"
         MaxAggregationInterval: "{{ '60' if store_logs_more_frequently else '600' }}"
       on_create_failure: "DELETE"
       state: 'present'
