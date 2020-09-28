@@ -3,11 +3,9 @@
   "Statement": [
     {
       "Effect": "Allow",
-      "Action": [
-        "s3:Get*",
-        "s3:List*",
-        "s3:HeadBucket"
-      ],
+      "Action": ${jsonencode([
+        for action in actions_list : action
+      ])},
       "Resource": ${jsonencode([
         for bucket in buckets_list : bucket
       ])}
