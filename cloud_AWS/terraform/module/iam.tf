@@ -19,14 +19,14 @@ resource "aws_iam_policy" "kentik_s3_ro_access" {
   name        = "${var.iam_role_prefix}S3ROAccess"
   description = "Defines read-only accesses for Kentik platform to S3 resources"
   path        = "/"
-  policy      = templatefile("${path.module}/templates/kentikS3RO.json.tmpl",{buckets_list = [for bucketobject in aws_s3_bucket.vpc_logs : bucketobject.bucket]})
+  policy      = templatefile("${path.module}/templates/kentikS3RO.json.tmpl",{buckets_list = [for bucketobject in aws_s3_bucket.vpc_logs : bucketobject.arn]})
 }
 
 resource "aws_iam_policy" "kentik_s3_rw_access" {
   name        = "${var.iam_role_prefix}S3RWAccess"
   description = "Defines read-write accesses for Kentik platform to S3 resources"
   path        = "/"
-  policy      = templatefile("${path.module}/templates/kentikS3RW.json.tmpl",{buckets_list = [for bucketobject in aws_s3_bucket.vpc_logs : bucketobject.bucket]})
+  policy      = templatefile("${path.module}/templates/kentikS3RW.json.tmpl",{buckets_list = [for bucketobject in aws_s3_bucket.vpc_logs : bucketobject.arn]})
 
 }
 
