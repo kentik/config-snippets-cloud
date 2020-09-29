@@ -1,6 +1,24 @@
 # config-snippets-cloud
 
 # Stage 1 - Automate AWS
+## Terraform
+* [terraform](terraform/module)
+### Demo
+* [terraform demo] (terraform/module/role/demo)
+### Examples
+#### Single VPC, Single Region
+#### All VPC, Single Region
+#### Deploy Sock Shop as an example micro-service architecture
+
+## Ansible
+* [ansible](ansible/role)
+### Demo
+* [ansible demo] (ansible/module/role/demo)
+### Examples
+#### Single VPC, Single Region
+#### All VPC, Single Region
+#### Deploy Sock Shop as an example micro-service architecture
+
 
 # Stage 2 - Automate GCP
 
