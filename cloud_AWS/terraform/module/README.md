@@ -4,7 +4,8 @@ Terraform module which creates AWS resources required for Kentik to enable integ
 
 Module is creating:
 * IAM role acording to [Kentik documentation](https://kb.kentik.com/Fc14.htm#Fc14-Create_an_AWS_Role)
-* S3 bucket - one per VPC - acording to [Kentik documentation](https://kb.kentik.com/Fc14.htm#Fc14-Create_an_S3_Bucket)
+* S3 bucket per region (reduces AWS costs)
+* ---- one unique sub-folder per VPC - according to [Kentik documentation](https://kb.kentik.com/Fc14.htm#Fc14-Create_an_S3_Bucket)
 * Flow log for VPC acording to [Kentik documentation](https://kb.kentik.com/Fc14.htm#Fc14-Configure_Log_Publishing)
 
 ## Usage
