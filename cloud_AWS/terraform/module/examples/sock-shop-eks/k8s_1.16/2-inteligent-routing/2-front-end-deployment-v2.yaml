@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: front-end-v2
+  namespace: sock-shop
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      version: v2
+      name: front-end
+  template:
+    metadata:
+      labels:
+        name: front-end
+        version: v2
+    spec:
+      containers:
+        - name: front-end
+          image: vinayakinfrac/front-end:0.3.13
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+          ports:
+            - containerPort: 8079
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            capabilities:
+              drop:
+                - all
+            readOnlyRootFilesystem: true
+      nodeSelector:
+        kubernetes.io/os: linux
