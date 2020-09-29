@@ -7,17 +7,19 @@
 * [terraform demo] (terraform/module/role/demo)
 ### Examples
 #### Single VPC, Single Region
+* https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/terraform/module/examples/single-vpc
 #### All VPC, Single Region
+* https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/terraform/module/examples/all-vpc-from-region 
 #### Deploy Sock Shop as an example micro-service architecture
+* https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/terraform/module/examples/sock-shop-eks
 
 ## Ansible
-* [ansible](ansible/role)
+* https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/ansible/role
 ### Demo
-* [ansible demo] (ansible/module/role/demo)
+* https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/ansible/role/demo
 ### Examples
 #### Single VPC, Single Region
-#### All VPC, Single Region
-#### Deploy Sock Shop as an example micro-service architecture
+* https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/ansible/role/examples/single-vpc
 
 
 # Stage 2 - Automate GCP
