@@ -5,8 +5,7 @@
   - role: test_vpcs
   - role: "{{ playbook_dir }}/../"
     vars:
-      vpc_id_list: "{{ single_vpc_ids }}"
-  - role: "{{ playbook_dir }}/../"
-    vars:
+      iam_role_prefix: "Many"
+      s3_flowlogs_path: "many/path"
       store_logs_more_frequently: true
       vpc_id_list: "{{ multi_vpc_ids }}"

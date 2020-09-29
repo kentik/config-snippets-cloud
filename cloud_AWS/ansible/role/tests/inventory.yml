@@ -1,3 +1,0 @@
-all:
-  vars:
-    s3_rw_access: true

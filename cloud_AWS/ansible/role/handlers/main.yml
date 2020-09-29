@@ -6,16 +6,17 @@
 
   - name: Save S3 Buckets
     set_fact:
-      bucket_name_list: "{{ bucket_name_list }} + [ 'arn:aws:s3:::{{ item.stack_resources.0.physical_resource_id }}' ]"
+      bucket_name_list: "{{ bucket_name_list }} + [ '{{ item.stack_resources.0.physical_resource_id }}' ]"
     listen: finished_aws
     with_items: "{{ kentik_buckets.results }}"
+    when: not s3_flowlogs_bucket
     loop_control:
-      label: "{{ item.stack_resources.0.physical_resource_id }}"
+      label: "{{ item.stack_resources.0.physical_resource_id if not s3_flowlogs_bucket else s3_flowlogs_bucket }}"
 
   - name: Inform of Results
     listen: finished_aws
     debug:
       msg: [
-        "S3 Buckets ARNs: {{ bucket_name_list }}",
+        "S3 Buckets ARNs: {{ bucket_name_list if not s3_flowlogs_bucket else s3_flowlogs_bucket }}",
         "IAM Role ARN: {{ kentik_role.arn }}"
       ]
