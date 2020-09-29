@@ -2,24 +2,24 @@
 
 # Stage 1 - Automate AWS
 ## Terraform
-* https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/terraform
+* [Tearraform] https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/terraform
 ### Demo
-* [terraform demo] (terraform/module/role/demo)
+* [Terraform Demo] https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/terraform/module/demo
 ### Examples
 #### Single VPC, Single Region
-* https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/terraform/module/examples/single-vpc
+* [single-vpc] https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/terraform/module/examples/single-vpc
 #### All VPC, Single Region
-* https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/terraform/module/examples/all-vpc-from-region 
+* [all-vpc-from-region] https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/terraform/module/examples/all-vpc-from-region 
 #### Deploy Sock Shop as an example micro-service architecture
-* https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/terraform/module/examples/sock-shop-eks
+* [sock-shop-eks] https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/terraform/module/examples/sock-shop-eks
 
 ## Ansible
-* https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/ansible/role
+* [Ansible] https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/ansible/role
 ### Demo
-* https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/ansible/role/demo
+* [Ansible Demo] https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/ansible/role/demo
 ### Examples
 #### Single VPC, Single Region
-* https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/ansible/role/examples/single-vpc
+* [single-vpc] https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/ansible/role/examples/single-vpc
 
 
 # Stage 2 - Automate GCP
