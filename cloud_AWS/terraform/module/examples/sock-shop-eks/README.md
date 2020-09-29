@@ -50,7 +50,7 @@ $ kubectl apply -f 1-sock-shop-install/frontend-load-balancer.yml
 ```
 To get public endpoint of application we need to find its external-ip:
 ```
-$ kubectl get svc front-end-load-balancer
+$ kubectl get svc front-end-load-balancer -n sock-shop
 NAME                      TYPE           CLUSTER-IP     EXTERNAL-IP                                                              PORT(S)        AGE
 front-end-load-balancer   LoadBalancer   172.20.99.29   {{ DNS NAME }}                                                           80:30081/TCP   38s
 $ curl {{ DNS NAME }}
@@ -58,6 +58,11 @@ $ curl {{ DNS NAME }}
 
 ### Clean environment
 ```
+$ kubectl delete -f 1-sock-shop-install/frontend-load-balancer.yml 
+$ kubectl delete -f <(istioctl kube-inject -f 1-sock-shop-install/3-virtual-services-all.yaml ) -n sock-shop
+$ kubectl delete -f <(istioctl kube-inject -f 1-sock-shop-install/2-sockshop-gateway.yaml) -n sock-shop
+$ kubectl delete -f 1-sock-shop-install/1-sock-shop-complete-demo-istio.yaml -nsock-shop
+$ istioctl x uninstall --purge # Agree when asked
 $ terraform destroy
 Error: error deleting S3 Bucket (sock-shop-cluster-logs-vpc-056445edb0295f98e-flow-logs): BucketNotEmpty: The bucket you tried to delete is not empty
         status code: 409, request id: ***, host id: ***
