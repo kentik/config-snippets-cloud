@@ -2,7 +2,7 @@
 
 # Stage 1 - Automate AWS
 ## Terraform
-* [terraform](terraform/module)
+* https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/terraform
 ### Demo
 * [terraform demo] (terraform/module/role/demo)
 ### Examples
