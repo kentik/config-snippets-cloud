@@ -7,6 +7,6 @@
         ResourceId: "{{ item }}"
         MaxAggregationInterval: "{{ '60' if store_logs_more_frequently else '600' }}"
       on_create_failure: "DELETE"
-      state: 'present'
+      state: present
     notify: finished_aws
     with_items: "{{ vpc_id_list | mandatory }}"
