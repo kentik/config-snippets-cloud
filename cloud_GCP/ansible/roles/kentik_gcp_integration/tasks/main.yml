@@ -36,5 +36,21 @@
 - debug:
     var: networks
 
+## Now to find subnetworks
+- name: Get subnetworks
+  gcp_compute_subnetwork_info:
+    <<: *cc
+    filters:
+    - name = subnet-1
+    region: us-east1
+  register: subnet_output
+
+- set_fact:
+    subnets: "{{subnet_output.resources}}"
+  
+- debug:
+    var: subnets
+
+# integration starts here
 
 # Asume VPC with id exists 
