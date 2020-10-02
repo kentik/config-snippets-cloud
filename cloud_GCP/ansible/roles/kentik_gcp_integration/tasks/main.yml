@@ -22,5 +22,19 @@
     - google-auth >= 1.3.0
   run_once: True
 
+#Filters should be supplied
+- name: Get info about networks
+  gcp_compute_network_info:
+    <<: *cc
+    filters:
+    - name = patryk-test
+  register: network_info_output
+
+- set_fact:
+    networks: "{{network_info_output.resources}}"
+  
+- debug:
+    var: networks
+
 
 # Asume VPC with id exists 
