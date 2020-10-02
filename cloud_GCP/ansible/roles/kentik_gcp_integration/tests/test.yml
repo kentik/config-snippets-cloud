@@ -1,0 +1,6 @@
+---
+- hosts: 127.0.0.1
+  gather_facts: false
+  connection: local
+  roles:
+    - roles/kentik_gcp_integration
