@@ -1,5 +1,19 @@
 ---
 # tasks file for roles/kentik_gcp_integration
+- name: get project
+  local_action:
+    module: shell gcloud config get-value project
+  register: output
+  changed_when: false
+
+  # Create YAML anchor -> DRY rule
+- set_fact: &cc
+    auth_kind: serviceaccount
+    project: "{{ output.stdout }}"
+
+- debug:
+    var: output.stdout
+    
 - name: Install dependencies for gcp_* modules locally
   local_action:
     module: pip
