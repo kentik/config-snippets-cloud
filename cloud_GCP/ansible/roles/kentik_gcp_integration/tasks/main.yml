@@ -53,4 +53,22 @@
 
 # integration starts here
 
-# Asume VPC with id exists 
+- debug:
+    var: networks[0]
+
+- name: For each subnet enable log flow
+  gcp_compute_subnetwork:
+    <<: *cc
+    name: "{{ item.name}}"
+    ip_cidr_range: "{{item.ipCidrRange}}"
+    region: "{{ item.region | urlsplit('path') | basename }}"
+    enable_flow_logs: true
+    network: "{{ networks[0] }}"
+  loop: "{{ subnets  }}"
+  register: enabled_logflow
+
+# input: VPC list of vpc
+# or better list of filters
+# print list of matched vpcs
+# for each subnet in those vpcs 
+# enable logflow 
