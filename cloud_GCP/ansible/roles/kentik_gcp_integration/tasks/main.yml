@@ -89,4 +89,20 @@
 # or better list of filters
 # print list of matched vpcs
 # for each subnet in those vpcs 
-# enable logflow 
+# enable logflow gcp_logging_metric_info
+- name: create a topic
+  gcp_pubsub_topic:
+    name: test-topic1
+    <<: *cc
+    state: present
+  register: topic
+
+- name: create a subscription
+  gcp_pubsub_subscription:
+    <<: *cc
+    name: test_object
+    topic: "{{ topic }}"
+    ack_deadline_seconds: 300
+    state: present
+
+# - name: Create sink
