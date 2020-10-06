@@ -11,9 +11,6 @@
     auth_kind: serviceaccount
     project: "{{ output.stdout }}"
 
-- debug:
-    var: output.stdout
-    
 - name: Install dependencies for gcp_* modules locally
   local_action:
     module: pip
@@ -33,9 +30,6 @@
 - set_fact:
     networks: "{{network_info_output.resources}}"
   
-- debug:
-    var: networks
-
 ## Now to find subnetworks
 - name: Get subnetworks
   gcp_compute_subnetwork_info:
@@ -48,13 +42,15 @@
 - set_fact:
     subnets: "{{subnet_output.resources}}"
   
-- debug:
+- name: Subnet info
+  debug:
     var: subnets
 
 # integration starts here
 
-- debug:
-    var: networks[0]
+- name: Networks info
+  debug:
+    var: networks
 
 - name: For each subnet enable log flow
   gcp_compute_subnetwork:
@@ -62,10 +58,16 @@
     name: "{{ item.name}}"
     ip_cidr_range: "{{item.ipCidrRange}}"
     region: "{{ item.region | urlsplit('path') | basename }}"
-    enable_flow_logs: true
-    network: "{{ networks[0] }}"
+    # enable_flow_logs: true
+    # workaround to strange requirement of module 
+    # it requires network url but passed as dict with key selfLink so
+    network: "{{ dict(['selfLink'] | zip(item.network))  }}" # | urlspplit('path') | dirname }}"
   loop: "{{ subnets  }}"
   register: enabled_logflow
+
+- name: Enabled logflow info
+  debug:
+    var: enabled_logflow
 
 - name: Enable flow log for subnets without it using gcloud
   command:
