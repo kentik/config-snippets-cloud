@@ -71,13 +71,13 @@
 
 - name: Enable flow log for subnets without it using gcloud
   command:
-    argv:
-    - gcloud
-    - compute networks subnets update
-    - "--enable-flow-logs {{ item.name }}"
-    - "--region={{ item.region | urlsplit('path') | basename }}"
+    cmd: >
+      gcloud
+      compute networks subnets update
+      --enable-flow-logs {{ item.name }}
+      --region={{ item.region | urlsplit('path') | basename }}
   when: not item.enableFlowLogs
-  loop: "{{ subnets  }}"
+  loop: "{{ subnets }}"
   register: enabled_logflow_shell
 
 - name: Enabled logflow shell info
