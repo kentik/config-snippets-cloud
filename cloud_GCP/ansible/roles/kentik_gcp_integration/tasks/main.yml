@@ -67,6 +67,24 @@
   loop: "{{ subnets  }}"
   register: enabled_logflow
 
+- name: Enable flow log for subnets without it using gcloud
+  command:
+    argv:
+    - gcloud
+    - compute networks subnets update
+    - "--enable-flow-logs {{ item.name }}"
+    - "--region={{ item.region | urlsplit('path') | basename }}"
+  when: not item.enableFlowLogs
+  loop: "{{ subnets  }}"
+  register: enabled_logflow_shell
+
+- name: Enabled logflow shell info
+  debug:
+    var: enabled_logflow_shell
+
+
+# - name
+
 # input: VPC list of vpc
 # or better list of filters
 # print list of matched vpcs
