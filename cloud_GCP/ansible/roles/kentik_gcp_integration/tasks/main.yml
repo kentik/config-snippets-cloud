@@ -1,110 +1,144 @@
 ---
-# tasks file for roles/kentik_gcp_integration
-- name: get project
-  local_action:
-    module: shell gcloud config get-value project
-  register: output
-  changed_when: false
-
-  # Create YAML anchor -> DRY rule
+##  Create YAML anchor -> DRY rule
 - set_fact: &cc
     auth_kind: serviceaccount
-    project: "{{ output.stdout }}"
+    project: "{{ kentik_gcp_integration_project }}"
+    service_account_file: "{{ kentik_gcp_integration_service_account_file }}"
 
 - name: Install dependencies for gcp_* modules locally
-  local_action:
-    module: pip
+  pip:
     name:
     - requests >= 2.18.4
     - google-auth >= 1.3.0
-  run_once: True
 
-#Filters should be supplied
-- name: Get info about networks
-  gcp_compute_network_info:
-    <<: *cc
-    filters:
-    - name = patryk-test
-  register: network_info_output
-
-- set_fact:
-    networks: "{{network_info_output.resources}}"
-  
-## Now to find subnetworks
-- name: Get subnetworks
-  gcp_compute_subnetwork_info:
-    <<: *cc
-    filters:
-    - name = subnet-1
-    region: us-east1
-  register: subnet_output
-
-- set_fact:
-    subnets: "{{subnet_output.resources}}"
-  
-- name: Subnet info
-  debug:
-    var: subnets
-
-# integration starts here
-
-- name: Networks info
-  debug:
-    var: networks
-
-- name: For each subnet enable log flow
-  gcp_compute_subnetwork:
-    <<: *cc
-    name: "{{ item.name}}"
-    ip_cidr_range: "{{item.ipCidrRange}}"
-    region: "{{ item.region | urlsplit('path') | basename }}"
-    # enable_flow_logs: true
-    # workaround to strange requirement of module 
-    # it requires network url but passed as dict with key selfLink so
-    network: "{{ dict(['selfLink'] | zip(item.network))  }}" # | urlspplit('path') | dirname }}"
-  loop: "{{ subnets  }}"
-  register: enabled_logflow
-
-- name: Enabled logflow info
-  debug:
-    var: enabled_logflow
-
-- name: Enable flow log for subnets without it using gcloud
+##Filters should be supplied
+# - name: Get info about networks
+  # gcp_compute_network_info:
+    # <<: *cc
+    # filters: "{{ kentik_gcp_integration_vpc_filter }}"
+  # register: network_info_output
+# 
+# - set_fact:
+    # networks: "{{network_info_output.resources}}"
+# 
+# - name: List matched networks
+  # debug:
+    # var: networks
+  # 
+# - name: Give users access to multiple databases
+  # debug:
+    # msg: |
+      # "{{ item }}"
+  # loop: "{{ networks |  map(attribute='subnetworks') }}"
+# 
+# - name: Exit because testing
+  # fail: msg="testing"
+  # 
+# Now to find subnetworks
+# - name: Get subnetworks
+  # gcp_compute_subnetwork_info:
+    # <<: *cc
+    # filters:
+    # - name = subnet-1
+    # region: 
+  # loop: "{{ networks | map(attribute='subnetworks') }}"
+  # register: subnet_output
+# 
+# - set_fact:
+    # subnets: "{{subnet_output.resources}}"
+# 
+# - name: Exit because testing
+  # fail: msg="testing"
+  # 
+# - name: Subnet info
+  # debug:
+    # var: subnets
+# 
+# - name: Exit because testing
+  # fail: msg="testing"
+# 
+## integration starts here
+# 
+# - name: Networks info
+  # debug:
+    # var: networks
+    
+# gcp_compute_subnetwork removed enabling flowlogs 
+- name: Enable flow log for subnets without it, using gcloud
   command:
     cmd: >
       gcloud
       compute networks subnets update
       --enable-flow-logs {{ item.name }}
-      --region={{ item.region | urlsplit('path') | basename }}
-  when: not item.enableFlowLogs
-  loop: "{{ subnets }}"
+      --region={{ item.region }}
+  loop: "{{ kentik_gcp_integration_subnets }}"
   register: enabled_logflow_shell
 
 - name: Enabled logflow shell info
   debug:
     var: enabled_logflow_shell
 
-
-# - name
-
-# input: VPC list of vpc
-# or better list of filters
-# print list of matched vpcs
-# for each subnet in those vpcs 
-# enable logflow gcp_logging_metric_info
 - name: create a topic
   gcp_pubsub_topic:
-    name: test-topic1
     <<: *cc
+    name: "{{kentik_gcp_integration_topic}}"
     state: present
   register: topic
+
+- debug:
+    var: topic
 
 - name: create a subscription
   gcp_pubsub_subscription:
     <<: *cc
-    name: test_object
+    name: "{{ kentik_gcp_integration_subscription_name }}"
     topic: "{{ topic }}"
-    ack_deadline_seconds: 300
     state: present
+  register: sub_output
 
-# - name: Create sink
+- set_fact:
+    subscription_info: "{{ sub_output }}"
+    subnets: "{{ kentik_gcp_integration_subnets }}"
+  
+- debug:
+    var: subscription_info
+
+- name: Getting sinks
+  shell: gcloud logging sinks list | tail -n +2 | cut -f1 -d' '
+  register: sinks_shell
+  changed_when: false
+
+- set_fact:
+    sinks: "{{ sinks_shell.stdout_lines }}"
+  
+- name: List sinks
+  debug:
+    var: sinks
+
+- name: "Create sink {{ kentik_gcp_integration_sink_name }}"
+  command: >
+    gcloud logging sinks create 
+    "{{ kentik_gcp_integration_sink_name }}"
+    'pubsub.googleapis.com/{{ topic.name }}'
+    --log-filter='resource.type=gce_subnetwork AND resource.labels.subnetwork_name :( {{ subnets | map(attribute='name') | join(' ')}} )'
+  when: kentik_gcp_integration_sink_name not in sinks
+
+- name: "Update sink {{ kentik_gcp_integration_sink_name }}"
+  command: >
+    gcloud logging sinks update 
+    "{{ kentik_gcp_integration_sink_name }}"
+    'pubsub.googleapis.com/{{ topic.name }}'
+    --log-filter='resource.type=gce_subnetwork AND resource.labels.subnetwork_name :( {{ subnets | map(attribute='name') | join(' ')}} )'
+  when: kentik_gcp_integration_sink_name in sinks
+
+- name: "Add permissions to subscription {{ subscription_info.name }} for kentik to use topic"
+  shell: >
+    gcloud pubsub subscriptions add-iam-policy-binding
+    --member={{ kentik_service_account }}
+    --role=roles/pubsub.subscriber
+    "{{ subscription_info.name }}"
+    &&
+    gcloud pubsub subscriptions add-iam-policy-binding
+    --member={{ kentik_service_account }}
+    --role=roles/pubsub.viewer
+    "{{ subscription_info.name }}"
