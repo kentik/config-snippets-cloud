@@ -1,0 +1,18 @@
+---
+- hosts: 127.0.0.1
+  gather_facts: false
+  connection: local
+  pre_tasks:
+
+  - name: get project
+    shell: gcloud config get-value project
+    register: output
+    changed_when: false
+
+  roles:
+    - role: roles/kentik_gcp_integration
+      vars:
+        kentik_gcp_integration_project: "{{ output.stdout }}"
+        kentik_gcp_integration_subnets:
+        - name: subnet-1
+          region: us-east1

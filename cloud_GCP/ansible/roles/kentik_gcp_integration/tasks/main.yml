@@ -1,0 +1,75 @@
+---
+##  Create YAML anchor -> DRY rule
+- name: Set facts for authentication to GCP
+  set_fact: &cc
+    auth_kind: serviceaccount
+    project: "{{ kentik_gcp_integration_project }}"
+    service_account_file: "{{ kentik_gcp_integration_service_account_file }}"
+
+- name: Install dependencies for gcp_* modules locally
+  pip:
+    name:
+    - requests >= 2.18.4
+    - google-auth >= 1.3.0
+
+# gcp_compute_subnetwork removed enabling flowlogs
+- name: Enable flow log for subnets without it, using gcloud
+  command:
+    cmd: >
+      gcloud
+      compute networks subnets update
+      --enable-flow-logs {{ item.name }}
+      --region={{ item.region }}
+  loop: "{{ kentik_gcp_integration_subnets }}"
+
+- name: create a topic
+  gcp_pubsub_topic:
+    <<: *cc
+    name: "{{ kentik_gcp_integration_topic }}"
+    state: present
+  register: topic_output
+
+- name: create a subscription
+  gcp_pubsub_subscription:
+    <<: *cc
+    name: "{{ kentik_gcp_integration_subscription_name }}"
+    topic: "{{ topic_output }}"
+    state: present
+  register: subscription_info
+
+- name: Getting sinks
+  shell: gcloud logging sinks list | tail -n +2 | cut -f1 -d' '
+  register: sinks_shell
+  changed_when: false
+
+- name: Setting facts for sinks
+  set_fact:
+    sinks: "{{ sinks_shell.stdout_lines }}"
+
+- name: "Create sink {{ kentik_gcp_integration_sink_name }}"
+  command: >
+    gcloud logging sinks create
+    "{{ kentik_gcp_integration_sink_name }}"
+    'pubsub.googleapis.com/{{ topic_output.name }}'
+    --log-filter='resource.type=gce_subnetwork AND resource.labels.subnetwork_name :( {{ kentik_gcp_integration_subnets | map(attribute='name') | join(' ') }} )'
+  when: kentik_gcp_integration_sink_name not in sinks
+
+- name: "Update sink {{ kentik_gcp_integration_sink_name }}"
+  command: >
+    gcloud logging sinks update
+    "{{ kentik_gcp_integration_sink_name }}"
+    'pubsub.googleapis.com/{{ topic_output.name }}'
+    --log-filter='resource.type=gce_subnetwork AND resource.labels.subnetwork_name :( {{ kentik_gcp_integration_subnets | map(attribute='name') | join(' ') }} )'
+  when: kentik_gcp_integration_sink_name in sinks
+
+- name: "Add permissions to subscription {{ subscription_info.name }} for kentik to use {{ topic_output.name }}"
+  shell: >
+    gcloud pubsub subscriptions add-iam-policy-binding
+    --member={{ kentik_service_account }}
+    --role=roles/pubsub.subscriber
+    "{{ subscription_info.name }}"
+    &&
+    gcloud pubsub subscriptions add-iam-policy-binding
+    --member={{ kentik_service_account }}
+    --role=roles/pubsub.viewer
+    "{{ subscription_info.name }}"
