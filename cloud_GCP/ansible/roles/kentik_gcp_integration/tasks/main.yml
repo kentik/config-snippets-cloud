@@ -29,27 +29,20 @@
 - name: create a topic
   gcp_pubsub_topic:
     <<: *cc
-    name: "{{kentik_gcp_integration_topic}}"
+    name: "{{ kentik_gcp_integration_topic }}"
     state: present
-  register: topic
+  register: topic_output
 
 - debug:
-    var: topic
+    var: topic_output
 
 - name: create a subscription
   gcp_pubsub_subscription:
     <<: *cc
     name: "{{ kentik_gcp_integration_subscription_name }}"
-    topic: "{{ topic }}"
+    topic: "{{ topic_output }}"
     state: present
-  register: sub_output
-
-- set_fact:
-    subscription_info: "{{ sub_output }}"
-    subnets: "{{ kentik_gcp_integration_subnets }}"
-  
-- debug:
-    var: subscription_info
+  register: subscription_info
 
 - name: Getting sinks
   shell: gcloud logging sinks list | tail -n +2 | cut -f1 -d' '
@@ -59,24 +52,20 @@
 - set_fact:
     sinks: "{{ sinks_shell.stdout_lines }}"
   
-- name: List sinks
-  debug:
-    var: sinks
-
 - name: "Create sink {{ kentik_gcp_integration_sink_name }}"
   command: >
     gcloud logging sinks create 
     "{{ kentik_gcp_integration_sink_name }}"
-    'pubsub.googleapis.com/{{ topic.name }}'
-    --log-filter='resource.type=gce_subnetwork AND resource.labels.subnetwork_name :( {{ subnets | map(attribute='name') | join(' ')}} )'
+    'pubsub.googleapis.com/{{ topic_output.name }}'
+    --log-filter='resource.type=gce_subnetwork AND resource.labels.subnetwork_name :( {{ kentik_gcp_integration_subnets | map(attribute='name') | join(' ')}} )'
   when: kentik_gcp_integration_sink_name not in sinks
 
 - name: "Update sink {{ kentik_gcp_integration_sink_name }}"
   command: >
     gcloud logging sinks update 
     "{{ kentik_gcp_integration_sink_name }}"
-    'pubsub.googleapis.com/{{ topic.name }}'
-    --log-filter='resource.type=gce_subnetwork AND resource.labels.subnetwork_name :( {{ subnets | map(attribute='name') | join(' ')}} )'
+    'pubsub.googleapis.com/{{ topic_output.name }}'
+    --log-filter='resource.type=gce_subnetwork AND resource.labels.subnetwork_name :( {{ kentik_gcp_integration_subnets | map(attribute='name') | join(' ')}} )'
   when: kentik_gcp_integration_sink_name in sinks
 
 - name: "Add permissions to subscription {{ subscription_info.name }} for kentik to use topic"
