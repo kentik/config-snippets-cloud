@@ -1,6 +1,7 @@
 ---
 ##  Create YAML anchor -> DRY rule
-- set_fact: &cc
+- name: Set facts for authentication to GCP
+  set_fact: &cc
     auth_kind: serviceaccount
     project: "{{ kentik_gcp_integration_project }}"
     service_account_file: "{{ kentik_gcp_integration_service_account_file }}"
@@ -11,7 +12,7 @@
     - requests >= 2.18.4
     - google-auth >= 1.3.0
 
-# gcp_compute_subnetwork removed enabling flowlogs 
+# gcp_compute_subnetwork removed enabling flowlogs
 - name: Enable flow log for subnets without it, using gcloud
   command:
     cmd: >
@@ -41,23 +42,24 @@
   register: sinks_shell
   changed_when: false
 
-- set_fact:
+- name: Setting facts for sinks
+  set_fact:
     sinks: "{{ sinks_shell.stdout_lines }}"
-  
+
 - name: "Create sink {{ kentik_gcp_integration_sink_name }}"
   command: >
-    gcloud logging sinks create 
+    gcloud logging sinks create
     "{{ kentik_gcp_integration_sink_name }}"
     'pubsub.googleapis.com/{{ topic_output.name }}'
-    --log-filter='resource.type=gce_subnetwork AND resource.labels.subnetwork_name :( {{ kentik_gcp_integration_subnets | map(attribute='name') | join(' ')}} )'
+    --log-filter='resource.type=gce_subnetwork AND resource.labels.subnetwork_name :( {{ kentik_gcp_integration_subnets | map(attribute='name') | join(' ') }} )'
   when: kentik_gcp_integration_sink_name not in sinks
 
 - name: "Update sink {{ kentik_gcp_integration_sink_name }}"
   command: >
-    gcloud logging sinks update 
+    gcloud logging sinks update
     "{{ kentik_gcp_integration_sink_name }}"
     'pubsub.googleapis.com/{{ topic_output.name }}'
-    --log-filter='resource.type=gce_subnetwork AND resource.labels.subnetwork_name :( {{ kentik_gcp_integration_subnets | map(attribute='name') | join(' ')}} )'
+    --log-filter='resource.type=gce_subnetwork AND resource.labels.subnetwork_name :( {{ kentik_gcp_integration_subnets | map(attribute='name') | join(' ') }} )'
   when: kentik_gcp_integration_sink_name in sinks
 
 - name: "Add permissions to subscription {{ subscription_info.name }} for kentik to use {{ topic_output.name }}"
