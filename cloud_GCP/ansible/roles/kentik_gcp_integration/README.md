@@ -57,8 +57,9 @@ Example Playbook
   gather_facts: false
   connection: local
   pre_tasks:
-
-  - name: get project
+# Adds kentik to subnet-1
+# Assuming subnet-1 exists
+  - name: get current gcloud project
     shell: gcloud config get-value project
     register: output
     changed_when: false
@@ -78,10 +79,3 @@ License
 -------
 
 MIT
-
-Author Information
-------------------
-
-CodiLime Ltd. 
-
-https://codilime.com/
