@@ -1,0 +1,10 @@
+# Required to be defined
+# kentik_gcp_integration_project: 
+# kentik_gcp_integration_subnets:
+#   - name: some name
+#     region: some region
+# kentik_gcp_integration_service_account_file: 
+
+kentik_gcp_integration_subscription_name: kentik-export-subscription
+kentik_gcp_integration_topic: kentik-export-topic
+kentik_gcp_integration_sink_name: kentik-export-sink 
