@@ -20,11 +20,6 @@
       --enable-flow-logs {{ item.name }}
       --region={{ item.region }}
   loop: "{{ kentik_gcp_integration_subnets }}"
-  register: enabled_logflow_shell
-
-- name: Enabled logflow shell info
-  debug:
-    var: enabled_logflow_shell
 
 - name: create a topic
   gcp_pubsub_topic:
@@ -32,9 +27,6 @@
     name: "{{ kentik_gcp_integration_topic }}"
     state: present
   register: topic_output
-
-- debug:
-    var: topic_output
 
 - name: create a subscription
   gcp_pubsub_subscription:
@@ -68,7 +60,7 @@
     --log-filter='resource.type=gce_subnetwork AND resource.labels.subnetwork_name :( {{ kentik_gcp_integration_subnets | map(attribute='name') | join(' ')}} )'
   when: kentik_gcp_integration_sink_name in sinks
 
-- name: "Add permissions to subscription {{ subscription_info.name }} for kentik to use topic"
+- name: "Add permissions to subscription {{ subscription_info.name }} for kentik to use {{ topic_output.name }}"
   shell: >
     gcloud pubsub subscriptions add-iam-policy-binding
     --member={{ kentik_service_account }}
