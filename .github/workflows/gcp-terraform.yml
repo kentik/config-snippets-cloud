@@ -1,0 +1,125 @@
+name: aws-terraform
+
+# Run this workflow only on pushes 
+# to the cloud_AWS/terraform directory
+on:
+  push:
+    paths: 'cloud_GCP/terraform/**'
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  # Static Analysis of the Terraform module and its code
+  # Stuff like linters, etc.
+  static-analysis:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: (HELPER) Checkout Code
+        uses: actions/checkout@v2
+      
+      # Initialize the Terraform code
+      - name: (HELPER) Init Code 
+        uses: docker://hashicorp/terraform:0.12.29
+        with:
+          entrypoint: terraform
+          args: init cloud_AWS/terraform/module/tests/
+       
+      # Lint the Terraform code 
+      # Using: https://github.com/terraform-linters/tflint
+      - name: TFLint Module
+        uses: docker://wata727/tflint:0.19.1
+        with:
+          args: --loglevel debug --module cloud_AWS/terraform/module/
+      
+      # Validate the Terraform code using inbuilt
+      # validate command
+      - name: Validate Module
+        uses: docker://hashicorp/terraform:0.12.29
+        with:
+          entrypoint: terraform
+          args: validate cloud_AWS/terraform/module/tests/ -no-color
+
+  # Dynamic analysis of the Terraform module and its code
+  # Stuff like unit tests, E2E tests, etc.
+  dynamic-analysis:
+    runs-on: ubuntu-latest
+    
+    # The LocalStack mocks the AWS services, enabling
+    # local development without any costs
+    services:
+      localstack:
+        image: localstack/localstack:0.11.5
+        ports:
+          - 4566:4566
+        env:
+          SERVICES: s3,ec2,iam
+
+    steps:
+      - name: (HELPER) Checkout Code
+        uses: actions/checkout@v2
+
+      - name: (HELPER) Init Code
+        uses: docker://hashicorp/terraform:0.12.29
+        with:
+          entrypoint: terraform
+          args: init cloud_AWS/terraform/module/tests/
+
+      # Must be done first due to for_each lool used in a module.
+      - name: (HELPER) Apply VPC only
+        uses: docker://hashicorp/terraform:0.12.29
+        with:
+          entrypoint: terraform
+          args: 'apply -auto-approve -target="aws_vpc.test-vpc" ./cloud_AWS/terraform/module/tests/'
+
+      # Apply Terraform code. The 'args' looks obscure due to lack of 
+      # support for the VPC Flow Logs in the LocalStack. In result
+      # the Flow Logs part has to be removed from Terraform targets.
+      - name: Integrate single-VPC
+        uses: docker://hashicorp/terraform:0.12.29
+        with:
+          entrypoint: terraform
+          args: 'apply -auto-approve -target="module.single_vpc_integration.aws_iam_policy_attachment.kentik_s3_access" -target="module.single_vpc_integration.aws_iam_policy_attachment.kentik_ec2_access" -target="module.single_vpc_integration.aws_s3_bucket.vpc_logs" -target="module.single_vpc_integration.aws_s3_bucket_public_access_block.vpc_logs" ./cloud_AWS/terraform/module/tests/'
+      
+      - name: Remove integration for single-VPC
+        uses: docker://hashicorp/terraform:0.12.29
+        with:
+          entrypoint: terraform
+          args: 'destroy -auto-approve -target="module.single_vpc_integration.aws_iam_role.kentik_role" -target="module.single_vpc_integration.aws_iam_policy.kentik_ec2_access" -target="module.single_vpc_integration.aws_iam_policy.kentik_s3_rw_access" -target="module.single_vpc_integration.aws_iam_policy.kentik_s3_ro_access" -target="module.single_vpc_integration.aws_iam_policy_attachment.kentik_s3_access" -target="module.single_vpc_integration.aws_iam_policy_attachment.kentik_ec2_access" -target="module.single_vpc_integration.aws_s3_bucket.vpc_logs" -target="module.single_vpc_integration.aws_s3_bucket_public_access_block.vpc_logs" ./cloud_AWS/terraform/module/tests/'
+
+      - name: Integrate multi-VPC
+        uses: docker://hashicorp/terraform:0.12.29
+        with:
+          entrypoint: terraform
+          args: 'apply -auto-approve -target="module.multi_vpc_integration.aws_iam_policy_attachment.kentik_s3_access" -target="module.multi_vpc_integration.aws_iam_policy_attachment.kentik_ec2_access" -target="module.multi_vpc_integration.aws_s3_bucket.vpc_logs" -target="module.multi_vpc_integration.aws_s3_bucket_public_access_block.vpc_logs" ./cloud_AWS/terraform/module/tests/'
+      
+      - name: Remove integration for multi-VPC
+        uses: docker://hashicorp/terraform:0.12.29
+        with:
+          entrypoint: terraform
+          args: 'destroy -auto-approve -target="module.multi_vpc_integration.aws_iam_role.kentik_role" -target="module.multi_vpc_integration.aws_iam_policy.kentik_ec2_access" -target="module.multi_vpc_integration.aws_iam_policy.kentik_s3_rw_access" -target="module.multi_vpc_integration.aws_iam_policy.kentik_s3_ro_access" -target="module.multi_vpc_integration.aws_iam_policy_attachment.kentik_s3_access" -target="module.multi_vpc_integration.aws_iam_policy_attachment.kentik_ec2_access" -target="module.multi_vpc_integration.aws_s3_bucket.vpc_logs" -target="module.multi_vpc_integration.aws_s3_bucket_public_access_block.vpc_logs" ./cloud_AWS/terraform/module/tests/'
+
+      # Some sort of more sophisticated testing can 
+      # be injected here for ensuring the resource 
+      # creation and thei properties. 
+      # Check the example below.
+      #
+      #
+      # Confirm somehow the resources have been created
+      #- name: Confirm Apply Succeeded
+      #  uses: docker://amazon/aws-cli:2.0.7
+      #  env:
+      #    AWS_ACCESS_KEY_ID: "fake-access-key"
+      #    AWS_SECRET_ACCESS_KEY: "fake-secret-key"
+      #  with:
+      #    args: --endpoint-url=http://localstack:4566 s3api head-bucket --bucket <bucket-name>
+
+      # (Probably optional) Clean up the created resources
+
+      # Check how does the Destroy work
+      - name: (HELPER) Destroy All
+        uses: docker://hashicorp/terraform:0.12.29
+        with:
+          entrypoint: terraform
+          args: destroy -auto-approve cloud_AWS/terraform/module/tests/
