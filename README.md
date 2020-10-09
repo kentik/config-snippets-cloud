@@ -23,6 +23,15 @@
 
 
 # Stage 2 - Automate GCP
+## Terraform
+* [Tearraform] https://github.com/kentik/config-snippets-cloud/tree/master/cloud_GCP/terraform
+### Demo
+* [Terraform Demo] https://github.com/kentik/config-snippets-cloud/tree/master/cloud_GCP/terraform/module/demo (TODO)
+### Examples
+#### Subnet-list, Single region
+* [subnet-list] https://github.com/kentik/config-snippets-cloud/tree/master/cloud_GCP/terraform/module/examples/subnet-list
+#### All Subnets in network, Single Region
+* [all-network-subnets] https://github.com/kentik/config-snippets-cloud/tree/master/cloud_GCP/terraform/module/examples/all-network-subnets
 
 # Stage 3 - Automate Azure
 
