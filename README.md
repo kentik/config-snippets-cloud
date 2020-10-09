@@ -1,6 +1,6 @@
 # config-snippets-cloud
 
-# Stage 1 - Automate AWS
+# Automate AWS
 ## Terraform
 * [Tearraform] https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/terraform
 ### Demo
@@ -22,11 +22,11 @@
 * [single-vpc] https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/ansible/role/examples/single-vpc
 
 
-# Stage 2 - Automate GCP
+# Automate GCP [in progress]
 
-# Stage 3 - Automate Azure
+# Stage 3 - Automate IBM Cloud
 
-# Stage 4 - Automate IBM Cloud
+# Stage 4 - Automate Azure
 
 # General needs for automation
 ## Identity and Access Management
