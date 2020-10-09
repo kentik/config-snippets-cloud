@@ -3,7 +3,7 @@
 Terraform module which creates GCP resources required for Kentik to enable integration
 
 Module enables:
-* Flow logs in egzisting subnets acording to [Kentik documentation](https://kb.kentik.com/Fc12.htm#Fc12-Enable_VPC_Flow_Logs)
+* Flow logs in existing subnets acording to [Kentik documentation](https://kb.kentik.com/Fc12.htm#Fc12-Enable_VPC_Flow_Logs)
 
 Module creates:
 * Sinks to gather logs acording to [Kentik documentation](https://kb.kentik.com/Fc12.htm#Fc12-Create_a_New_Topic)
