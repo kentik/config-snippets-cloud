@@ -1,6 +1,6 @@
 # config-snippets-cloud
 
-# Stage 1 - Automate AWS
+# Automate AWS
 ## Terraform
 * [Tearraform] https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/terraform
 ### Demo
@@ -33,9 +33,10 @@
 #### All Subnets in network, Single Region
 * [all-network-subnets] https://github.com/kentik/config-snippets-cloud/tree/master/cloud_GCP/terraform/module/examples/all-network-subnets
 
-# Stage 3 - Automate Azure
 
-# Stage 4 - Automate IBM Cloud
+# Stage 3 - Automate IBM Cloud
+
+# Stage 4 - Automate Azure
 
 # General needs for automation
 ## Identity and Access Management
