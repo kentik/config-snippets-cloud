@@ -57,8 +57,8 @@ Example Playbook
   gather_facts: false
   connection: local
   pre_tasks:
-# Adds kentik to subnet-1
-# Assuming subnet-1 exists
+# Adds kentik to subnet-1/2
+# Assuming subnet-1 and subnet-2 exist
   - name: get current gcloud project
     shell: gcloud config get-value project
     register: output
