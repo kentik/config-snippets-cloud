@@ -57,8 +57,8 @@ Example Playbook
   gather_facts: false
   connection: local
   pre_tasks:
-# Adds kentik to subnet-1
-# Assuming subnet-1 exists
+# Adds kentik to subnet-1/2
+# Assuming subnet-1 and subnet-2 exist
   - name: get current gcloud project
     shell: gcloud config get-value project
     register: output
@@ -69,10 +69,12 @@ Example Playbook
       vars:
         kentik_gcp_integration_project: "{{ output.stdout }}"
         # file with keys for gcp
-        kentik_gcp_integration_service_account_file: secret.json 
+        kentik_gcp_integration_service_account_file: "{{ lookup('env', 'GCP_SERVICE_ACCOUNT_FILE') }}"
         kentik_gcp_integration_subnets:
         - name: subnet-1
           region: us-east1
+        - name: subnet-2
+          region: us-east4
 ```
 
 License
