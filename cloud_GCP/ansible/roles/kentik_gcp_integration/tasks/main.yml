@@ -51,7 +51,7 @@
     gcloud logging sinks create
     "{{ kentik_gcp_integration_sink_name }}"
     'pubsub.googleapis.com/{{ topic_output.name }}'
-    --log-filter='resource.type=gce_subnetwork AND ( resource.labels.subnetwork_name = {{ kentik_gcp_integration_subnets | map(attribute='name') | join(' OR resource.labels.subnetwork_name = ') }} ) ) '
+    --log-filter='resource.type=gce_subnetwork AND ( resource.labels.subnetwork_name = {{ kentik_gcp_integration_subnets | map(attribute='name') | join(' OR resource.labels.subnetwork_name = ') }} )'
   when: kentik_gcp_integration_sink_name not in sinks
 
 - name: "Update sink {{ kentik_gcp_integration_sink_name }}"
