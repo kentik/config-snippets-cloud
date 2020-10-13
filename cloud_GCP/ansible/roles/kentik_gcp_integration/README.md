@@ -69,10 +69,12 @@ Example Playbook
       vars:
         kentik_gcp_integration_project: "{{ output.stdout }}"
         # file with keys for gcp
-        kentik_gcp_integration_service_account_file: secret.json 
+        kentik_gcp_integration_service_account_file: "{{ lookup('env', 'GCP_SERVICE_ACCOUNT_FILE') }}"
         kentik_gcp_integration_subnets:
         - name: subnet-1
           region: us-east1
+        - name: subnet-2
+          region: us-east4
 ```
 
 License
