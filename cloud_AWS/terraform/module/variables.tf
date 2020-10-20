@@ -15,10 +15,22 @@ variable "s3_bucket_prefix" {
   default     = "kentik"
 }
 
+variable "s3_use_one_bucket" {
+  description = "If we should use one or more buckets"
+  type        = bool
+  default     = true
+}
+
 variable "s3_flowlogs_path" {
   description = "Path on the S3 bucket for saving logs"
   type        = string
   default     = ""
+}
+
+variable "s3_base_name" {
+  description = "Base name for s3 bucket. Used in single bucket mode"
+  type        = string
+  default     = "ingest-bucket"
 }
 
 variable "iam_role_prefix" {
