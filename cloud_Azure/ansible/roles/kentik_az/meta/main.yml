@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  role_name: kentik_az
+  author: CodiLime Ltd.
+  description: Ansible role which creates Azure resources required for Kentik to enable integration
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+  # All action are local so this parameter doesn't really matter.
+  - name: Ubuntu
+    versions:
+    - all
+
+allow_duplicates: true

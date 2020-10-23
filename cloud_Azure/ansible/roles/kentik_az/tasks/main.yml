@@ -1,0 +1,83 @@
+---
+# tasks file for roles/kentik_az
+
+- debug:
+    var: kentik_az_sub
+
+- name: Get list of dependencies for azure_rm_modules
+  get_url:
+    url: https://raw.githubusercontent.com/ansible-collections/azure/dev/requirements-azure.txt
+    dest: "{{ '.' | realpath }}"
+  register: az_dep
+
+- debug:
+    var: az_dep
+
+- name: Install dependencies for azure_rm modules
+  pip:
+    requirements: "{{az_dep.dest | realpath }}"
+
+- name: Set facts for azure
+  set_fact: &cc
+    resource_group: ansible_testing
+    location: East Us
+    # Latter send to variables
+    tags:
+      creator: ansible
+
+- name: Register Insights provider
+  azure_rm_resource:
+    api_version: "2020-06-01"
+    provider: Microsoft.Insights
+    method: POST
+    idempotency: True
+    # subresource:
+      # name: kot
+      # namespace: Microsoft.Insights
+      # type:
+      
+    url: "https://management.azure.com/subscriptions/{{kentik_az_sub}}/providers/Microsoft.Insights/register"
+  register: az_resource
+
+- debug:
+    var: az_resource
+  
+  # Replace later with role parameter
+- set_fact:
+    name: ansible_testing
+
+- name: "Creating resource group - {{ name }}"
+  azure_rm_resourcegroup:
+    name: "{{ name }}"
+    location: "{{ location }}"
+  register: rg
+- debug:
+    var: rg
+
+- name: "Create storage account {{ kentik_az_storage_account }}"
+  azure_rm_storageaccount:
+    <<: *cc
+    name: "{{ kentik_az_storageaccount }}"
+    account_type: Standard_LRS
+    kind: StorageV2
+
+- name: "Grant service principal"
+  azure.azcollection.azure_rm_adserviceprincipal:
+    app_id: "{{ kentik_az_app_id }}"
+    tenant: "{{ kentik_az_tenant }}"
+
+- fail: {}
+# Creating subnets might be not the best idea
+
+- name: Create virtual network
+  azure_rm_virtualnetwork:
+    <<: *cc
+    name: testvn001
+    address_prefixes: "10.10.0.0/16"
+
+- name: Add subnet
+  azure_rm_subnet:
+    <<: *cc
+    name: subnet001
+    address_prefix: "10.10.0.0/24"
+    virtual_network: testvn001
