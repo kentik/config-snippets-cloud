@@ -1,0 +1,42 @@
+name: azure-terraform
+
+# Run this workflow only on pushes 
+# to the cloud_Azure/terraform directory
+on:
+  push:
+    paths: 'cloud_Azure/terraform/**'
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  # Static Analysis of the Terraform module and its code
+  # Stuff like linters, etc.
+  static-analysis:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: (HELPER) Checkout Code
+        uses: actions/checkout@v2
+      
+      # Initialize the Terraform code
+      - name: (HELPER) Init Code 
+        uses: docker://hashicorp/terraform:0.12.29
+        with:
+          entrypoint: terraform
+          args: init cloud_Azure/terraform/module/tests/
+       
+      # Lint the Terraform code 
+      # Using: https://github.com/terraform-linters/tflint
+      - name: TFLint Module
+        uses: docker://wata727/tflint:0.19.1
+        with:
+          args: --loglevel debug --module cloud_Azure/terraform/module/
+      
+      # Validate the Terraform code using inbuilt
+      # validate command
+      - name: Validate Module
+        uses: docker://hashicorp/terraform:0.12.29
+        with:
+          entrypoint: terraform
+          args: validate cloud_Azure/terraform/module/tests/ -no-color
