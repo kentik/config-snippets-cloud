@@ -31,7 +31,6 @@ module "kentik_aws_integration" {
 * [Demo showing how add single VPC to Kentik portal using this module](demo)
 
 ## Note
-* this project use `for_each` in code. If it is meant to be used with VPC creation, VPC should be created first for example using `terraform apply -target="aws_vpc.test-vpc"`
 * this module creates AWS resources only. This won't register VPC in Kentik platform automaticaly.
 
 ## Requirements
@@ -54,9 +53,12 @@ module "kentik_aws_integration" {
 | rw\_s3\_access | If set to true, Kentik platform will be able to delete old logs from s3 buckets | `bool` | ` ` | yes |
 | vpc\_id\_list | List of VPC ids for which Kentik should gather logs | `list(string)` | `[]` | yes |
 | s3\_bucket\_prefix | Prefix to use with s3 bucket name | `string` | `kentik` | no |
+| s3\_use\_one\_bucket | If we should use one or more buckets | `bool` | `true` | no |
 | s3\_flowlogs\_path | Path on the S3 bucket for saving logs | `string` | `` | no |
+| s3\_base\_name | Base name for s3 bucket. Used in single bucket mode | `string` | `ingest-bucket` | no |
 | iam\_role\_prefix | Prefix to use with IAM roles | `string` | `Kentik` | no |
 | store\_logs\_more\_frequently | Allows to chose how often save logs to s3. Default is once per 10 minutes. When enabled it saves once per minute | `bool` | `false` | no |
+
 
 ## Outputs
 
