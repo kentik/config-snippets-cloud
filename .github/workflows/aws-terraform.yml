@@ -66,13 +66,6 @@ jobs:
           entrypoint: terraform
           args: init cloud_AWS/terraform/module/tests/
 
-      # Must be done first due to for_each lool used in a module.
-      - name: (HELPER) Apply VPC only
-        uses: docker://hashicorp/terraform:0.12.29
-        with:
-          entrypoint: terraform
-          args: 'apply -auto-approve -target="aws_vpc.test-vpc" ./cloud_AWS/terraform/module/tests/'
-
       # Apply Terraform code. The 'args' looks obscure due to lack of 
       # support for the VPC Flow Logs in the LocalStack. In result
       # the Flow Logs part has to be removed from Terraform targets.
@@ -80,7 +73,7 @@ jobs:
         uses: docker://hashicorp/terraform:0.12.29
         with:
           entrypoint: terraform
-          args: 'apply -auto-approve -target="module.single_vpc_integration.aws_iam_policy_attachment.kentik_s3_access" -target="module.single_vpc_integration.aws_iam_policy_attachment.kentik_ec2_access" -target="module.single_vpc_integration.aws_s3_bucket.vpc_logs" -target="module.single_vpc_integration.aws_s3_bucket_public_access_block.vpc_logs" ./cloud_AWS/terraform/module/tests/'
+          args: 'apply -auto-approve -target="aws_vpc.test-vpc" -target="module.single_vpc_integration.aws_iam_policy_attachment.kentik_s3_access" -target="module.single_vpc_integration.aws_iam_policy_attachment.kentik_ec2_access" -target="module.single_vpc_integration.aws_s3_bucket.vpc_logs" -target="module.single_vpc_integration.aws_s3_bucket_public_access_block.vpc_logs" ./cloud_AWS/terraform/module/tests/'
       
       - name: Remove integration for single-VPC
         uses: docker://hashicorp/terraform:0.12.29
