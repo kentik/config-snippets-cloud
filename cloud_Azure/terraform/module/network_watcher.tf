@@ -6,8 +6,8 @@ resource "azurerm_network_watcher" "kentik_network_watcher" {
 }
 
 # Runs python script to gather network security groups and expose it as a data source
-data "external" "example" {
-  program = ["python3", "${path.module}/get_nsg.py"]
+data "external" "nsg_data_source" {
+  program = ["python3", "${path.module}/get_nsg.py", "${var.resource_group_name}"]
 
   query = {
     network_security_groups = "nsg"
@@ -16,7 +16,7 @@ data "external" "example" {
 
 # Turns on flow logs for all network securiti groups in resource group
 resource "azurerm_network_watcher_flow_log" "kentik_network_flow_log" {
-  for_each = toset(split(",", data.external.example.result.nsg))
+  for_each = toset(split(",", data.external.nsg_data_source.result.nsg))
   network_watcher_name = azurerm_network_watcher.kentik_network_watcher.name
   resource_group_name  = var.resource_group_name
 
