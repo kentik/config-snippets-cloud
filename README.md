@@ -33,10 +33,7 @@
 #### All Subnets in network, Single Region
 * [all-network-subnets] https://github.com/kentik/config-snippets-cloud/tree/master/cloud_GCP/terraform/module/examples/all-network-subnets
 
-
-# Stage 3 - Automate IBM Cloud
-
-# Stage 4 - Automate Azure
+# Stage 3 - Automate Azure
 ## Terraform
 * [Tearraform] https://github.com/kentik/config-snippets-cloud/tree/master/cloud_Azure/terraform
 ### Demo
@@ -44,6 +41,9 @@
 ### Examples
 #### Subnet-list, Single region
 * [all_nsg] https://github.com/kentik/config-snippets-cloud/tree/master/cloud_Azure/terraform/module/examples/all_nsg
+
+# Stage 4 - Automate IBM Cloud
+## Timing TBD
 
 # General needs for automation
 ## Identity and Access Management
