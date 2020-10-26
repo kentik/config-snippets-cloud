@@ -1,5 +1,5 @@
 output network_security_groups {
-  value = split(",", data.external.example.result.nsg)
+  value = split(",", data.external.nsg_data_source.result.nsg)
   description = "List of network security groups"
 }
 
