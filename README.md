@@ -37,6 +37,13 @@
 # Stage 3 - Automate IBM Cloud
 
 # Stage 4 - Automate Azure
+## Terraform
+* [Tearraform] https://github.com/kentik/config-snippets-cloud/tree/master/cloud_Azure/terraform
+### Demo
+* [Terraform Demo] https://github.com/kentik/config-snippets-cloud/tree/master/cloud_Azure/terraform/module/demo (TODO)
+### Examples
+#### Subnet-list, Single region
+* [all_nsg] https://github.com/kentik/config-snippets-cloud/tree/master/cloud_Azure/terraform/module/examples/all_nsg
 
 # General needs for automation
 ## Identity and Access Management
