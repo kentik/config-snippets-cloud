@@ -2,7 +2,7 @@
 
 # Automate AWS
 ## Terraform
-* [Tearraform] https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/terraform
+* [Terraform] https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/terraform
 ### Demo
 * [Terraform Demo] https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/terraform/module/demo
 ### Examples
