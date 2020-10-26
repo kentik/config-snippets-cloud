@@ -4,7 +4,6 @@ Terraform module which creates Azure resources required for Kentik to enable int
 
 Module enables:
 * Flow logs in existing Network Security Groups
-* 
 
 Module creates:
 
@@ -28,10 +27,10 @@ module kentik_azure_integration {
 * [All Network Security Groups in Resource Group](examples/all_nsg)
 
 ## Demo
-* [Demo showing how add list of subnets to Kentik portal using this module](demo) (TBD)
+* [Demo showing how to add list of subnets to Kentik portal using this module](demo) (TBD)
 
 ## Note
-* this module creates Azure resources only. This won't register NSG in Kentik platform automaticaly
+* this module creates Azure resources only. This won't register resources in Kentik platform automatically.
 
 ## Requirements
 
