@@ -2,3 +2,4 @@
 # Required has to be defined
 # kentik_az_resource_group
 kentik_az_storageaccount: export2kentik
+
