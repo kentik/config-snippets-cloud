@@ -7,9 +7,6 @@
     dest: "{{ '.' | realpath }}"
   register: az_dep
 
-  #- debug:
-  #    var: az_dep
-  #
 - name: Install dependencies for azure_rm modules
   pip:
     requirements: "{{az_dep.dest | realpath }}"
@@ -34,6 +31,7 @@
 # Replace later with role parameter
 - set_fact:
     name: ansible_testing_something
+    resourcegroup_scope: "/subscriptions/{{ kentik_az_sub }}/resourceGroups/{{ kentik_az_resourcegroupname }}"
 
 - name: Get all resource groups
   azure_rm_resourcegroup_facts:
@@ -60,7 +58,7 @@
 
 - name: "Get Resource Group Reader role definition"
   azure_rm_roledefinition_info:
-    scope: "/subscriptions/{{ kentik_az_sub }}/resourceGroups/{{ kentik_az_resourcegroupname }}"
+    scope: "{{ resourcegroup_scope }}"
     role_name: "Reader"
   register: resourcegroupreader
 
@@ -70,22 +68,58 @@
     role_name: "Contributor"
   register: storageaccountcontributor
 
+- name: "Security Group List"
+  azure.azcollection.azure_rm_securitygroup_info:
+    resource_group: "{{ kentik_az_resourcegroupname }}"
+  register: az_sec_group_list
+
+- name: "ResourceGroup assignment list"
+  azure.azcollection.azure_rm_roleassignment_info:
+    scope: "{{ resourcegroup_scope }}"
+  register: rgassignmentlist
+
+- name: "StorageAccount assignment list"
+  azure.azcollection.azure_rm_roleassignment_info:
+    scope: "{{storageservice.state.id}}"
+  register: saassgnmentlist
+
+- name: Set emply list for Kentik assignments to ResourceGroup"
+  set_fact:
+    kentik_assigment_rg: []
+
+- name: "Check if need to assign role to ResourceGroup"
+  set_fact:
+    kentik_assigment_rg: "{{ kentik_assigment_rg + [item.name] }}"
+  when: 
+    - kentik_az_object_id == item.principal_id
+    - resourcegroup_scope == item.scope
+  loop: "{{ rgassignmentlist.roleassignments }}"
+
 - name: "Assign Kentik access to ResourceGroup"
   azure_rm_roleassignment:
     scope: "/subscriptions/{{ kentik_az_sub }}/resourceGroups/{{ kentik_az_resourcegroupname }}"
     assignee_object_id: "{{ kentik_az_object_id }}"
     role_definition_id: "{{ resourcegroupreader.roledefinitions[0].id }}"
+  when: kentik_assigment_rg|length == 0
+
+- name: Set emply list for Kentik assignments to StorageAccount"
+  set_fact:
+    kentik_assigment_rg: []
+
+- name: "Check if need to assign role to StorageAccount"
+  set_fact:
+    kentik_assigment_rg: "{{ kentik_assigment_rg + [item.name] }}"
+  when: 
+    - kentik_az_object_id == item.principal_id
+    - storageservice.state.id == item.scope
+  loop: "{{ saassgnmentlist.roleassignments }}"
 
 - name: "Assign Kentik access to StorageAccount"
   azure_rm_roleassignment:
     scope: "{{storageservice.state.id}}"
     assignee_object_id: "{{ kentik_az_object_id }}"
     role_definition_id: "{{ storageaccountcontributor.roledefinitions[0].id }}"
-
-- name: "Security Group List"
-  azure.azcollection.azure_rm_securitygroup_info:
-    resource_group: "{{ kentik_az_resourcegroupname }}"
-  register: az_sec_group_list
+  when: kentik_assigment_rg|length == 0
 
 - name: "Enable Flow Logs"
   shell: >
@@ -95,12 +129,17 @@
     --nsg {{ item.name }} 
     --storage-account {{ kentik_az_storageaccount }}
     --name {{ item.name }}
+    --format JSON
+    --log-version 2
+    --retention 2
+    --interval 10
   loop: "{{ az_sec_group_list.securitygroups }}"
 
 - name: "Display data for Kentik portal"
   debug:
     msg: [
       "Subscription ID: {{ kentik_az_sub }}",
-      "Resource Group: {{ name }}",
+      "Resource Group: {{ kentik_az_resourcegroupname }}",
+      "Location: {{ location }}",
       "Storage Account Name: {{ kentik_az_storageaccount }}",
     ]
