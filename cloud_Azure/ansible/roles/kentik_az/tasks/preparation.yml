@@ -1,0 +1,27 @@
+---
+- name: Get list of dependencies for azure_rm_modules
+  get_url:
+    url: https://raw.githubusercontent.com/ansible-collections/azure/dev/requirements-azure.txt
+    dest: "{{ '.' | realpath }}"
+  register: az_dep
+
+- name: Install dependencies for azure_rm modules
+  pip:
+    requirements: "{{az_dep.dest | realpath }}"
+
+- name: Set facts for azure
+  set_fact: 
+    resourcegroup_scope: "/subscriptions/{{ kentik_az_sub }}/resourceGroups/{{ kentik_az_resourcegroupname }}"
+    resource_group: "{{ kentik_az_resourcegroupname }}"
+    location: "{{ location }}"
+    tags:
+      creator: ansible
+
+- name: Register Insights provider
+  azure_rm_resource:
+    api_version: "2020-06-01"
+    provider: Microsoft.Insights
+    method: POST
+    idempotency: True
+    url: "https://management.azure.com/subscriptions/{{kentik_az_sub}}/providers/Microsoft.Insights/register"
+  register: az_resource
