@@ -23,6 +23,7 @@ resource "azurerm_network_watcher_flow_log" "kentik_network_flow_log" {
   network_security_group_id = each.key
   storage_account_id        = azurerm_storage_account.kentik_storage_account.id
   enabled                   = true
+  version                   = 2
 
   retention_policy {
     enabled = true
