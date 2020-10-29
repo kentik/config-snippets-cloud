@@ -8,11 +8,11 @@
 
 - name: Install dependencies for azure_rm modules
   pip:
-    requirements: "{{az_dep.dest | realpath }}"
+    requirements: "{{ az_dep.dest | realpath }}"
   when: kentik_az_installdeps
 
 - name: Set facts for azure
-  set_fact: 
+  set_fact:
     resourcegroup_scope: "/subscriptions/{{ kentik_az_sub }}/resourceGroups/{{ kentik_az_resourcegroupname }}"
     resource_group: "{{ kentik_az_resourcegroupname }}"
     location: "{{ location }}"
@@ -25,5 +25,5 @@
     provider: Microsoft.Insights
     method: POST
     idempotency: True
-    url: "https://management.azure.com/subscriptions/{{kentik_az_sub}}/providers/Microsoft.Insights/register"
+    url: "https://management.azure.com/subscriptions/{{ kentik_az_sub }}/providers/Microsoft.Insights/register"
   register: az_resource

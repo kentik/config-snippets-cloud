@@ -4,12 +4,12 @@
     scope: "{{ resourcegroup_scope }}"
     role_name: "Reader"
   register: resourcegroupreader
-  
+
 - name: "ResourceGroup assignment list"
   azure.azcollection.azure_rm_roleassignment_info:
     scope: "{{ resourcegroup_scope }}"
   register: rgassignmentlist
-  
+
 - name: Set emply list for Kentik assignments to ResourceGroup"
   set_fact:
     kentik_assigment_rg: []
@@ -17,7 +17,7 @@
 - name: "Check if need to assign role to ResourceGroup"
   set_fact:
     kentik_assigment_rg: "{{ kentik_assigment_rg + [item.name] }}"
-  when: 
+  when:
     - kentik_az_principal_id == item.principal_id
     - resourcegroup_scope == item.scope
   loop: "{{ rgassignmentlist.roleassignments }}"
