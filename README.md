@@ -48,7 +48,7 @@
 * [all_nsg](https://github.com/kentik/config-snippets-cloud/tree/master/cloud_Azure/terraform/module/examples/all_nsg)
 
 ## Ansible
-* [Ansible](cloud_Azure/ansible)
+* [Ansible](cloud_Azure/ansible/roles/kentik_az)
 ### Examples
 #### All NSG from resource group
 * [all_nsg](cloud_Azure/ansible/examples/all_nsg)
