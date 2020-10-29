@@ -4,10 +4,12 @@
     url: https://raw.githubusercontent.com/ansible-collections/azure/dev/requirements-azure.txt
     dest: "{{ '.' | realpath }}"
   register: az_dep
+  when: kentik_az_installdeps
 
 - name: Install dependencies for azure_rm modules
   pip:
     requirements: "{{az_dep.dest | realpath }}"
+  when: kentik_az_installdeps
 
 - name: Set facts for azure
   set_fact: 

@@ -15,5 +15,5 @@
     --format JSON
     --log-version 2
     --retention 2
-    --interval 10
+    --interval {{ kentik_az_nsg_store_interval }}
   loop: "{{ az_sec_group_list.securitygroups }}"
