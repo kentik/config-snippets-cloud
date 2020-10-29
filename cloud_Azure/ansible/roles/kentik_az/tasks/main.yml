@@ -1,6 +1,5 @@
 ---
 - include: preparation.yml
-- include: serviceprincipal.yml
 - include: storageaccount.yml
 - include: resourcegroup.yml
 - include: nsg.yml

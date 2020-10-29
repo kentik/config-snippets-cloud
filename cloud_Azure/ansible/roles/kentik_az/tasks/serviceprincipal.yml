@@ -1,5 +1,0 @@
----
-- name: "Grant service principal"
-  azure.azcollection.azure_rm_adserviceprincipal:
-    app_id: "{{ kentik_az_app_id }}"
-    tenant: "{{ kentik_az_tenant }}"
