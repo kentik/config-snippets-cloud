@@ -47,6 +47,12 @@
 #### Subnet-list, Single region
 * [all_nsg](https://github.com/kentik/config-snippets-cloud/tree/master/cloud_Azure/terraform/module/examples/all_nsg)
 
+## Ansible
+* [Ansible](cloud_Azure/ansible)
+### Examples
+#### All NSG from resource group
+* [all_nsg](cloud_Azure/ansible/examples/all_nsg)
+
 # Stage 4 - Automate IBM Cloud
 ## Timing TBD
 

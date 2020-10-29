@@ -41,14 +41,6 @@ Role creates:
 | ansible | >= 2.10.0 |
 | az.cli python package | >= 0.4 |
 
-### Python and dependencies
-
-This module uses python to gather all NSG from Resource Group and expose it to terraform as external data source.
-To install python and its requirements:
-* [Install Python 3](https://docs.python.org/3/using/index.html)
-* [Install pip3](https://pip.pypa.io/en/stable/installing/)
-* Install packages: run `pip3 install -r ../../requirements.txt` in example directory
-
 ## Inputs
 
 | Name | Description | Type | Default | Required |
