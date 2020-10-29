@@ -1,0 +1,24 @@
+- hosts: 127.0.0.1
+  connection: local
+  gather_facts: false
+  pre_tasks:
+    - name: get subscription-id
+      shell: az account show --query "id" | sed 's/"//g'
+      register: sub
+      changed_when: false
+    - name: get tenant-id
+      shell: az account show --query "tenantId" | sed 's/"//g'
+      register: tenant
+      changed_when: false
+    - name: get objectId
+      shell: az ad sp list --display-name "Kentik NSG Flow Exporter" --query "[0].objectId" | sed 's/"//g'
+      register: principalObjct
+      changed_when: false
+  roles:
+    - role: "{{ playbook_dir }}/../../roles/kentik_az/"
+      vars:
+        kentik_az_sub: "{{sub.stdout}}"
+        kentik_az_tenant: "{{ tenant.stdout }}"
+        kentik_az_principal_id: "{{ principalObjct.stdout }}"
+        kentik_az_resourcegroupname: "ansible-example"
+        location: southcentralus

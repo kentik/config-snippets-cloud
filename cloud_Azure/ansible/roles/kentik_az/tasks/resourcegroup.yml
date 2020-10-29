@@ -18,13 +18,13 @@
   set_fact:
     kentik_assigment_rg: "{{ kentik_assigment_rg + [item.name] }}"
   when: 
-    - kentik_az_object_id == item.principal_id
+    - kentik_az_principal_id == item.principal_id
     - resourcegroup_scope == item.scope
   loop: "{{ rgassignmentlist.roleassignments }}"
 
 - name: "Assign Kentik access to ResourceGroup"
   azure_rm_roleassignment:
     scope: "/subscriptions/{{ kentik_az_sub }}/resourceGroups/{{ kentik_az_resourcegroupname }}"
-    assignee_object_id: "{{ kentik_az_object_id }}"
+    assignee_object_id: "{{ kentik_az_principal_id }}"
     role_definition_id: "{{ resourcegroupreader.roledefinitions[0].id }}"
   when: kentik_assigment_rg|length == 0

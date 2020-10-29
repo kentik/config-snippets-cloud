@@ -2,4 +2,5 @@
 # Required has to be defined
 # kentik_az_resource_group
 kentik_az_storageaccount: export2kentik
-
+# app id of Kentik App in Azure
+kentik_az_app_id: a20ce222-63c0-46db-86d5-58551eeee89f
