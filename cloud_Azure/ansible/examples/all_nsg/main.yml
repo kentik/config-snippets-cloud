@@ -18,7 +18,6 @@
     - role: "{{ playbook_dir }}/../../roles/kentik_az/"
       vars:
         kentik_az_sub: "{{sub.stdout}}"
-        kentik_az_tenant: "{{ tenant.stdout }}"
         kentik_az_principal_id: "{{ principalObjct.stdout }}"
         kentik_az_resourcegroupname: "ansible-example"
         location: southcentralus
