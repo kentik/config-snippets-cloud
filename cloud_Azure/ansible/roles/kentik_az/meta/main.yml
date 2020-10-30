@@ -1,7 +1,7 @@
 ---
 galaxy_info:
   role_name: kentik_az
-  author: CodiLime Ltd.
+  author: CodiLime
   description: Ansible role which creates Azure resources required for Kentik to enable integration
   license: MIT
   min_ansible_version: 2.9
