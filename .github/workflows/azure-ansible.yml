@@ -1,0 +1,29 @@
+name: azure-ansible
+
+# Run this workflow only on pushes 
+# to the cloud_AWS/ansible directory
+on:
+  push:
+    paths: 'cloud_Azure/ansible/**'
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  # Static Analysis of the Ansible role and its code
+  # Stuff like linters, etc.
+  static-analysis:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: (HELPER) Checkout Code
+        uses: actions/checkout@v2
+      
+      - name: Lint Role 
+        uses: github/super-linter@v3
+        env:
+          VALIDATE_ALL_CODEBASE: false
+          VALIDATE_ANSIBLE: true
+          ANSIBLE_DIRECTORY: /cloud_Azure/ansible/roles/kentik_az
+
+    

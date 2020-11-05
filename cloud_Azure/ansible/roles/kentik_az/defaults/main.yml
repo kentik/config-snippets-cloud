@@ -2,3 +2,9 @@
 # Required has to be defined
 # kentik_az_resource_group
 kentik_az_storageaccount: export2kentik
+# app id of Kentik App in Azure
+kentik_az_app_id: a20ce222-63c0-46db-86d5-58551eeee89f
+# should ansible install dependencies or not
+kentik_az_installdeps: true
+# storage interval: 10 or 60 minutes
+kentik_az_nsg_store_interval: 60

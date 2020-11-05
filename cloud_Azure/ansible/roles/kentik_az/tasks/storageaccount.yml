@@ -1,0 +1,41 @@
+---
+- name: "Create storage account {{ kentik_az_storage_account }}"
+  azure_rm_storageaccount:
+    resource_group: "{{ resource_group }}"
+    location: "{{ location }}"
+    tags:
+      creator: ansible
+    name: "{{ kentik_az_storageaccount }}"
+    account_type: Standard_LRS
+    kind: StorageV2
+  register: storageservice
+
+- name: "Get Storage Account Contributor role definition"
+  azure_rm_roledefinition_info:
+    scope: "{{ storageservice.state.id }}"
+    role_name: "Contributor"
+  register: storageaccountcontributor
+
+- name: "StorageAccount assignment list"
+  azure.azcollection.azure_rm_roleassignment_info:
+    scope: "{{ storageservice.state.id }}"
+  register: saassgnmentlist
+
+- name: Set emply list for Kentik assignments to StorageAccount"
+  set_fact:
+    kentik_assigment_rg: []
+
+- name: "Check if need to assign role to StorageAccount"
+  set_fact:
+    kentik_assigment_rg: "{{ kentik_assigment_rg + [item.name] }}"
+  when:
+    - kentik_az_principal_id == item.principal_id
+    - storageservice.state.id == item.scope
+  loop: "{{ saassgnmentlist.roleassignments }}"
+
+- name: "Assign Kentik access to StorageAccount"
+  azure_rm_roleassignment:
+    scope: "{{ storageservice.state.id }}"
+    assignee_object_id: "{{ kentik_az_principal_id }}"
+    role_definition_id: "{{ storageaccountcontributor.roledefinitions[0].id }}"
+  when: kentik_assigment_rg|length == 0
