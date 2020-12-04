@@ -24,7 +24,7 @@
 
 # Stage 2 - Automate GCP
 ## Terraform
-* [Tearraform](https://github.com/kentik/config-snippets-cloud/tree/master/cloud_GCP/terraform)
+* [Terraform](https://github.com/kentik/config-snippets-cloud/tree/master/cloud_GCP/terraform)
 ### Demo
 * [Terraform Demo](https://github.com/kentik/config-snippets-cloud/tree/master/cloud_GCP/terraform/module/demo) (TODO)
 ### Examples
