@@ -2,7 +2,7 @@
 resource "google_logging_project_sink" "kentik_sink" {
   name        = "${var.sink_prefix}_sink"
 
-  destination = "pubsub.googleapis.com/projects/kentik-291211/topics/${var.topic_prefix}_topic"
+    destination = "pubsub.googleapis.com/${google_pubsub_topic.kentik_topic.id}"
 
   filter  = "resource.type = gce_subnetwork AND ( resource.labels.subnetwork_name = ${join(" OR resource.labels.subnetwork_name = ", var.subnets_names_list)} )"
 
