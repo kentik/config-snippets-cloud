@@ -1,4 +1,5 @@
 resource "aws_iam_role" "kentik_role" {
+  count                 = var.create_role ? 1 : 0
   name                  = "${var.iam_role_prefix}TerraformIngestRole"
   description           = "This role allows Kentik to ingest the VPC flow logs."
   force_detach_policies = true
@@ -9,6 +10,7 @@ resource "aws_iam_role" "kentik_role" {
 }
 
 resource "aws_iam_policy" "kentik_ec2_access" {
+  count      = var.create_role ? 1 : 0
   name        = "${var.iam_role_prefix}EC2Access"
   description = "Defines required accesses for Kentik platform to EC2 resources"
   path        = "/"
@@ -16,6 +18,7 @@ resource "aws_iam_policy" "kentik_ec2_access" {
 }
 
 resource "aws_iam_policy" "kentik_s3_policy" {
+  count      = var.create_role ? 1 : 0
   name        = "${var.iam_role_prefix}S3PolicyAccess"
   description = "Defines accesses for Kentik platform to S3 resources"
   path        = "/"
@@ -27,13 +30,15 @@ resource "aws_iam_policy" "kentik_s3_policy" {
 }
 
 resource "aws_iam_policy_attachment" "kentik_s3_access" {
+  count      = var.create_role ? 1 : 0
   name       = "${var.iam_role_prefix}-s3-access"
-  roles      = [aws_iam_role.kentik_role.name]
-  policy_arn = aws_iam_policy.kentik_s3_policy.arn
+  roles      = [aws_iam_role.kentik_role[count.index].name]
+  policy_arn = aws_iam_policy.kentik_s3_policy[count.index].arn
 }
 
 resource "aws_iam_policy_attachment" "kentik_ec2_access" {
+  count      = var.create_role ? 1 : 0
   name       = "${var.iam_role_prefix}-ec2-access"
-  roles      = [aws_iam_role.kentik_role.name]
-  policy_arn = aws_iam_policy.kentik_ec2_access.arn
+  roles      = [aws_iam_role.kentik_role[count.index].name]
+  policy_arn = aws_iam_policy.kentik_ec2_access[count.index].arn
 }
