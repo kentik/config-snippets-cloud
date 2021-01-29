@@ -46,7 +46,7 @@ variable "store_logs_more_frequently" {
 }
 
 variable "create_role" {
-  description = "If set to false it will not create kenyik_role"
+  description = "If set to false it will not create kentik_role"
   type        = bool
   default     = true
 }
