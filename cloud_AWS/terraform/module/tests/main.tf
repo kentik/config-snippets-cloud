@@ -31,6 +31,11 @@ provider "aws" {
   }
 }
 
+provider "kentik-cloudexport" {
+  email = "dummy@tesl.mail"
+  token = "dummy_token"
+}
+
 ## Create VPC ##
 resource "aws_vpc" "test-vpc" {
   count                            = 3
@@ -45,6 +50,8 @@ module "single_vpc_integration" {
   rw_s3_access               = true
   store_logs_more_frequently = false
   s3_bucket_prefix           = "single"
+  region                     = "us-east-1"
+  plan_id                    = "11467"
 }
 
 ## Use module for multi-vpc integration ##
@@ -54,4 +61,6 @@ module "multi_vpc_integration" {
   rw_s3_access               = true
   store_logs_more_frequently = true
   s3_bucket_prefix           = "multi"
+  region                     = "us-east-1"
+  plan_id                    = "11467"
 }

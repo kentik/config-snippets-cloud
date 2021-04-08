@@ -21,7 +21,7 @@ jobs:
       
       # Initialize the Terraform code
       - name: (HELPER) Init Code 
-        uses: docker://hashicorp/terraform:0.12.29
+        uses: docker://hashicorp/terraform:0.14.9
         with:
           entrypoint: terraform
           args: init cloud_AWS/terraform/module/tests/
@@ -36,7 +36,7 @@ jobs:
       # Validate the Terraform code using inbuilt
       # validate command
       - name: Validate Module
-        uses: docker://hashicorp/terraform:0.12.29
+        uses: docker://hashicorp/terraform:0.14.9
         with:
           entrypoint: terraform
           args: validate cloud_AWS/terraform/module/tests/ -no-color
@@ -61,7 +61,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: (HELPER) Init Code
-        uses: docker://hashicorp/terraform:0.12.29
+        uses: docker://hashicorp/terraform:0.14.9
         with:
           entrypoint: terraform
           args: init cloud_AWS/terraform/module/tests/
@@ -70,25 +70,25 @@ jobs:
       # support for the VPC Flow Logs in the LocalStack. In result
       # the Flow Logs part has to be removed from Terraform targets.
       - name: Integrate single-VPC
-        uses: docker://hashicorp/terraform:0.12.29
+        uses: docker://hashicorp/terraform:0.14.9
         with:
           entrypoint: terraform
           args: 'apply -auto-approve -target="aws_vpc.test-vpc" -target="module.single_vpc_integration.aws_iam_policy_attachment.kentik_s3_access" -target="module.single_vpc_integration.aws_iam_policy_attachment.kentik_ec2_access" -target="module.single_vpc_integration.aws_s3_bucket.vpc_logs" -target="module.single_vpc_integration.aws_s3_bucket_public_access_block.vpc_logs" ./cloud_AWS/terraform/module/tests/'
       
       - name: Remove integration for single-VPC
-        uses: docker://hashicorp/terraform:0.12.29
+        uses: docker://hashicorp/terraform:0.14.9
         with:
           entrypoint: terraform
           args: 'destroy -auto-approve -target="module.single_vpc_integration.aws_iam_role.kentik_role" -target="module.single_vpc_integration.aws_iam_policy.kentik_ec2_access" -target="module.single_vpc_integration.aws_iam_policy.kentik_s3_rw_access" -target="module.single_vpc_integration.aws_iam_policy.kentik_s3_ro_access" -target="module.single_vpc_integration.aws_iam_policy_attachment.kentik_s3_access" -target="module.single_vpc_integration.aws_iam_policy_attachment.kentik_ec2_access" -target="module.single_vpc_integration.aws_s3_bucket.vpc_logs" -target="module.single_vpc_integration.aws_s3_bucket_public_access_block.vpc_logs" ./cloud_AWS/terraform/module/tests/'
 
       - name: Integrate multi-VPC
-        uses: docker://hashicorp/terraform:0.12.29
+        uses: docker://hashicorp/terraform:0.14.9
         with:
           entrypoint: terraform
           args: 'apply -auto-approve -target="module.multi_vpc_integration.aws_iam_policy_attachment.kentik_s3_access" -target="module.multi_vpc_integration.aws_iam_policy_attachment.kentik_ec2_access" -target="module.multi_vpc_integration.aws_s3_bucket.vpc_logs" -target="module.multi_vpc_integration.aws_s3_bucket_public_access_block.vpc_logs" ./cloud_AWS/terraform/module/tests/'
       
       - name: Remove integration for multi-VPC
-        uses: docker://hashicorp/terraform:0.12.29
+        uses: docker://hashicorp/terraform:0.14.9
         with:
           entrypoint: terraform
           args: 'destroy -auto-approve -target="module.multi_vpc_integration.aws_iam_role.kentik_role" -target="module.multi_vpc_integration.aws_iam_policy.kentik_ec2_access" -target="module.multi_vpc_integration.aws_iam_policy.kentik_s3_rw_access" -target="module.multi_vpc_integration.aws_iam_policy.kentik_s3_ro_access" -target="module.multi_vpc_integration.aws_iam_policy_attachment.kentik_s3_access" -target="module.multi_vpc_integration.aws_iam_policy_attachment.kentik_ec2_access" -target="module.multi_vpc_integration.aws_s3_bucket.vpc_logs" -target="module.multi_vpc_integration.aws_s3_bucket_public_access_block.vpc_logs" ./cloud_AWS/terraform/module/tests/'
@@ -112,7 +112,7 @@ jobs:
 
       # Check how does the Destroy work
       - name: (HELPER) Destroy All
-        uses: docker://hashicorp/terraform:0.12.29
+        uses: docker://hashicorp/terraform:0.14.9
         with:
           entrypoint: terraform
           args: destroy -auto-approve cloud_AWS/terraform/module/tests/
