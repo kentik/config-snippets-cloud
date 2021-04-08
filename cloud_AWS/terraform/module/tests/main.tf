@@ -1,10 +1,18 @@
 ## Configure AWS provider to use LocalStack
 terraform {
   required_version = ">= 0.12.0"
+  required_providers {
+    aws = {
+      version = ">= 2.28.1"
+    }
+    kentik-cloudexport = {
+      version = "0.1.0"
+      source  = "kentik/kentik-cloudexport"
+    }
+  }
 }
 
 provider "aws" {
-  version = ">= 2.28.1"
   region  = "us-east-1"
 
   access_key = "dump-access-key"

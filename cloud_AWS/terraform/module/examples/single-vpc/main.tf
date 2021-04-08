@@ -6,7 +6,7 @@ terraform {
     }
     kentik-cloudexport = {
       version = "0.1.0"
-      source  = "kentik.com/automation/kentik-cloudexport"
+      source = "kentik/kentik-cloudexport"
     }
   }
 }
