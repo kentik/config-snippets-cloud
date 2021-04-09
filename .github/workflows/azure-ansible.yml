@@ -21,6 +21,7 @@ jobs:
       
       - name: Lint Role
 # TODO(lwolanin) reenable this before making any changes to azure ansible scripts
+# this was commented becuse failed unexpectedly when no changes to azure ansible were made
         # uses: github/super-linter@v3
         # env:
         #   VALIDATE_ALL_CODEBASE: false
