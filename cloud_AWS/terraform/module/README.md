@@ -7,6 +7,7 @@ Module is creating:
 * S3 bucket per region (reduces AWS costs)
 * ---- one unique sub-folder per VPC - according to [Kentik documentation](https://kb.kentik.com/Fc14.htm#Fc14-Create_an_S3_Bucket)
 * Flow log for VPC acording to [Kentik documentation](https://kb.kentik.com/Fc14.htm#Fc14-Configure_Log_Publishing)
+* Registers VPC in Kentik platform according to [Kentik documentation](https://kb.kentik.com/v0/Bd06.htm#Bd06-Create_a_Cloud_in_Kentik).
 
 ## Usage
 
@@ -18,6 +19,10 @@ module "kentik_aws_integration" {
 
   rw_s3_access = true
   vpc_id_list = data.aws_vpcs.all-vpc.ids
+  store_logs_more_frequently = true
+  name                       = "example-aws-terraform-name"
+  plan_id                    = "11467"
+  region                     = "us-east-2"
 }
 ```
 
@@ -31,7 +36,7 @@ module "kentik_aws_integration" {
 * [Demo showing how add single VPC to Kentik portal using this module](demo)
 
 ## Note
-* this module creates AWS resources only. This won't register VPC in Kentik platform automaticaly.
+* The demo is obsolete and shows using this module before it was supporting automatic cloud registrartion in Kentik Portal.
 
 ## Requirements
 
@@ -39,12 +44,14 @@ module "kentik_aws_integration" {
 |------|---------|
 | terraform | >=0.12.0 |
 | aws | >= 2.28.1 |
+| kentik-cloudexport | >=0.1.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
 | aws | >= 2.28.1 |
+| kentik-cloudexport | >=0.1.0 |
 
 ## Inputs
 
@@ -59,6 +66,13 @@ module "kentik_aws_integration" {
 | iam\_role\_prefix | Prefix to use with IAM roles | `string` | `Kentik` | no |
 | store\_logs\_more\_frequently | Allows to chose how often save logs to s3. Default is once per 10 minutes. When enabled it saves once per minute | `bool` | `false` | no |
 | create\_role | If to create kentik role | `bool` | `true` | no |
+| name | Exported cloud name in Kentik Portal | `string` | `terraform_aws_exported_cloud` | no |
+| enabled | If cloud exported to Kentik is enabled | `bool` | `true` | no |
+| description | Description in Kentik Portal | `string` | `` | no |
+| plan\_id | Billing plan ID | `string` | | yes |
+| delete\_after\_read | If to delete after read | `bool` | `false` | no |
+| multiple\_buckets | If to use multiple buckets | `bool` | `false` | no |
+| region | Specifies AWS region passed to Kentik Portal | `string` | | yes |
 
 
 ## Outputs

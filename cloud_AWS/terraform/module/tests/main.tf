@@ -1,10 +1,18 @@
 ## Configure AWS provider to use LocalStack
 terraform {
   required_version = ">= 0.12.0"
+  required_providers {
+    aws = {
+      version = ">= 2.28.1"
+    }
+    kentik-cloudexport = {
+      version = "0.1.0"
+      source  = "kentik/kentik-cloudexport"
+    }
+  }
 }
 
 provider "aws" {
-  version = ">= 2.28.1"
   region  = "us-east-1"
 
   access_key = "dump-access-key"
@@ -23,6 +31,11 @@ provider "aws" {
   }
 }
 
+provider "kentik-cloudexport" {
+  email = "dummy@tesl.mail"
+  token = "dummy_token"
+}
+
 ## Create VPC ##
 resource "aws_vpc" "test-vpc" {
   count                            = 3
@@ -37,6 +50,8 @@ module "single_vpc_integration" {
   rw_s3_access               = true
   store_logs_more_frequently = false
   s3_bucket_prefix           = "single"
+  region                     = "us-east-1"
+  plan_id                    = "11467"
 }
 
 ## Use module for multi-vpc integration ##
@@ -46,4 +61,6 @@ module "multi_vpc_integration" {
   rw_s3_access               = true
   store_logs_more_frequently = true
   s3_bucket_prefix           = "multi"
+  region                     = "us-east-1"
+  plan_id                    = "11467"
 }
