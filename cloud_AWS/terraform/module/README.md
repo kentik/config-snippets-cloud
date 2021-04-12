@@ -71,7 +71,7 @@ module "kentik_aws_integration" {
 | description | Description in Kentik Portal | `string` | `` | no |
 | plan\_id | Billing plan ID | `string` | | yes |
 | delete\_after\_read | If to delete after read | `bool` | `false` | no |
-| multiple\_buctets | If to use multiple buckets | `bool` | `false` | no |
+| multiple\_buckets | If to use multiple buckets | `bool` | `false` | no |
 | region | Specifies AWS region passed to Kentik Portal | `string` | | yes |
 
 
