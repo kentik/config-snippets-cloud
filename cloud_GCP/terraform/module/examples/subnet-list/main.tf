@@ -1,16 +1,32 @@
 terraform {
   required_version = ">= 0.12.0"
+  required_providers {
+    google = {
+      version = ">= 3.41.0"
+    }
+    kentik-cloudexport = {
+      version = "0.1.0"
+      source = "kentik/kentik-cloudexport"
+    }
+  }
 }
 
 provider "google" {
-  version = ">= 3.41.0"
-  credentials = file("${var.credentials}")
+  credentials = file(var.credentials)
   project     = var.project
   region      = var.region
+}
+
+provider "kentik-cloudexport" {
+
 }
 
 module "kentik_gcp_integration" {
   source = "../../"
   subnets_names_list = var.subnet_names
   region = var.region
+  project = var.project
+  name = var.name
+  description = var.description
+  plan_id = var.plan_id
 }

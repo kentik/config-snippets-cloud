@@ -20,3 +20,31 @@ variable "region" {
   description = "Subnets region"
   type        = string
 }
+
+variable "name" {
+  description = "Exported cloud name in Kentik Portal"
+  type = string
+  default = "terraform_aws_exported_cloud"
+}
+
+variable "enabled" {
+  description = "Defines if cloud exported to Kentik is enabled"
+  type        = bool
+  default     = true
+}
+
+variable "description" {
+  description = "Description of exported cloud in Kentik Portal"
+  type = string
+  default = ""
+}
+
+variable "plan_id" {
+  description = "Billing plan ID"
+  type = string
+}
+
+variable "project" {
+  description = "GCP project name"
+  type = string
+}
