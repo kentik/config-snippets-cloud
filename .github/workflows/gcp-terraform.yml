@@ -21,7 +21,7 @@ jobs:
       
       # Initialize the Terraform code
       - name: (HELPER) Init Code 
-        uses: docker://hashicorp/terraform:0.12.29
+        uses: docker://hashicorp/terraform:0.14.9
         with:
           entrypoint: terraform
           args: init cloud_GCP/terraform/module/tests/
@@ -36,7 +36,7 @@ jobs:
       # Validate the Terraform code using inbuilt
       # validate command
       - name: Validate Module
-        uses: docker://hashicorp/terraform:0.12.29
+        uses: docker://hashicorp/terraform:0.14.9
         with:
           entrypoint: terraform
           args: validate cloud_GCP/terraform/module/tests/ -no-color
