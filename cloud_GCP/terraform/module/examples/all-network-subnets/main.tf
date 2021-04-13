@@ -18,7 +18,7 @@ provider "google" {
 }
 
 provider "kentik-cloudexport" {
-
+  # email, token and apiurl are read from KTAPI_AUTH_EMAIL, KTAPI_AUTH_TOKEN, KTAPI_URL env variables
 }
 
 data "google_compute_network" "network" {
@@ -31,7 +31,7 @@ data "google_compute_subnetwork" "subnetworks" {
 }
 
 module "kentik_gcp_integration" {
-  source             = "/home/lukasz/Projects/config-snippets-cloud/cloud_GCP/terraform/module"
+  source             = "../../"
   subnets_names_list = [ for subnet in data.google_compute_subnetwork.subnetworks : subnet.name ]
   region = var.region
   project = var.project

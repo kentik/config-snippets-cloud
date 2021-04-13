@@ -18,11 +18,14 @@ provider "google" {
 }
 
 provider "kentik-cloudexport" {
-
+  email = "dummy@tesl.mail"
+  token = "dummy_token"
 }
 
 module "kentik_gcp_integration" {
   source = "../"
   subnets_names_list = ["test-name"]
   region = "europe-west1"
+  plan_id = "11467"
+  project = "test-project"
 }
