@@ -35,9 +35,6 @@ module "kentik_aws_integration" {
 ## Demo
 * [Demo showing how add single VPC to Kentik portal using this module](demo)
 
-## Note
-* The demo is obsolete and shows using this module before it was supporting automatic cloud registrartion in Kentik Portal.
-
 ## Requirements
 
 | Name | Version |
