@@ -1,9 +1,21 @@
 {
   "Version": "2012-10-17",
+  "Id": "kentik-default-access-policy",
   "Statement": [
     {
       "Effect": "Allow",
-      "Action": "ec2:Describe*",
+      "Action": [
+        "directconnect:Describe*",
+        "directconnect:List*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ec2:Describe*",
+        "ec2:SearchTransitGatewayRoutes"
+      ],
       "Resource": "*"
     },
     {
@@ -23,6 +35,14 @@
     {
       "Effect": "Allow",
       "Action": "autoscaling:Describe*",
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "network-firewall:Describe*",
+        "network-firewall:List*"
+      ],
       "Resource": "*"
     }
   ]
