@@ -1,29 +1,57 @@
 {
   "Version": "2012-10-17",
+  "Id": "kentik-default-access-policy",
   "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": "ec2:Describe*",
-      "Resource": "*"
-    },
-    {
-      "Effect": "Allow",
-      "Action": "elasticloadbalancing:Describe*",
-      "Resource": "*"
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "cloudwatch:ListMetrics",
-        "cloudwatch:GetMetricStatistics",
-        "cloudwatch:Describe*"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Effect": "Allow",
-      "Action": "autoscaling:Describe*",
-      "Resource": "*"
-    }
+      {
+          "Effect": "Allow",
+          "Action": [
+              "cloudwatch:ListMetrics",
+              "cloudwatch:GetMetricStatistics",
+              "cloudwatch:Describe*",
+              "directconnect:List*",
+              "directconnect:describeVirtualInterfaces",
+              "directconnect:describeDirectConnectGateways",
+              "directconnect:describeDirectConnectGatewayAttachments",
+              "directconnect:describeConnections",
+              "directconnect:describeVirtualGateways",
+              "ec2:describeAvailabilityZones",
+              "ec2:describeInternetGateways",
+              "ec2:describeCustomerGateways",
+              "ec2:describeInstances",
+              "ec2:describeInstanceStatus",
+              "ec2:describeNatGateways",
+              "ec2:describeNetworkAcls",
+              "ec2:describeNetworkInterfaces",
+              "ec2:describePrefixLists",
+              "ec2:describeRouteTables",
+              "ec2:describeSecurityGroups",
+              "ec2:describeSubnets",
+              "ec2:describeTransitGateways",
+              "ec2:describeTransitGatewayAttachments",
+              "ec2:describeTransitGatewayRouteTables",
+              "ec2:describeVpcs",
+              "ec2:describeVpcEndpoints",
+              "ec2:describeVpcPeeringConnections",
+              "ec2:describeVpnConnections",
+              "ec2:describeVpnGateways",
+              "ec2:SearchTransitGatewayRoutes",
+              "elasticloadbalancing:DescribeLoadBalancers",
+              "network-firewall:Describe*",
+              "network-firewall:List*"
+          ],
+          "Resource": "*"
+      },
+      {
+          "Effect": "Allow",
+          "Action": [
+              "s3:GetObject",
+              "s3:ListBucket",
+              "s3:DeleteObject"
+          ],
+          "Resource": [
+              "arn:aws:s3:::*flow-logs",
+              "arn:aws:s3:::*flow-logs/*"
+          ]
+      }
   ]
 }
