@@ -1,0 +1,20 @@
+{
+  "Version": "2008-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      %{ if external_id != "" ~}
+      "Condition": {
+        "StringEquals": {
+          "sts:ExternalId": "${external_id}"
+        }
+      },
+      %{ endif ~}
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::834693425129:role/eks-ingest-node"
+      },
+      "Sid": ""
+    }
+  ]
+}

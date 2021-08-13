@@ -36,7 +36,10 @@ module "aws_vpc" {
 }
 
 module "kentik_integration" {
+  // Use the module from local filesystem
   source = "../../"
+  // Use the module from Github
+  // source = "github.com/kentik/config-snippets-cloud/cloud_AWS/terraform/module"
 
   rw_s3_access               = true
   s3_bucket_prefix           = "sock-shop-cluster-logs"

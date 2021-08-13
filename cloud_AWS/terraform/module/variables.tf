@@ -53,8 +53,8 @@ variable "create_role" {
 
 variable "name" {
   description = "Exported cloud name in Kentik Portal"
-  type = string
-  default = "terraform_aws_exported_cloud"
+  type        = string
+  default     = "terraform_aws_exported_cloud"
 }
 
 variable "enabled" {
@@ -65,26 +65,32 @@ variable "enabled" {
 
 variable "description" {
   description = "Description of exported cloud in Kentik Portal"
-  type = string
-  default = ""
+  type        = string
+  default     = ""
 }
 
 variable "plan_id" {
   description = "Billing plan ID"
-  type = string
+  type        = string
 }
 
 variable "delete_after_read" {
-  type        = bool
-  default     = false
+  type    = bool
+  default = false
 }
 
 variable "multiple_buckets" {
-  type        = bool
-  default     = false
+  type    = bool
+  default = false
 }
 
 variable "region" {
   description = "Specifies AWS region passed to kentik-cloudexport provider"
-  type = string
+  type        = string
+}
+
+variable "external_id" {
+  description = "External ID passed to assume role policy of TerraformIngestRole"
+  type        = string
+  default     = ""
 }

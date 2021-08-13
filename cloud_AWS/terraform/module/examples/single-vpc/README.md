@@ -2,18 +2,34 @@
 
 Configuration in this directory creates configuration for single VPC.
 
-## Usage
-
-To run this example you need to execute:
-```
-$ terraform init
-$ terraform plan
-$ terraform apply
-```
-
 ## Requirements
 
-Example requires VPC ID
+- Installed and configured AWS CLI
+  - [installation](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
+  - [configuration](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html)
+- Created VPC
+- Exported Kentik API credentials:
+
+  ```shell
+  export KTAPI_AUTH_EMAIL="joe.doe@email.com"
+  export KTAPI_AUTH_TOKEN="token123"
+  ```
+
+## Usage
+
+Run the example:
+
+```shell
+terraform init
+terraform apply
+```
+
+Clean up created resources:
+
+```shell
+aws s3 rm s3://terraform-example-ingest-bucket-flow-logs
+terraform destroy
+```
 
 ## Inputs
 
