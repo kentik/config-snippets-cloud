@@ -1,6 +1,6 @@
 # AWS Kentik integration Terraform module
 
-Terraform module which creates AWS resources required for Kentik to enable integration.
+Terraform module facilitating creation of AWS resources required for automatic export of VPC flow logs to Kentik.
 
 Module is creating:
 * IAM role according to [Kentik documentation](https://kb.kentik.com/Fc14.htm#Fc14-Create_an_AWS_Role)
@@ -71,7 +71,7 @@ module "kentik_aws_integration" {
 | delete\_after\_read | If to delete after read | `bool` | `false` | no |
 | multiple\_buckets | If to use multiple buckets | `bool` | `false` | no |
 | region | Specifies AWS region passed to Kentik Portal | `string` | | yes |
-| external_id | [External ID][1] passed to assume role policy of TerraformIngestRole | `string` | `` | no |
+| external_id | Company ID assigned by Kentik passed to assume role policy of TerraformIngestRole ([External ID][1]) | `string` | `` | no |
 
 [1]: https://aws.amazon.com/blogs/security/how-to-use-external-id-when-granting-access-to-your-aws-resources/
 

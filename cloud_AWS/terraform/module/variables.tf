@@ -90,7 +90,7 @@ variable "region" {
 }
 
 variable "external_id" {
-  description = "External ID passed to assume role policy of TerraformIngestRole"
+  description = "Company ID assigned by Kentik passed to assume role policy of TerraformIngestRole."
   type        = string
   default     = ""
 }

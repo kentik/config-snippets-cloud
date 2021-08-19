@@ -13,12 +13,6 @@ terraform {
 
 provider "aws" {
   region = "us-east-2"
-
-  # Allow module to assume role with external ID
-  //  assume_role {
-  //    role_arn     = "arn:aws:iam::ACCOUNT_ID:role/ROLE_NAME"
-  //    external_id = "a43dd248-0047-11ec-ab2e-6b5423aa2e8a"
-  //  }
 }
 
 provider "kentik-cloudexport" {}
@@ -37,5 +31,7 @@ module "kentik_aws_integration" {
   name                       = "example-aws-terraform-name"
   plan_id                    = "11467"
   region                     = "us-east-2"
-  external_id                = "a43dd248-0047-11ec-ab2e-6b5423aa2e8a"
+  // The company ID passed here can be obtained in automated configuration of AWS cloudexport
+  // (https://portal.kentik.com/v4/setup/clouds/aws).
+  external_id                = "12345"
 }
