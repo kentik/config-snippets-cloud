@@ -15,14 +15,15 @@ provider "aws" {
   region  = "us-east-2"
 }
 
-provider "kentik-cloudexport" {
-
-}
+provider "kentik-cloudexport" {}
 
 data "aws_vpcs" "all-vpc" {}
 
 module "kentik_aws_integration" {
+  // Use the module from local filesystem
   source = "../../"
+  // Use the module from Github
+  // source = "github.com/kentik/config-snippets-cloud/cloud_AWS/terraform/module"
 
   rw_s3_access = true
   vpc_id_list  = data.aws_vpcs.all-vpc.ids

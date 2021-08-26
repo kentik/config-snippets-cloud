@@ -1,12 +1,12 @@
 # AWS Kentik integration Terraform module
 
-Terraform module which creates AWS resources required for Kentik to enable integration
+Terraform module facilitating creation of AWS resources required for automatic export of VPC flow logs to Kentik.
 
 Module is creating:
-* IAM role acording to [Kentik documentation](https://kb.kentik.com/Fc14.htm#Fc14-Create_an_AWS_Role)
+* IAM role according to [Kentik documentation](https://kb.kentik.com/Fc14.htm#Fc14-Create_an_AWS_Role)
 * S3 bucket per region (reduces AWS costs)
 * ---- one unique sub-folder per VPC - according to [Kentik documentation](https://kb.kentik.com/Fc14.htm#Fc14-Create_an_S3_Bucket)
-* Flow log for VPC acording to [Kentik documentation](https://kb.kentik.com/Fc14.htm#Fc14-Configure_Log_Publishing)
+* Flow log for VPC according to [Kentik documentation](https://kb.kentik.com/Fc14.htm#Fc14-Configure_Log_Publishing)
 * Registers VPC in Kentik platform according to [Kentik documentation](https://kb.kentik.com/v0/Bd06.htm#Bd06-Create_a_Cloud_in_Kentik).
 
 ## Usage
@@ -30,9 +30,10 @@ module "kentik_aws_integration" {
 
 * [Prepare single VPC](examples/single-vpc)
 * [Prepare all VPCs from certain region](examples/all-vpc-from-region)
-* [Create EKS cluster with Boutique and configured VPC](examples/boutique-eks)
+* [Create EKS cluster with sock shop and configured VPC](examples/sock-shop-eks)
 
 ## Demo
+
 * [Demo showing how add single VPC to Kentik portal using this module](demo)
 
 ## Requirements
@@ -70,7 +71,9 @@ module "kentik_aws_integration" {
 | delete\_after\_read | If to delete after read | `bool` | `false` | no |
 | multiple\_buckets | If to use multiple buckets | `bool` | `false` | no |
 | region | Specifies AWS region passed to Kentik Portal | `string` | | yes |
+| external_id | Company ID assigned by Kentik passed to assume role policy of TerraformIngestRole ([External ID][1]) | `string` | `` | no |
 
+[1]: https://aws.amazon.com/blogs/security/how-to-use-external-id-when-granting-access-to-your-aws-resources/
 
 ## Outputs
 
