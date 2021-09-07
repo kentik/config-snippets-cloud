@@ -67,7 +67,7 @@ module "kentik_aws_integration" {
 | name | Exported cloud name in Kentik Portal | `string` | `terraform_aws_exported_cloud` | no |
 | enabled | If cloud exported to Kentik is enabled | `bool` | `true` | no |
 | description | Description in Kentik Portal | `string` | `` | no |
-| plan\_id | Billing plan ID | `string` | | yes |
+| plan\_id | Billing plan ID. | `string` | | no |
 | delete\_after\_read | If to delete after read | `bool` | `false` | no |
 | multiple\_buckets | If to use multiple buckets | `bool` | `false` | no |
 | region | Specifies AWS region passed to Kentik Portal | `string` | | yes |

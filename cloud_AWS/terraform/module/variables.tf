@@ -72,6 +72,7 @@ variable "description" {
 variable "plan_id" {
   description = "Billing plan ID"
   type        = string
+  default     = ""
 }
 
 variable "delete_after_read" {
