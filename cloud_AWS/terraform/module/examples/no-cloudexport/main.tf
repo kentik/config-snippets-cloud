@@ -15,9 +15,10 @@ provider "aws" {
   region = "us-east-2"
 }
 
-provider "kentik-cloudexport" {}
-
-data "aws_vpcs" "all-vpc" {}
+provider "kentik-cloudexport" {
+  email = "dummy"
+  token = "dummy"
+}
 
 module "kentik_aws_integration" {
   // Use the module from local filesystem
@@ -25,13 +26,10 @@ module "kentik_aws_integration" {
   // Use the module from Github
   // source = "github.com/kentik/config-snippets-cloud/cloud_AWS/terraform/module"
 
+  region                     = "us-east-2"
   rw_s3_access               = true
-  vpc_id_list                = data.aws_vpcs.all-vpc.ids
+  vpc_id_list                = [var.vpc_id]
   s3_bucket_prefix           = "terraform-example"
   iam_role_prefix            = "terraform-example"
   store_logs_more_frequently = true
-  name                       = "example-aws-terraform-name"
-  plan_id                    = "11467"
-  region                     = "us-east-2"
-  multiple_buckets           = true
 }
