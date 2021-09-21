@@ -8,7 +8,7 @@ terraform {
 }
 
 resource "kentik-cloudexport_item" "aws_export" {
-  name           = var.name
+  name           = "${var.name}_${terraform.workspace}"
   type           = "CLOUD_EXPORT_TYPE_KENTIK_MANAGED"
   enabled        = var.enabled
   description    = var.description

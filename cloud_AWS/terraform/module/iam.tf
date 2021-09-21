@@ -1,6 +1,7 @@
 resource "aws_iam_role" "kentik_role" {
   count                 = var.create_role ? 1 : 0
-  name                  = "${var.iam_role_prefix}TerraformIngestRole"
+  name                  = "${var.iam_role_prefix}TerraformIngestRole_${terraform.workspace}"
+
   description           = "This role allows Kentik to ingest the VPC flow logs."
   force_detach_policies = true
   tags = {
@@ -15,7 +16,7 @@ resource "aws_iam_role" "kentik_role" {
 
 resource "aws_iam_policy" "kentik_ec2_access" {
   count       = var.create_role ? 1 : 0
-  name        = "${var.iam_role_prefix}EC2Access"
+  name        = "${var.iam_role_prefix}EC2Access_${terraform.workspace}"
   description = "Defines required accesses for Kentik platform to EC2 resources"
   path        = "/"
   policy      = file("${path.module}/files/kentikEC2Access.json")
@@ -23,7 +24,7 @@ resource "aws_iam_policy" "kentik_ec2_access" {
 
 resource "aws_iam_policy" "kentik_s3_policy" {
   count       = var.create_role ? 1 : 0
-  name        = "${var.iam_role_prefix}S3PolicyAccess"
+  name        = "${var.iam_role_prefix}S3PolicyAccess_${terraform.workspace}"
   description = "Defines accesses for Kentik platform to S3 resources"
   path        = "/"
   policy = templatefile(
@@ -38,14 +39,14 @@ resource "aws_iam_policy" "kentik_s3_policy" {
 
 resource "aws_iam_policy_attachment" "kentik_s3_access" {
   count      = var.create_role ? 1 : 0
-  name       = "${var.iam_role_prefix}-s3-access"
+  name       = "${var.iam_role_prefix}-s3-access_${terraform.workspace}"
   roles      = [aws_iam_role.kentik_role[count.index].name]
   policy_arn = aws_iam_policy.kentik_s3_policy[count.index].arn
 }
 
 resource "aws_iam_policy_attachment" "kentik_ec2_access" {
   count      = var.create_role ? 1 : 0
-  name       = "${var.iam_role_prefix}-ec2-access"
+  name       = "${var.iam_role_prefix}-ec2-access_${terraform.workspace}"
   roles      = [aws_iam_role.kentik_role[count.index].name]
   policy_arn = aws_iam_policy.kentik_ec2_access[count.index].arn
 }
