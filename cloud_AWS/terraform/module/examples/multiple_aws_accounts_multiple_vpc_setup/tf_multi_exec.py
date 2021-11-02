@@ -34,7 +34,7 @@ def multi_execute_action(action: TerraformAction, credentials: List[AwsCredentia
         terraform_diag(t.set_workspace(workspace))
 
         terraform_diag(action(t))
-    print("Multi-account execution done for {} AWS accounts.".format(len(credentials)))
+    print("Multi-account execution done for {} AWS account(s).".format(len(credentials)))
 
 
 # TerraformAction

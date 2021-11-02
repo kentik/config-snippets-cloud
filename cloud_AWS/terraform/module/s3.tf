@@ -1,10 +1,10 @@
 resource "aws_s3_bucket" "vpc_logs" {
   count  = (var.s3_use_one_bucket == false ? length(var.vpc_id_list) : 1)
-  bucket = join("-", [var.s3_bucket_prefix, (var.s3_use_one_bucket == false ? var.vpc_id_list[count.index] : var.s3_base_name), "flow-logs", terraform.workspace])
+  bucket = join("-", [var.s3_bucket_prefix, (var.s3_use_one_bucket == false ? var.vpc_id_list[count.index] : var.s3_base_name), "flow-logs"])
   acl    = "private"
   policy = templatefile(
     "${path.module}/templates/flowLogsS3Policy.json.tmpl",
-    { bucket = join("-", [var.s3_bucket_prefix, (var.s3_use_one_bucket == false ? var.vpc_id_list[count.index] : var.s3_base_name), "flow-logs", terraform.workspace])
+    { bucket = join("-", [var.s3_bucket_prefix, (var.s3_use_one_bucket == false ? var.vpc_id_list[count.index] : var.s3_base_name), "flow-logs"])
   })
 }
 
