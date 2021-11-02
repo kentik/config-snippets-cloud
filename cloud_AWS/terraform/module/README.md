@@ -29,9 +29,9 @@ module "kentik_aws_integration" {
 ## Examples
 
 * [Prepare single VPC](examples/single-vpc)
+* [Prepare multiple VPCs on multiple AWS accounts](examples/multiple_aws_accounts_multiple_vpc_setup)
 * [Prepare all VPCs from certain region](examples/all-vpc-from-region)
 * [Create EKS cluster with sock shop and configured VPC](examples/sock-shop-eks)
-
 ## Demo
 
 * [Demo showing how add single VPC to Kentik portal using this module](demo)

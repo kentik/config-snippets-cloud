@@ -12,10 +12,13 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-2"
+  region = var.region
 }
 
 provider "kentik-cloudexport" {}
+
+
+data "aws_vpcs" "id_list" {}
 
 module "kentik_aws_integration" {
   // Use the module from local filesystem
@@ -24,14 +27,15 @@ module "kentik_aws_integration" {
   // source = "github.com/kentik/config-snippets-cloud/cloud_AWS/terraform/module"
 
   rw_s3_access               = true
-  vpc_id_list                = [var.vpc_id]
+  vpc_id_list                = data.aws_vpcs.id_list.ids
   s3_bucket_prefix           = "terraform-example"
   iam_role_prefix            = "terraform-example"
   store_logs_more_frequently = true
   name                       = "example-aws-terraform-name"
-  plan_id                    = "11467"
-  region                     = "us-east-2"
+  region                     = var.region
+
   // The company ID passed here can be obtained in automated configuration of AWS cloudexport
   // (https://portal.kentik.com/v4/setup/clouds/aws).
   external_id                = "74333"
+  plan_id                    = "11467"
 }
