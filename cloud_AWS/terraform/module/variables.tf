@@ -33,6 +33,12 @@ variable "s3_base_name" {
   default     = "ingest-bucket"
 }
 
+variable "s3_delete_nonempty_buckets" {
+  description = "Delete bucket even if it is not empty"
+  type        = bool
+  default     = false
+}
+
 variable "iam_role_prefix" {
   description = "Prefix to use with IAM roles"
   type        = string

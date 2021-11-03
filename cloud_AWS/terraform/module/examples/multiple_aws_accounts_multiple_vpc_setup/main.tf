@@ -29,6 +29,7 @@ module "kentik_aws_integration" {
   rw_s3_access               = true
   vpc_id_list                = data.aws_vpcs.id_list.ids
   s3_bucket_prefix           = "terraform-example"
+  s3_delete_nonempty_buckets = true
   iam_role_prefix            = "terraform-example"
   store_logs_more_frequently = true
   name                       = "example-aws-terraform-name"
