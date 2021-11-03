@@ -25,7 +25,7 @@ def multi_execute_action(action: TerraformAction, credentials: List[AwsCredentia
     for cred in credentials:
         os.environ["AWS_ACCESS_KEY_ID"] = cred.access_key
         os.environ["AWS_SECRET_ACCESS_KEY"] = cred.secret_key
-        workspace = cred.profile  # AWS profiles are mapped to Terraform workspaces
+        workspace = make_workspace_name(cred.profile)  # AWS profiles are mapped to Terraform workspaces
 
         print(f'Creating workspace "{workspace}"...')
         terraform_diag(t.create_workspace(workspace))
@@ -53,6 +53,13 @@ def action_apply(t: Terraform) -> TerraformOutput:
 def action_destroy(t: Terraform) -> TerraformOutput:
     print("Terraform destroy...")
     return t.apply(destroy=IsFlagged, skip_plan=True)  # skip_plan means auto-approve
+
+
+def make_workspace_name(s: str) -> str:
+    # workspace name is used as a suffix to certain AWS and Kentik resource names to make them unique
+    # only lowercase alphanumeric characters and hyphens are allowed - S3 bucket name limitation
+    s = s.lower().replace("_", "-")
+    return "".join(c for c in s if c.isalnum() or c == "-")
 
 
 def terraform_diag(output: TerraformOutput) -> None:
