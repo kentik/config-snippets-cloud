@@ -16,7 +16,7 @@ class AwsCredentials:
 
 
 TerraformOutput = Tuple[int, Optional[str], Optional[str]]  # terraform command: return code, stdout, stderr
-TerraformAction = Callable[[Terraform], TerraformOutput]  # terraform plan/apply/destroy
+TerraformAction = Callable[[Terraform], None]  # terraform plan/apply/destroy
 AwsProfileList = Optional[List[str]]  # AWS profile list matching profiles in ~/.aws/credentials
 
 
@@ -27,32 +27,44 @@ def multi_execute_action(action: TerraformAction, credentials: List[AwsCredentia
         os.environ["AWS_SECRET_ACCESS_KEY"] = cred.secret_key
         workspace = make_workspace_name(cred.profile)  # AWS profiles are mapped to Terraform workspaces
 
-        print(f'Creating workspace "{workspace}"...')
-        terraform_diag(t.create_workspace(workspace))
-
-        print(f'Setting workspace to "{workspace}"...')
-        terraform_diag(t.set_workspace(workspace))
-
-        terraform_diag(action(t))
+        create_workspace_if_needed(t, workspace)
+        switch_workspace_if_needed(t, workspace)
+        action(t)
     print("Multi-account execution done for {} AWS account(s).".format(len(credentials)))
 
 
+def create_workspace_if_needed(t: Terraform, workspace: str) -> None:
+    _, stdout, _ = t.cmd("workspace", "list")
+    existing_workspaces = [s.strip("* ") for s in stdout.splitlines() if s]
+    if workspace not in existing_workspaces:
+        print(f'Creating workspace "{workspace}"...')
+        terraform_diag(t.create_workspace(workspace))
+
+
+def switch_workspace_if_needed(t: Terraform, workspace: str) -> None:
+    _, stdout, _ = t.show_workspace()
+    current_workspace = stdout.strip()
+    if workspace != current_workspace:
+        print(f'Switching workspace to "{workspace}"...')
+        terraform_diag(t.set_workspace(workspace))
+
+
 # TerraformAction
-def action_plan(t: Terraform) -> TerraformOutput:
+def action_plan(t: Terraform) -> None:
     print("Terraform plan...")
-    return t.plan()
+    terraform_diag(t.plan())
 
 
 # TerraformAction
-def action_apply(t: Terraform) -> TerraformOutput:
+def action_apply(t: Terraform) -> None:
     print("Terraform apply...")
-    return t.apply(skip_plan=True)  # skip_plan means auto-approve
+    terraform_diag(t.apply(skip_plan=True))  # skip_plan means auto-approve
 
 
 # TerraformAction
-def action_destroy(t: Terraform) -> TerraformOutput:
+def action_destroy(t: Terraform) -> None:
     print("Terraform destroy...")
-    return t.apply(destroy=IsFlagged, skip_plan=True)  # skip_plan means auto-approve
+    terraform_diag(t.apply(destroy=IsFlagged, skip_plan=True))  # skip_plan means auto-approve
 
 
 def make_workspace_name(s: str) -> str:
