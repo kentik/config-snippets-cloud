@@ -1,13 +1,14 @@
 # Multiple AWS accounts multiple VPC setup
 
-Configuration in this directory creates configuration for multiple AWS accounts; all VPCs in selected region are considered.
-
+Configuration in this directory creates configuration for multiple AWS accounts; all VPCs in selected region are considered.  
+Note: this example works with profiles. A profile is credentials keys + profile name + region.  
+Profile name is later translated to terraform workspace.
 ## Requirements
 
 1. Installed python >= 3.9
 1. Installed virtualenv >= 20.4.0
 1. Installed terraform >= 0.12.0
-1. Configured AWS credentials: ~/.aws/credentials  (to setup credentials, do: ```pip install awscli && aws configure```)
+1. Configured AWS profiles: ~/.aws/credentials (keys), ~/.aws/config (regions); to setup profiles, do: ```pip install awscli && aws configure```
 1. Exported Kentik API credentials:
   ```shell
   export KTAPI_AUTH_EMAIL="joe.doe@email.com"
@@ -41,13 +42,13 @@ Configuration in this directory creates configuration for multiple AWS accounts;
 
 | Name | Description | Type |
 |------|-------------|------|
-| region | AWS region | `string` |
-| ~/.aws/credentials | List of AWS accounts credentials | `text file` |
+| ~/.aws/credentials | List of AWS credentials (keys) | `text file` |
+| ~/.aws/config | List of AWS regions | `text file` |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| kentik_iam_role_arn | ARN of created IAM role - exactly one per AWS account |
-| kentik_bucket_name | Created S3 bucket - exactly one per AWS account |
+| kentik_iam_role_arn | ARN of created IAM role - exactly one per AWS profile |
+| kentik_bucket_name | Created S3 bucket - exactly one per AWS profile |
 
