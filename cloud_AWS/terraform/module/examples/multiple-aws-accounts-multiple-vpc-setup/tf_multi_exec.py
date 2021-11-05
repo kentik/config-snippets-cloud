@@ -1,35 +1,36 @@
 import argparse
 import os
 from dataclasses import dataclass
-from typing import Callable, List, Optional, Tuple, Final
+from typing import Callable, Final, List, Optional, Tuple
 
 import boto3.session as aws
 from python_terraform import IsFlagged, Terraform
 
 
 @dataclass
-class AwsCredentials:
-    profile: str
+class AwsProfile:
+    name: str
+    region: str
     access_key: str
     secret_key: str
 
 
 TerraformOutput = Tuple[int, Optional[str], Optional[str]]  # terraform command: return code, stdout, stderr
-TerraformAction = Callable[[Terraform], None]  # terraform plan/apply/destroy
-AwsProfileList = Optional[List[str]]  # AWS profile list matching profiles in ~/.aws/credentials
+TerraformAction = Callable[[Terraform, str], None]  # terraform plan/apply/destroy for specified region
+RequestedProfileNames = Optional[List[str]]  # list of profile names matching profiles in ~/.aws/credentials
 
 
-def multi_execute_action(action: TerraformAction, credentials: List[AwsCredentials]) -> None:
+def multi_execute_action(action: TerraformAction, profiles: List[AwsProfile]) -> None:
     t = Terraform()
-    for cred in credentials:
-        os.environ["AWS_ACCESS_KEY_ID"] = cred.access_key
-        os.environ["AWS_SECRET_ACCESS_KEY"] = cred.secret_key
-        workspace = make_workspace_name(cred.profile)  # AWS profiles are mapped to Terraform workspaces
+    for profile in profiles:
+        os.environ["AWS_ACCESS_KEY_ID"] = profile.access_key
+        os.environ["AWS_SECRET_ACCESS_KEY"] = profile.secret_key
+        workspace = make_workspace_name(profile.name)  # AWS profiles are mapped to Terraform workspaces
 
         create_workspace_if_needed(t, workspace)
         switch_workspace_if_needed(t, workspace)
-        action(t)
-    print("Multi-account execution done for {} AWS account(s).".format(len(credentials)))
+        action(t, profile.region)
+    print("Multi-account execution done for {} AWS account(s).".format(len(profiles)))
 
 
 def create_workspace_if_needed(t: Terraform, workspace: str) -> None:
@@ -37,35 +38,35 @@ def create_workspace_if_needed(t: Terraform, workspace: str) -> None:
     existing_workspaces = [s.strip("* ") for s in stdout.splitlines() if s]
     if workspace not in existing_workspaces:
         print(f'Creating workspace "{workspace}"...')
-        report_terraform_output(t.create_workspace(workspace))
+        report_tf_output(t.create_workspace(workspace))
 
 
 def switch_workspace_if_needed(t: Terraform, workspace: str) -> None:
     _, stdout, _ = t.show_workspace()
     current_workspace = stdout.strip()
-    if workspace != current_workspace:
-        print(f'Switching workspace to "{workspace}"...')
-        report_terraform_output(t.set_workspace(workspace))
-    else:
+    if workspace == current_workspace:
         print(f'Current workspace is "{workspace}"')
+    else:
+        print(f'Switching workspace to "{workspace}"...')
+        report_tf_output(t.set_workspace(workspace))
 
 
 # TerraformAction
-def action_plan(t: Terraform) -> None:
-    print("Terraform plan...")
-    report_terraform_output(t.plan())
+def action_plan(t: Terraform, region: str) -> None:
+    print(f'Terraform plan ("{region}")...')
+    report_tf_output(t.plan(var=f"region={region}"))
 
 
 # TerraformAction
-def action_apply(t: Terraform) -> None:
-    print("Terraform apply...")
-    report_terraform_output(t.apply(skip_plan=True))  # skip_plan means auto-approve
+def action_apply(t: Terraform, region: str) -> None:
+    print(f'Terraform apply ("{region}")...')
+    report_tf_output(t.apply(skip_plan=True, var=f"region={region}"))  # skip_plan means auto-approve
 
 
 # TerraformAction
-def action_destroy(t: Terraform) -> None:
-    print("Terraform destroy...")
-    report_terraform_output(t.apply(destroy=IsFlagged, skip_plan=True))  # skip_plan means auto-approve
+def action_destroy(t: Terraform, region: str) -> None:
+    print(f'Terraform destroy ("{region}")...')
+    report_tf_output(t.apply(destroy=IsFlagged, skip_plan=True, var=f"region={region}"))  # skip_plan means auto-approve
 
 
 def make_workspace_name(s: str) -> str:
@@ -75,7 +76,7 @@ def make_workspace_name(s: str) -> str:
     return "".join(c for c in s if c.isalnum() or c == "-")
 
 
-def report_terraform_output(output: TerraformOutput) -> None:
+def report_tf_output(output: TerraformOutput) -> None:
     return_code, stdout, stderr = output
 
     if stdout:
@@ -100,18 +101,33 @@ def check_kentik_credentials() -> None:
             raise Exception(f"{env_var} environment variable is missing")
 
 
-def get_aws_credentials(requested: AwsProfileList) -> List[AwsCredentials]:
-    credentials: List[AwsCredentials] = []
-    filtered_profiles = [p for p in aws.Session().available_profiles if not requested or p in requested]
+def get_aws_profiles(requested: RequestedProfileNames) -> List[AwsProfile]:
+    profiles: List[AwsProfile] = []
+    available_profiles = aws.Session().available_profiles  # loaded from ~/.aws/credentials and ~/.aws/config
+    filtered_profiles = [p for p in available_profiles if not requested or p in requested]
     for profile in filtered_profiles:
-        if c := aws.Session(profile_name=profile).get_credentials():
-            credentials.append(AwsCredentials(profile, c.access_key, c.secret_key))
-        else:
-            print(f'Skipping profile "{profile}" as no credentials are available')
-    return credentials
+        sesesion = aws.Session(profile_name=profile)
+        try:
+            cred = sesesion.get_credentials()
+        except:
+            print(f'Skipping profile "{profile}" as credentials couldn\'t be obtained')
+            continue
+
+        if not cred:
+            print(f'Skipping profile "{profile}" as no credentials are configured')
+            continue
+
+        region = sesesion.region_name
+        if not region:
+            print(f'Skipping profile "{profile}" as no region name is configured')
+            continue
+
+        profiles.append(AwsProfile(profile, region, cred.access_key, cred.secret_key))
+
+    return profiles
 
 
-def parse_cmd_line() -> Tuple[TerraformAction, AwsProfileList]:
+def parse_cmd_line() -> Tuple[TerraformAction, RequestedProfileNames]:
     ACTIONS: Final = {"plan": action_plan, "apply": action_apply, "destroy": action_destroy}
     parser = argparse.ArgumentParser("multi-exec")
     parser.add_argument("--action", choices=["plan", "apply", "destroy"], default="plan", help="default: plan")
@@ -123,5 +139,5 @@ def parse_cmd_line() -> Tuple[TerraformAction, AwsProfileList]:
 if __name__ == "__main__":
     check_kentik_credentials()
     action, requested_profiles = parse_cmd_line()
-    credentials = get_aws_credentials(requested_profiles)
-    multi_execute_action(action, credentials)
+    profiles = get_aws_profiles(requested_profiles)
+    multi_execute_action(action, profiles)
