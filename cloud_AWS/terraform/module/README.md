@@ -61,6 +61,7 @@ module "kentik_aws_integration" {
 | s3\_use\_one\_bucket | If we should use one or more buckets | `bool` | `true` | no |
 | s3\_flowlogs\_path | Path on the S3 bucket for saving logs | `string` | `` | no |
 | s3\_base\_name | Base name for s3 bucket. Used in single bucket mode | `string` | `ingest-bucket` | no |
+| s3_delete_nonempty_buckets | On terraform destroy, delete bucket even if it is not empty | `bool` | `false` | no |
 | iam\_role\_prefix | Prefix to use with IAM roles | `string` | `Kentik` | no |
 | store\_logs\_more\_frequently | Allows to chose how often save logs to s3. Default is once per 10 minutes. When enabled it saves once per minute | `bool` | `false` | no |
 | create\_role | If to create kentik role | `bool` | `true` | no |

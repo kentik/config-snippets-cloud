@@ -1,10 +1,9 @@
 import argparse
 import os
 from dataclasses import dataclass
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, List, Optional, Tuple, Final
 
 import boto3.session as aws
-from botocore import credentials
 from python_terraform import IsFlagged, Terraform
 
 
@@ -38,7 +37,7 @@ def create_workspace_if_needed(t: Terraform, workspace: str) -> None:
     existing_workspaces = [s.strip("* ") for s in stdout.splitlines() if s]
     if workspace not in existing_workspaces:
         print(f'Creating workspace "{workspace}"...')
-        terraform_diag(t.create_workspace(workspace))
+        report_terraform_output(t.create_workspace(workspace))
 
 
 def switch_workspace_if_needed(t: Terraform, workspace: str) -> None:
@@ -46,25 +45,27 @@ def switch_workspace_if_needed(t: Terraform, workspace: str) -> None:
     current_workspace = stdout.strip()
     if workspace != current_workspace:
         print(f'Switching workspace to "{workspace}"...')
-        terraform_diag(t.set_workspace(workspace))
+        report_terraform_output(t.set_workspace(workspace))
+    else:
+        print(f'Current workspace is "{workspace}"')
 
 
 # TerraformAction
 def action_plan(t: Terraform) -> None:
     print("Terraform plan...")
-    terraform_diag(t.plan())
+    report_terraform_output(t.plan())
 
 
 # TerraformAction
 def action_apply(t: Terraform) -> None:
     print("Terraform apply...")
-    terraform_diag(t.apply(skip_plan=True))  # skip_plan means auto-approve
+    report_terraform_output(t.apply(skip_plan=True))  # skip_plan means auto-approve
 
 
 # TerraformAction
 def action_destroy(t: Terraform) -> None:
     print("Terraform destroy...")
-    terraform_diag(t.apply(destroy=IsFlagged, skip_plan=True))  # skip_plan means auto-approve
+    report_terraform_output(t.apply(destroy=IsFlagged, skip_plan=True))  # skip_plan means auto-approve
 
 
 def make_workspace_name(s: str) -> str:
@@ -74,7 +75,7 @@ def make_workspace_name(s: str) -> str:
     return "".join(c for c in s if c.isalnum() or c == "-")
 
 
-def terraform_diag(output: TerraformOutput) -> None:
+def report_terraform_output(output: TerraformOutput) -> None:
     return_code, stdout, stderr = output
 
     if stdout:
@@ -103,13 +104,15 @@ def get_aws_credentials(requested: AwsProfileList) -> List[AwsCredentials]:
     credentials: List[AwsCredentials] = []
     filtered_profiles = [p for p in aws.Session().available_profiles if not requested or p in requested]
     for profile in filtered_profiles:
-        c = aws.Session(profile_name=profile).get_credentials()
-        credentials.append(AwsCredentials(profile, c.access_key, c.secret_key))
+        if c := aws.Session(profile_name=profile).get_credentials():
+            credentials.append(AwsCredentials(profile, c.access_key, c.secret_key))
+        else:
+            print(f'Skipping profile "{profile}" as no credentials are available')
     return credentials
 
 
 def parse_cmd_line() -> Tuple[TerraformAction, AwsProfileList]:
-    ACTIONS = {"plan": action_plan, "apply": action_apply, "destroy": action_destroy}
+    ACTIONS: Final = {"plan": action_plan, "apply": action_apply, "destroy": action_destroy}
     parser = argparse.ArgumentParser("multi-exec")
     parser.add_argument("--action", choices=["plan", "apply", "destroy"], default="plan", help="default: plan")
     parser.add_argument("--profiles", default="", help="optional list of AWS profiles, eg. profile1,profile2,profile3")
