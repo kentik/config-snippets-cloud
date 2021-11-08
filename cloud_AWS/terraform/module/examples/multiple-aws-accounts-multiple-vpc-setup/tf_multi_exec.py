@@ -106,9 +106,9 @@ def get_aws_profiles(requested: RequestedProfileNames) -> List[AwsProfile]:
     available_profiles = aws.Session().available_profiles  # loaded from ~/.aws/credentials and ~/.aws/config
     filtered_profiles = [p for p in available_profiles if not requested or p in requested]
     for profile in filtered_profiles:
-        sesesion = aws.Session(profile_name=profile)
+        session = aws.Session(profile_name=profile)
         try:
-            cred = sesesion.get_credentials()
+            cred = session.get_credentials()
         except:
             print(f'Skipping profile "{profile}" as credentials couldn\'t be obtained')
             continue
@@ -117,7 +117,7 @@ def get_aws_profiles(requested: RequestedProfileNames) -> List[AwsProfile]:
             print(f'Skipping profile "{profile}" as no credentials are configured')
             continue
 
-        region = sesesion.region_name
+        region = session.region_name
         if not region:
             print(f'Skipping profile "{profile}" as no region name is configured')
             continue
