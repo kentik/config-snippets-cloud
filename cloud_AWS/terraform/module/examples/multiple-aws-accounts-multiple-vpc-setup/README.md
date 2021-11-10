@@ -1,16 +1,39 @@
 # Multiple AWS accounts multiple VPC setup
 
-Configuration in this directory creates configuration for multiple AWS accounts; all VPCs in selected region are considered.  
-Note: this example works with profiles. A profile is credentials keys + profile name + region.  
-Profile name is later translated to terraform workspace.
+Files in this directory support configuring export of flow logs from all VPCs in given region in multiple AWS accounts into a single Kentik account.  
+Handling of multiple regions per AWS profile is possible by means of profiles.  
+A profile consits of profile name + credentials keys + region, profiles are stored in:
+- `~/.aws/credentials` (name -> credentials)
+- `~/.aws/config` (name -> region)
+
+Example profile "test-profile":  
+```ini
+; ~/.aws/credentials
+[test-profile] ; <-- profile name
+aws_access_key_id = AKIA6YTS...5ZOZTCHCK ; <-- credentials
+aws_secret_access_key = iWRORVVBDrtC5FlJ...9v12brUtHnT0L1GlZ8Uv ; <-- credentials
+
+; ~/.aws/config
+[profile test-profile] ; profile name same as above
+region = us-west-2 ; <-- region
+```
+
+## The process
+
+1. Information on available AWS profiles is read from configuration files under `~/.aws/`
+1. Information on desired profiles to export flow logs for is read from command line
+1. Iterate over desired profiles:
+    1. Check if profile name meets AWS and Kentik resource naming requirements (only alphanumeric characters and dashes, lower case). Report error if not
+    1. Create Terraform workspace of profile name and activate it
+    1. Apply Terraform configuration in activated workspace
 ## Requirements
 
-1. Installed python >= 3.9
-1. Installed virtualenv >= 20.4.0
-1. Installed terraform >= 0.12.0
-1. Configured AWS profiles: ~/.aws/credentials (keys), ~/.aws/config (regions); to setup profiles, do: ```pip install awscli && aws configure```
-1. Exported Kentik API credentials:
-  ```shell
+1. python >= 3.7.0
+1. virtualenv >= 20.4.0
+1. terraform >= 0.12.0
+1. Configured AWS profiles. To configure profiles, run in shell: `pip install awscli && aws configure`
+1. Kentik API credentials present in execution environment:
+  ```bash
   export KTAPI_AUTH_EMAIL="joe.doe@email.com"
   export KTAPI_AUTH_TOKEN="token123"
   ```
@@ -23,15 +46,15 @@ Profile name is later translated to terraform workspace.
 
 ## Usage
 
-- multi-plan  
-```python tf_multi_exec.py --action=plan```
-- multi-apply  
-```python tf_multi_exec.py --action=apply```
-- multi-destroy  
-```python tf_multi_exec.py --action=destroy```
-- multi-apply (selected aws profiles only)  
-```python tf_multi_exec.py --action=apply --profiles=test,integration```
-- help  
+- Execute **terraform plan** step on multiple AWS accounts:  
+```python tf_multi_exec.py plan --profiles=*```
+- Execute **terraform apply** step on multiple AWS accounts  
+```python tf_multi_exec.py apply  --profiles=*```
+- Execute **terraform destroy** step on multiple AWS accounts  
+```python tf_multi_exec.py destroy  --profiles=*```
+- Execute **terraform apply** step on multiple AWS accounts (selected profiles only)  
+```python tf_multi_exec.py apply --profiles=test,integration```
+- Help  
 ```python tf_multi_exec.py --help```
 
 **Note:** "destroy" action will also delete AWS S3 buckets where the flow logs are stored. See: `s3_delete_nonempty_buckets` in [main.tf](main.tf)

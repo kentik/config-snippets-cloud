@@ -28,9 +28,9 @@ module "kentik_aws_integration" {
 
 ## Examples
 
-* [Prepare single VPC](examples/single-vpc)
-* [Prepare multiple VPCs on multiple AWS accounts](examples/multiple_aws_accounts_multiple_vpc_setup)
-* [Prepare all VPCs from certain region](examples/all-vpc-from-region)
+* [Single VPC in single region, single AWS account](examples/single-vpc) - export flow logs from a single VPC in a single region in a single AWS account
+* [All VPCs in single region, single AWS account](examples/all-vpc-from-region) - export flow logs from all VPCs in a single region in a single AWS account
+* [All VPCs in single region, multiple AWS accounts](examples/multiple_aws_accounts_multiple_vpc_setup) - export flow logs from all VPCs in a region associated with AWS account; uses Python wrapper to iterate over multiple AWS accounts
 * [Create EKS cluster with sock shop and configured VPC](examples/sock-shop-eks)
 ## Demo
 
@@ -41,15 +41,15 @@ module "kentik_aws_integration" {
 | Name | Version |
 |------|---------|
 | terraform | >=0.12.0 |
-| aws | >= 2.28.1 |
-| kentik-cloudexport | >=0.1.0 |
+| aws | >=2.28.1 |
+| kentik-cloudexport | >=0.2.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| aws | >= 2.28.1 |
-| kentik-cloudexport | >=0.1.0 |
+| aws | >=2.28.1 |
+| kentik-cloudexport | >=0.2.0 |
 
 ## Inputs
 
