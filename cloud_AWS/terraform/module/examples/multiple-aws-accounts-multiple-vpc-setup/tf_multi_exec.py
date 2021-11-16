@@ -63,7 +63,6 @@ def prepare_workspace(t: Terraform, workspace: str) -> bool:
 
 # TerraformAction
 def action_plan(t: Terraform, region: str) -> bool:
-    print("Terraform plan...")
     code, stdout, stderr = t.plan(var=f"region={region}")
     report_tf_output(code, stdout, stderr)
     return code != EX_FAILED
@@ -71,7 +70,6 @@ def action_plan(t: Terraform, region: str) -> bool:
 
 # TerraformAction
 def action_apply(t: Terraform, region: str) -> bool:
-    print("Terraform apply...")
     code, stdout, stderr = t.apply(skip_plan=True, var=f"region={region}")  # skip_plan means auto-approve
     report_tf_output(code, stdout, stderr)
     return code != EX_FAILED
@@ -79,7 +77,6 @@ def action_apply(t: Terraform, region: str) -> bool:
 
 # TerraformAction
 def action_destroy(t: Terraform, region: str) -> bool:
-    print("Terraform destroy...")
     code, stdout, stderr = t.apply(destroy=IsFlagged, skip_plan=True, var=f"region={region}")  # auto-approve
     report_tf_output(code, stdout, stderr)
     return code != EX_FAILED
@@ -92,7 +89,8 @@ def validate_workspace_name(workspace: str) -> bool:
     is_valid_character = lambda c: c == "-" or (c.isalnum() and c.islower())
     if not all([is_valid_character(c) for c in workspace]):
         print(
-            f'Invalid name for workspace: "{workspace}"; must contain only lower case alphanumeric characters and dashes',
+            f'"{workspace}" is not acceptable as a Terraform workspace name. '
+            "Please change the name of corresponding AWS profile to contain only lower case alphanumeric characters and dashes",
             file=sys.stderr,
         )
         return False
