@@ -2,6 +2,7 @@ import argparse
 import os
 import sys
 from dataclasses import dataclass
+from hashlib import blake2b
 from typing import Callable, List, Optional, Tuple
 
 import boto3.session as aws
@@ -32,9 +33,9 @@ def execute_action(action: TerraformAction, profiles: List[AwsProfile]) -> bool:
 
         os.environ["AWS_ACCESS_KEY_ID"] = profile.access_key
         os.environ["AWS_SECRET_ACCESS_KEY"] = profile.secret_key
-        workspace = profile.name  # AWS profiles are mapped to Terraform workspaces
+        workspace = prepare_workspace_name(profile.name)  # AWS profiles are mapped to Terraform workspaces
 
-        if validate_workspace_name(workspace) and prepare_workspace(t, workspace) and action(t, profile.region):
+        if prepare_workspace(t, workspace) and action(t, profile.region):
             successful_count += 1
 
     print(f"Terraform action successfully executed for {successful_count}/{len(profiles)} AWS profile(s).")
@@ -82,19 +83,12 @@ def action_destroy(t: Terraform, region: str) -> bool:
     return code != EX_FAILED
 
 
-def validate_workspace_name(workspace: str) -> bool:
-    # workspace name is used as a suffix to certain AWS and Kentik resource names to make them unique
-    # only lowercase alphanumeric characters and hyphens are allowed - S3 bucket name limitation
+def prepare_workspace_name(name: str) -> str:
+    # workspace name is used as a suffix to certain AWS and Kentik resource names to make them unique;
+    # only lower case alphanumeric characters and hyphens are allowed - S3 bucket name limitation
 
-    is_valid_character = lambda c: c == "-" or (c.isalnum() and c.islower())
-    if not all([is_valid_character(c) for c in workspace]):
-        print(
-            f'"{workspace}" is not acceptable as a Terraform workspace name. '
-            "Please change the name of corresponding AWS profile to contain only lower case alphanumeric characters and dashes",
-            file=sys.stderr,
-        )
-        return False
-    return True
+    # return a unique string of 21 lower case alpha num characters,
+    return blake2b(name.encode("utf-8"), digest_size=10).hexdigest()
 
 
 def report_tf_output(return_code: int, stdout: str, stderr: str) -> None:
