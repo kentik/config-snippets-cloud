@@ -28,10 +28,10 @@ module "kentik_aws_integration" {
 
 ## Examples
 
-* [Prepare single VPC](examples/single-vpc)
-* [Prepare all VPCs from certain region](examples/all-vpc-from-region)
+* [Single VPC in single region, single AWS account](examples/single-vpc) - export flow logs from a single VPC in a single region in a single AWS account
+* [All VPCs in single region, single AWS account](examples/all-vpc-from-region) - export flow logs from all VPCs in a single region in a single AWS account
+* [All VPCs in single region, multiple AWS accounts](examples/multiple_aws_accounts_multiple_vpc_setup) - export flow logs from all VPCs in a region associated with AWS account; uses Python wrapper to iterate over multiple AWS accounts
 * [Create EKS cluster with sock shop and configured VPC](examples/sock-shop-eks)
-
 ## Demo
 
 * [Demo showing how add single VPC to Kentik portal using this module](demo)
@@ -41,15 +41,15 @@ module "kentik_aws_integration" {
 | Name | Version |
 |------|---------|
 | terraform | >=0.12.0 |
-| aws | >= 2.28.1 |
-| kentik-cloudexport | >=0.1.0 |
+| aws | >=2.28.1 |
+| kentik-cloudexport | >=0.2.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| aws | >= 2.28.1 |
-| kentik-cloudexport | >=0.1.0 |
+| aws | >=2.28.1 |
+| kentik-cloudexport | >=0.2.0 |
 
 ## Inputs
 
@@ -61,6 +61,7 @@ module "kentik_aws_integration" {
 | s3\_use\_one\_bucket | If we should use one or more buckets | `bool` | `true` | no |
 | s3\_flowlogs\_path | Path on the S3 bucket for saving logs | `string` | `` | no |
 | s3\_base\_name | Base name for s3 bucket. Used in single bucket mode | `string` | `ingest-bucket` | no |
+| s3_delete_nonempty_buckets | On terraform destroy, delete bucket even if it is not empty | `bool` | `false` | no |
 | iam\_role\_prefix | Prefix to use with IAM roles | `string` | `Kentik` | no |
 | store\_logs\_more\_frequently | Allows to chose how often save logs to s3. Default is once per 10 minutes. When enabled it saves once per minute | `bool` | `false` | no |
 | create\_role | If to create kentik role | `bool` | `true` | no |

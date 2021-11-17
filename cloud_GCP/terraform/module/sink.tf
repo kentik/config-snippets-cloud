@@ -10,7 +10,8 @@ resource "google_logging_project_sink" "kentik_sink" {
 }
 // Provides publisher role to each sink
 resource "google_project_iam_binding" "log_writer" {
-  role        = "roles/pubsub.publisher"
+  role    = "roles/pubsub.publisher"
+  project = var.project
   members = [
     google_logging_project_sink.kentik_sink.writer_identity,
   ]

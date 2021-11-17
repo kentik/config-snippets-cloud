@@ -10,7 +10,7 @@ resource "kentik-cloudexport_item" "aws_export" {
   # Create only when plan_id is set
   count = var.plan_id == "" ? 0 : 1
 
-  name           = var.name
+  name           = "${var.name}-${terraform.workspace}" # cloudexport name must be unique
   type           = "CLOUD_EXPORT_TYPE_KENTIK_MANAGED"
   enabled        = var.enabled
   description    = var.description
