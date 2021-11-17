@@ -1,4 +1,5 @@
 import argparse
+import logging
 import os
 import sys
 from dataclasses import dataclass
@@ -9,6 +10,8 @@ import boto3.session as aws
 from botocore.exceptions import BotoCoreError
 from python_terraform import IsFlagged, Terraform
 
+log = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 EX_FAILED: int = 1  # exit  code for failed command
 
 
@@ -83,12 +86,22 @@ def action_destroy(t: Terraform, region: str) -> bool:
     return code != EX_FAILED
 
 
-def prepare_workspace_name(name: str) -> str:
+def prepare_workspace_name(name: str, workspace_names=dict()) -> str:  # pylint: disable=dangerous-default-value
     # workspace name is used as a suffix to certain AWS and Kentik resource names to make them unique;
     # only lower case alphanumeric characters and hyphens are allowed - S3 bucket name limitation
 
-    # return a unique string of 21 lower case alpha num characters,
-    return blake2b(name.encode("utf-8"), digest_size=10).hexdigest()
+    # produce a name made of 21 lower case alpha num characters
+    ws_name = blake2b(name.encode("utf-8"), digest_size=10).hexdigest()
+
+    # ensure name uniqueness
+    while ws_name in workspace_names:
+        log.debug(
+            "Workspace name collision for '%s'. '%s' already used for '%s'", name, ws_name, workspace_names[ws_name]
+        )
+        ws_name += "-"
+        log.debug("Changing to %s", ws_name)
+    workspace_names[ws_name] = name
+    return ws_name
 
 
 def report_tf_output(return_code: int, stdout: str, stderr: str) -> None:
@@ -136,7 +149,6 @@ def get_aws_profiles(requested: RequestedProfileNames) -> List[AwsProfile]:
             continue
 
         profiles.append(AwsProfile(profile, session.region_name, cred.access_key, cred.secret_key))
-
     return profiles
 
 
@@ -159,5 +171,5 @@ if __name__ == "__main__":
     terraform_action, requested_profiles = parse_cmd_line()
     aws_profiles = get_aws_profiles(requested_profiles)
     execution_successful = execute_action(terraform_action, aws_profiles)
-    return_code = os.EX_OK if execution_successful else EX_FAILED
-    sys.exit(return_code)
+    RETURN_CODE = os.EX_OK if execution_successful else EX_FAILED
+    sys.exit(RETURN_CODE)
