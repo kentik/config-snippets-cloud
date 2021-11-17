@@ -11,7 +11,7 @@ from botocore.exceptions import BotoCoreError
 from python_terraform import IsFlagged, Terraform
 
 log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARNING)
 EX_FAILED: int = 1  # exit  code for failed command
 
 
@@ -149,6 +149,10 @@ def get_aws_profiles(requested: RequestedProfileNames) -> List[AwsProfile]:
             continue
 
         profiles.append(AwsProfile(profile, session.region_name, cred.access_key, cred.secret_key))
+
+    missing_profiles = set(requested) - set(available_profiles)
+    if missing_profiles:
+        print("Missing config for profiles:", missing_profiles, ". Profiles skipped")
     return profiles
 
 
