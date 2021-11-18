@@ -23,8 +23,8 @@ region = us-west-2 ; <-- region
 1. Information on available AWS profiles is read from configuration files under `~/.aws/`
 1. Information on desired profiles to export flow logs for is read from command line
 1. Iterate over desired profiles:
-    1. Check if profile name meets AWS and Kentik resource naming requirements (only alphanumeric characters and dashes, lower case). Report error if not
-    1. Create Terraform workspace of profile name and activate it
+    1. Derive Terraform workspace name by hashing the AWS profile name (so only lower case alphanumeric characters are used)
+    1. Create Terraform workspace and activate it
     1. Apply Terraform configuration in activated workspace
 ## Requirements
 
