@@ -1,7 +1,7 @@
 ## Create secret from existing ksynth installation
 
-To create a secret that can be used in terraform automation script for new instances you have to follow this steps:
-- ssh in to VM which has ksynth agent installed
+To create a secret that can be used in terraform automation script for new instances you have to follow these steps:
+- ssh into VM which has ksynth agent installed
 - [install aws-cli](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
 - run `aws configure` to log in to AWS account that you will use to store secrets. It must be the same that VM's run on.
 - run `aws secretsmanager create-secret --name <secret_name> --secret-binary fileb:///var/lib/ksynth/ksynth.id`

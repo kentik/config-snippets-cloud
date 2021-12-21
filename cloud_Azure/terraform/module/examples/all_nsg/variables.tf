@@ -17,3 +17,14 @@ variable "principal_id" {
     type = string
     description = "Service Principal Id"
 }
+
+# cloudexport
+variable "plan_id" {
+  description = "Billing plan ID"
+  type        = string
+}
+
+variable "name" {
+  description = "Exported cloud name in Kentik Portal"
+  type        = string
+}

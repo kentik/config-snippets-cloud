@@ -32,7 +32,7 @@ provider "aws" {
 }
 
 provider "kentik-cloudexport" {
-  email = "dummy@tesl.mail"
+  email = "dummy@test.mail"
   token = "dummy_token"
 }
 

@@ -1,11 +1,24 @@
 terraform {
   required_version = ">= 0.12.0"
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=2.85.0"
+    }
+    kentik-cloudexport = {
+      source  = "kentik/kentik-cloudexport"
+      version = ">= 0.2.0"
+    }
+  }
 }
 
 provider "azurerm" {
-  # whilst the `version` attribute is optional, we recommend pinning to a given version of the Provider
-  version = "=2.20.0"
   features {}
+}
+
+provider "kentik-cloudexport" {
+  email = "dummy@test.mail"
+  token = "dummy_token"
 }
 
 module kentik_azure_integration {
@@ -14,4 +27,6 @@ module kentik_azure_integration {
   resource_group_name = "test"
   principal_id = "test_prin_id"
   subscription_id = "test_sub_id"
+  plan_id = "12345"
+  name = "cloudexport_azure"
 }
