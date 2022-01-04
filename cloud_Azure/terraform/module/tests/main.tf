@@ -1,5 +1,5 @@
 terraform {
-  required_version = ">= 0.12.0"
+  required_version = ">= 1.0.0"
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
@@ -7,7 +7,7 @@ terraform {
     }
     kentik-cloudexport = {
       source  = "kentik/kentik-cloudexport"
-      version = ">= 0.2.0"
+      version = ">= 0.4.1"
     }
   }
 }
@@ -28,5 +28,5 @@ module kentik_azure_integration {
   principal_id = "test_prin_id"
   subscription_id = "test_sub_id"
   plan_id = "12345"
-  name = "cloudexport_azure"
+  name = "azure_europe_west"
 }

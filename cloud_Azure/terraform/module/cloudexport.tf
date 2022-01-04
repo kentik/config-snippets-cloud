@@ -2,16 +2,13 @@ terraform {
   required_providers {
     kentik-cloudexport = {
       source  = "kentik/kentik-cloudexport"
-      version = ">= 0.2.0"
+      version = ">= 0.4.1"
     }
   }
 }
 
 resource "kentik-cloudexport_item" "azure_export" {
-  # Create only when plan_id is set
-  count = var.plan_id == "" ? 0 : 1
-
-  name           = "${var.name}-${terraform.workspace}" # cloudexport name must be unique
+  name           = var.name
   type           = "CLOUD_EXPORT_TYPE_KENTIK_MANAGED"
   enabled        = var.enabled
   description    = var.description

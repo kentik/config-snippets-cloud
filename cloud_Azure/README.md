@@ -1,5 +1,5 @@
-# Code for preparing Azure cloud to work [portal.kentik.com](https://portal.kentik.com)
+# Automation support for configuring flow log export from Azure to [Kentik](https://portal.kentik.com)
 
-Currently supported:
-* [terraform](terraform/module)
-* [ansible](ansible/roles/kentik_az)
+Currently supported frameworks:
+* [Terraform] (terrafrom/module)
+* [Ansible] (ansible/roles/kentik_az) 

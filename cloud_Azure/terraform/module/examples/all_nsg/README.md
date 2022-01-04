@@ -11,14 +11,10 @@ $ terraform plan
 $ terraform apply
 ```
 
-## Requirements
-
-* Example requires location, resource group name, principal id, subscription
-* Installed az-cli - [Installation](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
-* Logged-in az-cli - [Logging-in](https://docs.microsoft.com/en-us/cli/azure/authenticate-azure-cli)
-    ```bash
-    az login # default web browser should open with login page
-    ```
+## Running this example requires:
+* Information about Azure deployment: location, resource group name, principal id and subscription
+* Azure CLI - [Installation](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
+* Authenticating Azure CLI to your account - [Logging-in](https://docs.microsoft.com/en-us/cli/azure/authenticate-azure-cli)
 * Kentik API credentials present in execution environment:
   ```bash
   export KTAPI_AUTH_EMAIL="joe.doe@email.com"

@@ -21,10 +21,10 @@ jobs:
       
       # Initialize the Terraform code
       - name: (HELPER) Init Code 
-        uses: docker://hashicorp/terraform:0.14.9
+        uses: docker://hashicorp/terraform:1.0.0
         with:
           entrypoint: terraform
-          args: init cloud_Azure/terraform/module/tests/
+          args: -chdir=cloud_Azure/terraform/module/tests/ init
        
       # Lint the Terraform code 
       # Using: https://github.com/terraform-linters/tflint
@@ -36,7 +36,7 @@ jobs:
       # Validate the Terraform code using inbuilt
       # validate command
       - name: Validate Module
-        uses: docker://hashicorp/terraform:0.14.9
+        uses: docker://hashicorp/terraform:1.0.0
         with:
           entrypoint: terraform
-          args: validate cloud_Azure/terraform/module/tests/ -no-color
+          args: -chdir=cloud_Azure/terraform/module/tests/ validate -no-color

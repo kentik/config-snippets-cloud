@@ -25,6 +25,6 @@ variable "plan_id" {
 }
 
 variable "name" {
-  description = "Exported cloud name in Kentik Portal"
+  description = "Cloudexport entry name in Kentik"
   type        = string
 }
