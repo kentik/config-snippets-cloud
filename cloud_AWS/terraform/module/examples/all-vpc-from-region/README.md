@@ -21,14 +21,14 @@ Run the example:
 
 ```shell
 terraform init
-terraform apply
+terraform apply --vpc_id=<vpc-id>
 ```
 
 Clean up created resources:
 
 ```shell
 aws s3 rm s3://terraform-example-ingest-bucket-flow-logs
-terraform destroy
+terraform destroy --vpc_id=<vpc-id>
 ```
 
 ## Inputs

@@ -65,9 +65,9 @@ module "kentik_aws_integration" {
 | iam\_role\_prefix | Prefix to use with IAM roles | `string` | `Kentik` | no |
 | store\_logs\_more\_frequently | Allows to chose how often save logs to s3. Default is once per 10 minutes. When enabled it saves once per minute | `bool` | `false` | no |
 | create\_role | If to create kentik role | `bool` | `true` | no |
-| name | Exported cloud name in Kentik Portal | `string` | `terraform_aws_exported_cloud` | no |
+| name | Cloudexport entry name in Kentik | `string` | `terraform_aws_exported_cloud` | no |
 | enabled | If cloud exported to Kentik is enabled | `bool` | `true` | no |
-| description | Description in Kentik Portal | `string` | `` | no |
+| description | Cloudexport entry description in Kentik | `string` | `` | no |
 | plan\_id | Billing plan ID. | `string` | | no |
 | delete\_after\_read | If to delete after read | `bool` | `false` | no |
 | multiple\_buckets | If to use multiple buckets | `bool` | `false` | no |
