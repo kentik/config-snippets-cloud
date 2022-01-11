@@ -14,3 +14,7 @@ output "resource_group" {
 output "storage_account" {
   value = module.kentik_azure_integration.storage_account
 }
+
+output "principal_id" {
+  value = module.kentik_azure_integration.principal_id
+}

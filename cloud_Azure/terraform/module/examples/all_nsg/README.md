@@ -12,7 +12,8 @@ $ terraform apply
 ```
 
 ## Running this example requires:
-* Information about Azure deployment: location, resource group name, principal id and subscription
+* Information about Azure deployment: location, resource group name, subscription ID
+* Information about Kentik subscription: plan ID
 * Azure CLI - [Installation](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
 * Authenticating Azure CLI to your account - [Logging-in](https://docs.microsoft.com/en-us/cli/azure/authenticate-azure-cli)
 * Kentik API credentials present in execution environment:
@@ -28,7 +29,8 @@ $ terraform apply
 | location | Azure location of the resources to gather logs | `string` | `` | yes |
 | subscription_id | Id of the subscription in which resource are located | `string` | `` | yes |
 | resource_group_name | Name of the resource group to gather logs from | `string` | `` | yes |
-| principal_id | Id of the Service Principal Id for kentik app connection | `string` | `` | yes |
+| plan_id | Billing plan ID | `string` | `` | yes |
+| name | Exported cloud name in Kentik Portal | `string` | `` | yes |
 
 ## Outputs
 
@@ -38,3 +40,4 @@ $ terraform apply
 | subscription_id | Subscription Id |
 | resource_group | Resource group name |
 | storage_account | Storage account name where logs will be gathered |
+| principal_id | Principal ID created for Kentik NSG Flow Exporter application |

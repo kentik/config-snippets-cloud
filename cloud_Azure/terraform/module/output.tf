@@ -17,3 +17,8 @@ output storage_account {
   value       = azurerm_storage_account.kentik_storage_account.name
   description = "Storage account name"
 }
+
+output principal_id {
+  value = azuread_service_principal.kentik_nsg_flow_exporter.object_id
+  description = "Principal ID for Kentik NSG Flow Exporter"
+}

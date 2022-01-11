@@ -1,12 +1,17 @@
 # Azure Kentik integration Terraform module
 
-Terraform module which creates Azure resources required for Kentik to enable integration
+Terraform module which creates Azure and Kentik resources, for Azure cloud integration in Kentik.  
 
 Module enables:
-* Flow logs in existing Network Security Groups
+* Flow logs in existing Network Security Groups (NSG)
 
 Module creates:
-
+* Service Principal for Kentik NSG Flow Exporter
+* Roles for above mentioned Service Principal
+* Storage Account for VPC logs
+* Network Watcher
+* One Flow log per NSG
+* Registers VPC in Kentik platform according to [Kentik documentation](https://kb.kentik.com/v0/Bd08.htm#Bd08-Azure_Logging_Setup_Overview).
 
 ## Usage
 
@@ -17,8 +22,10 @@ module kentik_azure_integration {
   source  = "../../"
   location = var.location
   resource_group_name = var.resource_group_name
-  principal_id = var.principal_id
   subscription_id = var.subscription_id
+  prefix = var.prefix
+  plan_id = var.plan_id
+  name = var.name
 }
 ```
 
@@ -29,15 +36,14 @@ module kentik_azure_integration {
 ## Demo
 * [Demo showing how to add list of subnets to Kentik portal using this module](demo) (TBD)
 
-## Note
-* this module creates Azure resources only. This won't register resources in Kentik platform automatically.
-
 ## Requirements
 
 | Name | Version |
 |------|---------|
-| terraform | >=0.12.0 |
-| azurem provider | >= =2.20.0 |
+| terraform | >=1.0.0 |
+| azurerm provider | >= =2.85.0 |
+| azuread provider | >= =2.14.0 |
+| kentik-cloudexport provider | >= 0.4.1 |
 | null provider | >= 2.1.2 |
 | external provider | >= 2.0.0 |
 | python | >= 3.7.5 |
@@ -53,14 +59,6 @@ To install python and its requirements:
 * [Install pip3](https://pip.pypa.io/en/stable/installing/)
 * Install packages: run `pip3 install -r ../../requirements.txt` in example directory
 
-## Providers
-
-| Name | Version |
-|------|---------|
-| azurem | >= =2.20.0 |
-| null | >= 2.1.2 |
-| external | >= 2.0.0 |
-
 ## Inputs
 
 | Name | Description | Type | Default | Required |
@@ -68,9 +66,11 @@ To install python and its requirements:
 | location | Azure location of the resources to gather logs | `string` | `` | yes |
 | subscription_id | Id of the subscription in which resource are located | `string` | `` | yes |
 | resource_group_name | Name of the resource group to gather logs from | `string` | `` | yes |
-| principal_id | Id of the Service Principal Id for kentik app connection | `string` | `` | yes |
-| prefix| Prefix for the naming resources created by this module | `string` | `kentik` | no |
-
+| prefix| Prefix for the naming resources created by this module | `string` | `` | yes |
+| plan_id | Billing plan ID | `string` | `` | yes |
+| name | Exported cloud name in Kentik Portal | `string` | `` | yes |
+| enabled | Defines if cloud exported to Kentik is enabled | `bool` | true | no |
+| description | Description of exported cloud in Kentik Portal | `string` | `` | no |
 
 
 ## Outputs
@@ -81,3 +81,4 @@ To install python and its requirements:
 | subscription_id | Subscription Id |
 | resource_group | Resource group name |
 | storage_account | Storage account name where logs will be gathered |
+| principal_id | Principal ID created for Kentik NSG Flow Exporter application |

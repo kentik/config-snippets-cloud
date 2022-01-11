@@ -13,12 +13,10 @@ variable "resource_group_name" {
     description = "Resource group name"
 }
 
-variable "principal_id" {
+variable "prefix" {
     type = string
-    description = "Service Principal Id"
+    description = "Unique prefix to be used for resource creation; can only consist of lowercase letters and numbers, max length is 17"
 }
-
-# cloudexport
 variable "plan_id" {
   description = "Billing plan ID"
   type        = string

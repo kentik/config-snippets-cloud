@@ -1,4 +1,4 @@
-# azurerm
+# provideres: azurerm & azuread
 variable "location" {
     type = string
     description = "Azure location"
@@ -14,18 +14,12 @@ variable "resource_group_name" {
     description = "Resource group name"
 }
 
-variable "principal_id" {
-    type = string
-    description = "Service Principal Id"
-}
-
 variable "prefix" {
     type = string
-    default = "kentik"
-    description = "Prefix to be used for resource creation - default \"kentik\""
+    description = "Unique prefix to be used for resource creation; can only consist of lowercase letters and numbers, max length is 17"
 }
 
-# cloudexport
+# provider: kentik-cloudexport
 variable "plan_id" {
   description = "Billing plan ID"
   type        = string
