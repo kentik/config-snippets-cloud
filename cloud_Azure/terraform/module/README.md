@@ -1,6 +1,6 @@
 # Azure Kentik integration Terraform module
 
-Terraform module which creates Azure and Kentik resources, for Azure cloud integration in Kentik.  
+Terraform module, which creates Azure and Kentik resources, for Azure cloud integration in Kentik.  
 
 Module enables:
 * Flow logs in existing Network Security Groups (NSG)
@@ -40,9 +40,9 @@ module kentik_azure_integration {
 
 | Name | Version |
 |------|---------|
-| terraform | >=1.0.0 |
-| azurerm provider | >= =2.85.0 |
-| azuread provider | >= =2.14.0 |
+| terraform | >= 1.0.0 |
+| azurerm provider | >= 2.85.0 |
+| azuread provider | >= 2.14.0 |
 | kentik-cloudexport provider | >= 0.4.1 |
 | null provider | >= 2.1.2 |
 | external provider | >= 2.0.0 |
@@ -68,9 +68,9 @@ To install python and its requirements:
 | resource_group_name | Name of the resource group to gather logs from | `string` | `` | yes |
 | prefix| Prefix for the naming resources created by this module | `string` | `` | yes |
 | plan_id | Billing plan ID | `string` | `` | yes |
-| name | Exported cloud name in Kentik Portal | `string` | `` | yes |
-| enabled | Defines if cloud exported to Kentik is enabled | `bool` | true | no |
-| description | Description of exported cloud in Kentik Portal | `string` | `` | no |
+| name | Cloudexport entry name in Kentik | `string` | `` | yes |
+| enabled | Defines if cloud export to Kentik is enabled | `bool` | true | no |
+| description | Cloudexport entry description in Kentik | `string` | `` | no |
 
 
 ## Outputs

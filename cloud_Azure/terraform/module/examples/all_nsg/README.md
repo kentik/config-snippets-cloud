@@ -2,16 +2,8 @@
 
 Configuration in this directory creates configuration for all Network Security Group in Resource Group.
 
-## Usage
+## Requirements
 
-To run this example you need to execute:
-```
-$ terraform init
-$ terraform plan
-$ terraform apply
-```
-
-## Running this example requires:
 * Information about Azure deployment: location, resource group name, subscription ID
 * Information about Kentik subscription: plan ID
 * Azure CLI - [Installation](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
@@ -22,6 +14,21 @@ $ terraform apply
   export KTAPI_AUTH_TOKEN="token123"
   ```
 
+## Usage
+
+To run this example you need to execute:
+```
+$ terraform init
+$ terraform apply \  
+  --var subscription_id=<azure_subscription_id> \  
+  --var location=<azure_location> \
+  --var resource_group_name=<resource_group> \
+  --var prefix=<unique_prefix_for_azure_resources> \
+  --var plan_id=<kentik_plan_id> \
+  --var name=<kentik_cloudexport_name>
+```
+
+
 ## Inputs
 
 | Name | Description | Type | Default | Required |
@@ -30,7 +37,7 @@ $ terraform apply
 | subscription_id | Id of the subscription in which resource are located | `string` | `` | yes |
 | resource_group_name | Name of the resource group to gather logs from | `string` | `` | yes |
 | plan_id | Billing plan ID | `string` | `` | yes |
-| name | Exported cloud name in Kentik Portal | `string` | `` | yes |
+| name | Cloudexport entry name in Kentik | `string` | `` | yes |
 
 ## Outputs
 
