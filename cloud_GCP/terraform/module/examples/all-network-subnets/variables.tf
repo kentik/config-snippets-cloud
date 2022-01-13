@@ -21,7 +21,7 @@ variable "network" {
 variable "name" {
   description = "Cloudexport entry name in Kentik"
   type = string
-  default = "terraform_aws_exported_cloud"
+  default = "terraform_gcp_exported_cloud"
 }
 
 variable "description" {
