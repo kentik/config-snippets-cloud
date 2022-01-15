@@ -22,9 +22,9 @@ variable "region" {
 }
 
 variable "name" {
-  description = "Exported cloud name in Kentik Portal"
+  description = "Cloudexport entry name in Kentik"
   type = string
-  default = "terraform_aws_exported_cloud"
+  default = "terraform_gcp_exported_cloud"
 }
 
 variable "enabled" {
@@ -34,7 +34,7 @@ variable "enabled" {
 }
 
 variable "description" {
-  description = "Description of exported cloud in Kentik Portal"
+  description = "Cloudexport entry description in Kentik"
   type = string
   default = ""
 }

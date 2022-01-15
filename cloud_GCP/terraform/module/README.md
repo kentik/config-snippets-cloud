@@ -86,15 +86,13 @@ module "kentik_gcp_integration" {
 | topic_prefix | Pub/Sub topic prefix and subscription prefix | `string` | `kentik_topic` | no |
 | sink_prefix | Prefix to use with logs sink | `string` | `kentik_pubsub_sink` | no |
 | project | GCP project name | `string` | | yes |
-| name | Exported cloud name in Kentik Portal | `string` | `terraform_aws_exported_cloud` | no |
+| name | Cloudexport entry name in Kentik | `string` | `terraform_gcp_exported_cloud` | no |
 | enabled | If cloud exported to Kentik is enabled | `bool` | `true` | no |
-| description | Description in Kentik Portal | `string` | `` | no |
+| description | Cloudexport entry description in Kentik | `string` | `` | no |
 | plan\_id | Billing plan ID | `string` | | yes |
-
-
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| subscription | Subscribtion name for kentik config |
+| subscription | Subscription name for kentik config |
