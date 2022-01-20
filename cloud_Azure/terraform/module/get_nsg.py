@@ -11,12 +11,13 @@ def get_nsg_from_rg(query):
     """
 
     exit_code, result_dict, logs = az(
-        "network nsg list --resource-group " + str(sys.argv[1]) + " --query '[].id' -o json")
+        "network nsg list --resource-group " + str(sys.argv[1]) + " --query '[].id' -o json"
+    )
     if exit_code == 0:
-        return {query['network_security_groups']: str(result_dict).strip("[]").replace("'", "").replace(" ", "")}
+        return {query["network_security_groups"]: str(result_dict).strip("[]").replace("'", "").replace(" ", "")}
     else:
         print(logs)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     get_nsg_from_rg()

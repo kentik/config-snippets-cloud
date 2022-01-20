@@ -20,12 +20,6 @@ provider "azurerm" {
   features {}
 }
 
-
-provider "kentik-cloudexport" {
-  email = "dummy@test.mail"
-  token = "dummy_token"
-}
-
 module kentik_azure_integration {
   source  = "../"
   location = "westeurope"
@@ -34,4 +28,6 @@ module kentik_azure_integration {
   prefix = "test"
   plan_id = "12345"
   name = "azure_europe_west"
+  email = "dummy@test.mail"
+  token = "dummy_token"
 }

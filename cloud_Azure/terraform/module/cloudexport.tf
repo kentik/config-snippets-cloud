@@ -7,6 +7,11 @@ terraform {
   }
 }
 
+provider "kentik-cloudexport" {
+  email = var.email
+  token = var.token
+}
+
 # Creates Kentik CloudExport for Azure cloud
 resource "kentik-cloudexport_item" "azure_export" {
   name           = var.name

@@ -8,10 +8,9 @@ Module enables:
 Module creates:
 * Service Principal for Kentik NSG Flow Exporter
 * Roles for above mentioned Service Principal
-* Storage Account for VPC logs
+* Storage Account for NSG flow logs
 * Network Watcher
-* One Flow log per NSG
-* Registers VPC in Kentik platform according to [Kentik documentation](https://kb.kentik.com/v0/Bd08.htm#Bd08-Azure_Logging_Setup_Overview).
+* Registers Azure flow log export in the Kentik platform
 
 ## Usage
 
@@ -67,10 +66,12 @@ To install python and its requirements:
 | subscription_id | Id of the subscription in which resource are located | `string` | `` | yes |
 | resource_group_name | Name of the resource group to gather logs from | `string` | `` | yes |
 | prefix| Prefix for the naming resources created by this module | `string` | `` | yes |
+| email | Kentik account email | `string` | `` | yes |
+| token | Kentik account token | `string` | `` | yes |
 | plan_id | Billing plan ID | `string` | `` | yes |
 | name | Cloudexport entry name in Kentik | `string` | `` | yes |
 | enabled | Defines if cloud export to Kentik is enabled | `bool` | true | no |
-| description | Cloudexport entry description in Kentik | `string` | `` | no |
+| description | Cloudexport entry description in Kentik | `string` | `Created using Terraform` | no |
 
 
 ## Outputs

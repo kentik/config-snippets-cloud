@@ -16,28 +16,38 @@ variable "resource_group_name" {
 
 variable "prefix" {
     type = string
-    description = "Unique prefix to be used for resource creation; can only consist of lowercase letters and numbers, max length is 17"
+    description = "Prefix for names of Azure resources created by the module; only lowercase letters and numbers are allowed, max length is 17 characters."
 }
 
 # provider: kentik-cloudexport
+variable "email" {
+  description = "Kentik account email"
+  type        = string
+}
+
+variable "token" {
+  description = "Kentik account token"
+  type        = string
+}
+
 variable "plan_id" {
   description = "Billing plan ID"
   type        = string
 }
 
 variable "name" {
-  description = "Exported cloud name in Kentik Portal"
+  description = "Cloudexport entry name in Kentik"
   type        = string
 }
 
 variable "enabled" {
-  description = "Defines if cloud exported to Kentik is enabled"
+  description = "Defines if cloud export to Kentik is enabled"
   type        = bool
   default     = true
 }
 
 variable "description" {
-  description = "Description of exported cloud in Kentik Portal"
+  description = "Cloudexport entry description in Kentik"
   type        = string
-  default     = ""
+  default     = "Created using terraform"
 }
