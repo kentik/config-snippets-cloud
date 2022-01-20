@@ -1,4 +1,4 @@
-# Created automatically by Azure when VirtualNetwork is created or updated in the subscription, see:
+# Network Watcher is created automatically by Azure when VirtualNetwork is created or updated in the subscription, see:
 # https://docs.microsoft.com/en-us/azure/network-watcher/network-watcher-create
 data "azurerm_network_watcher" "network_watcher" {
   name                = "NetworkWatcher_${var.location}"
