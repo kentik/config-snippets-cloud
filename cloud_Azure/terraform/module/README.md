@@ -1,16 +1,20 @@
 # Azure Kentik integration Terraform module
 
-Terraform module, which creates Azure and Kentik resources, for Azure cloud integration in Kentik.  
+Terraform module, which creates Azure and Kentik resources, for Azure cloud integration in Kentik.
 
 Module enables:
-* Flow logs in existing Network Security Groups (NSG)
+* Flow logs in all Network Security Groups (NSG) found in requested Resource Groups
 
 Module creates:
-* Service Principal for Kentik NSG Flow Exporter
-* Roles for above mentioned Service Principal
-* Storage Account for NSG flow logs
-* Network Watcher
-* Registers Azure flow log export in the Kentik platform
+* Service Principal for Kentik NSG Flow Exporter application
+* Reader and Contributor Roles for above mentioned Service Principal
+* One Storage Account for flow logs per requested Resource Group
+* Registers flow in Kentik platform per requested Resource Group
+
+All resources created in Azure are tagged with:  
+`app = "kentik_flow_log_exporter"`  
+
+Module assumes that NetworkWatcher resource exists in NetworkWatcherRG resource group in specified Azure location (see variable "location"). It is automatically created by Azure when VirtualNetwork is created or updated, [as per documentation.](https://docs.microsoft.com/en-us/azure/network-watcher/network-watcher-create)
 
 ## Usage
 
@@ -20,8 +24,8 @@ Module creates:
 module kentik_azure_integration {
   source  = "../../"
   location = var.location
-  resource_group_name = var.resource_group_name
   subscription_id = var.subscription_id
+  resource_group_names = var.resource_group_names
   prefix = var.prefix
   plan_id = var.plan_id
   name = var.name
@@ -30,7 +34,7 @@ module kentik_azure_integration {
 
 ## Examples
 
-* [All Network Security Groups in Resource Group](examples/all_nsg)
+* [All Network Security Groups in requested Resource Groups](examples/all_nsg)
 
 ## Demo
 * [Demo showing how to add list of subnets to Kentik portal using this module](demo) (TBD)
@@ -52,7 +56,7 @@ module kentik_azure_integration {
 
 ### Python and dependencies
 
-This module uses python to gather all NSG from Resource Group and expose it to terraform as external data source.
+This module uses python to gather all NSG from Resource Groups and expose it to terraform as external data source.
 To install python and its requirements:
 * [Install Python 3](https://docs.python.org/3/using/index.html)
 * [Install pip3](https://pip.pypa.io/en/stable/installing/)
@@ -64,12 +68,13 @@ To install python and its requirements:
 |------|-------------|------|---------|:--------:|
 | location | Azure location of the resources to gather logs | `string` | `` | yes |
 | subscription_id | Id of the subscription in which resource are located | `string` | `` | yes |
-| resource_group_name | Name of the resource group to gather logs from | `string` | `` | yes |
+| resource_group_names | List of Resource Group names to gather logs from | `list of strings` | `` | yes |
 | prefix| Prefix for the naming resources created by this module | `string` | `` | yes |
 | email | Kentik account email | `string` | `` | yes |
 | token | Kentik account token | `string` | `` | yes |
 | plan_id | Billing plan ID | `string` | `` | yes |
 | name | Cloudexport entry name in Kentik | `string` | `` | yes |
+| flow_exporter_application_id | Kentik NSG Flow Exporter application ID | `string` | `a20ce222-63c0-46db-86d5-58551eeee89f` | no |
 | enabled | Defines if cloud export to Kentik is enabled | `bool` | true | no |
 | description | Cloudexport entry description in Kentik | `string` | `Created using Terraform` | no |
 
@@ -80,6 +85,6 @@ To install python and its requirements:
 |------|-------------|
 | network_security_groups | Id's of the Network Security groups that logs will be gathered from |
 | subscription_id | Subscription Id |
-| resource_group | Resource group name |
-| storage_account | Storage account name where logs will be gathered |
+| resource_group_names | Resource group names |
+| storage_accounts | Storage account names where logs will be gathered |
 | principal_id | Principal ID created for Kentik NSG Flow Exporter application |

@@ -24,8 +24,8 @@ provider "azurerm" {
 module kentik_azure_integration {
   source  = "../../"
   location = var.location
-  resource_group_name = var.resource_group_name
   subscription_id = var.subscription_id
+  resource_group_names = var.resource_group_names
   email = var.email
   token = var.token
   prefix = var.prefix

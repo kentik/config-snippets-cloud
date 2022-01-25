@@ -8,9 +8,9 @@ variable "subscription_id" {
     description = "Subscription Id"
 }
 
-variable "resource_group_name" {
-    type = string
-    description = "Resource group name"
+variable "resource_group_names" {
+    type = list
+    description = "List of resource group names"
 }
 
 variable "email" {

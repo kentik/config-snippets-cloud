@@ -7,12 +7,12 @@ output "subscription_id" {
   value = module.kentik_azure_integration.subscription_id
 }
 
-output "resource_group" {
-  value = module.kentik_azure_integration.resource_group
+output "resource_group_names" {
+  value = module.kentik_azure_integration.resource_group_names
 }
 
-output "storage_account" {
-  value = module.kentik_azure_integration.storage_account
+output "storage_accounts" {
+  value = module.kentik_azure_integration.storage_accounts
 }
 
 output "principal_id" {

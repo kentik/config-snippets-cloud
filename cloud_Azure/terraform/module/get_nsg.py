@@ -1,22 +1,31 @@
+import sys
+from typing import Dict, List
+
 from az.cli import az
 from terraform_external_data import terraform_external_data
 
-import sys
-
 
 @terraform_external_data
-def get_nsg_from_rg(query):
+def get_nsg_from_rg(query: Dict[str, str]) -> Dict[str, str]:
     """
-    Functions that gest all Network Security Groups from Resource Group
+    Gather all Network Security Groups for each requested Resource Group
     """
 
-    exit_code, result_dict, logs = az(
-        "network nsg list --resource-group " + str(sys.argv[1]) + " --query '[].id' -o json"
-    )
-    if exit_code == 0:
-        return {query["network_security_groups"]: str(result_dict).strip("[]").replace("'", "").replace(" ", "")}
-    else:
-        print(logs)
+    if query["resource_group_names"] == "":
+        return {}
+
+    resource_group_names: List[str] = query["resource_group_names"].split(",")
+    result: Dict[str, str] = {}
+
+    for rg in resource_group_names:
+        exit_code, result_dict, logs = az(f"network nsg list --resource-group {rg} --query '[].id' -o json")
+        if exit_code == 0:
+            network_security_groups = str(result_dict).strip("[]").replace("'", "").replace(" ", "")
+            result[rg] = network_security_groups
+        else:
+            print(logs, file=sys.stderr)
+            exit(1)
+    return result  # result is consumed by function decorator
 
 
 if __name__ == "__main__":

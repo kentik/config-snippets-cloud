@@ -20,10 +20,16 @@ provider "azurerm" {
   features {}
 }
 
+
+provider "kentik-cloudexport" {
+  email = "dummy@test.mail"
+  token = "dummy_token"
+}
+
 module kentik_azure_integration {
   source  = "../"
   location = "westeurope"
-  resource_group_name = "testrg"
+  resource_group_names = ["testrg1", "testrg2"]
   subscription_id = "test_sub_id"
   prefix = "test"
   plan_id = "12345"

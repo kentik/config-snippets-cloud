@@ -27,7 +27,6 @@ terraform apply
 Clean up created resources:
 
 ```shell
-aws s3 rm s3://terraform-example-ingest-bucket-flow-logs
 terraform destroy
 ```
 

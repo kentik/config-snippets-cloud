@@ -24,8 +24,8 @@ $ terraform apply
 | region | GCP region to use | `string` |
 | credentials | Credentials json file to log in to GCP | `string` |
 | subnet_names | List of subnet names to gather logs | `list(string)` |
-| name | Exported cloud name in Kentik Portal | `string` |
-| dascription | Exported cloud description in Kentik Portal | `string` |
+| name | Cloudexport entry name in Kentik | `string` |
+| description | Cloudexport entry description in Kentik | `string` |
 | plan\_id | Kentik billing plan ID | `string` |
 
 ## Outputs
