@@ -1,2 +1,2 @@
 az.cli==0.4
-terraform-external-data==1.1.0
+terraform-external-data==1.0.3

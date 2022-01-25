@@ -1,19 +1,24 @@
 output network_security_groups {
-  value = split(",", data.external.nsg_data_source.result.nsg)
-  description = "List of network security groups"
+  value = [for v in local.flat_nsgs: v.nsg]
+  description = "List of network security group IDs"
 }
 
 output subscription_id {
   value = var.subscription_id
-  description = "Subscription Id"
+  description = "Azure subscription ID"
 }
 
-output resource_group {
-  value       = var.resource_group_name
-  description = "Resource group name"
+output resource_group_names {
+  value       = var.resource_group_names
+  description = "Resource group names for which flow logs are being collected"
 }
 
-output storage_account {
-  value       = azurerm_storage_account.kentik_storage_account.name
-  description = "Storage account name"
+output storage_accounts {
+  value       = azurerm_storage_account.logs_storage_account[*].name
+  description = "Flow log storage account names"
+}
+
+output principal_id {
+  value = azuread_service_principal.kentik_nsg_flow_exporter.object_id
+  description = "Principal ID for Kentik NSG Flow Exporter"
 }

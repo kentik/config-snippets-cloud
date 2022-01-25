@@ -1,17 +1,37 @@
 terraform {
-  required_version = ">= 0.12.0"
+  required_version = ">= 1.0.0"
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = ">= 2.85.0"
+    }
+    azuread = {
+      source = "hashicorp/azuread"
+      version = ">= 2.14.0"
+    }
+    kentik-cloudexport = {
+      source  = "kentik/kentik-cloudexport"
+      version = ">= 0.4.1"
+    }
+  }
 }
 
 provider "azurerm" {
-  # whilst the `version` attribute is optional, we recommend pinning to a given version of the Provider
-  version = "=2.20.0"
   features {}
+}
+
+
+provider "kentik-cloudexport" {
+  email = "dummy@test.mail"
+  token = "dummy_token"
 }
 
 module kentik_azure_integration {
   source  = "../"
   location = "westeurope"
-  resource_group_name = "test"
-  principal_id = "test_prin_id"
+  resource_group_names = ["testrg1", "testrg2"]
   subscription_id = "test_sub_id"
+  prefix = "test"
+  plan_id = "12345"
+  name = "azure_europe_west"
 }
