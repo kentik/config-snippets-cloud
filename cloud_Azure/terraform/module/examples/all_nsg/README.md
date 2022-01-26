@@ -8,24 +8,35 @@ This example creates cloud export configuration for all Network Security Groups 
 * Information about Kentik subscription: plan ID
 * Azure CLI - [Installation](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
 * Authenticating Azure CLI to your account - [Logging-in](https://docs.microsoft.com/en-us/cli/azure/authenticate-azure-cli)
-* Kentik API credentials present in execution environment:
-  ```bash
-  export KTAPI_AUTH_EMAIL="joe.doe@email.com"
-  export KTAPI_AUTH_TOKEN="token123"
-  ```
+
+## Requirements
+
+* Information about Azure deployment: location, resource group name, subscription ID
+* Information about Kentik subscription: plan ID
+* Azure CLI - [Installation](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
+* Authenticating Azure CLI to your account - [Logging-in](https://docs.microsoft.com/en-us/cli/azure/authenticate-azure-cli)
 
 ## Usage
 
-To run this example you need to execute:
+Prepare `terraform.tfvars` file. Example:
+```terraform
+# Azure section
+subscription_id = "a37491e5-fdc6-4fad-96ce-ec33c4f7e99d"
+location = "eastus"
+resource_group_names = ["resource-group-1", "resource-group-2", "resource-group-3"]
+
+# Kentik section
+email = "dummy@test.mail"
+token = "dummy_token"
+plan_id = "12345"
+prefix = "jotta"
+name = "jotta"
+```
+
+Then execute:
 ```
 $ terraform init
-$ terraform apply \  
-  --var subscription_id=<azure_subscription_id> \  
-  --var location=<azure_location> \
-  --var resource_group_names=<resource_group_names> \
-  --var prefix=<unique_prefix_for_azure_resources> \
-  --var plan_id=<kentik_plan_id> \
-  --var name=<kentik_cloudexport_name>
+$ terraform apply
 ```
 
 
@@ -37,6 +48,8 @@ $ terraform apply \
 | subscription_id | Id of the subscription in which resource are located | `string` | `` | yes |
 | resource_group_names | List of Resource Group names to gather logs from | `list of strings` | `` | yes |
 | prefix| Prefix for the naming resources | `string` | `` | yes |
+| email | Kentik account email | `string` | `` | yes |
+| token | Kentik account token | `string` | `` | yes |
 | plan_id | Billing plan ID | `string` | `` | yes |
 | name | Cloudexport entry name in Kentik | `string` | `` | yes |
 

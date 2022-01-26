@@ -30,7 +30,7 @@ module "kentik_aws_integration" {
 
 * [Single VPC in single region, single AWS account](examples/single-vpc) - export flow logs from a single VPC in a single region in a single AWS account
 * [All VPCs in single region, single AWS account](examples/all-vpc-from-region) - export flow logs from all VPCs in a single region in a single AWS account
-* [All VPCs in single region, multiple AWS accounts](examples/multiple_aws_accounts_multiple_vpc_setup) - export flow logs from all VPCs in a region associated with AWS account; uses Python wrapper to iterate over multiple AWS accounts
+* [All VPCs in single region, multiple AWS accounts](examples/multiple-aws-accounts-multiple-vpc-setup) - export flow logs from all VPCs in a region associated with AWS account; uses Python wrapper to iterate over multiple AWS accounts
 * [Create EKS cluster with sock shop and configured VPC](examples/sock-shop-eks)
 ## Demo
 

@@ -7,6 +7,11 @@ terraform {
   }
 }
 
+provider "kentik-cloudexport" {
+  email = var.email
+  token = var.token
+}
+
 # Creates one Kentik CloudExport for each requested Resource Group
 resource "kentik-cloudexport_item" "azure_export" {
   count = length(var.resource_group_names)

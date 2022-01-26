@@ -1,6 +1,6 @@
 # Azure Kentik integration Terraform module
 
-Module supporting management of Azure and Kentik resources required for flow log export from Azure to Kentik.  
+Module supporting management of Azure and Kentik resources required for flow log export from Azure to Kentik.
 
 Module enables:
 * Flow logs in all Network Security Groups (NSG) found in requested Resource Groups
@@ -9,10 +9,9 @@ Module creates:
 * Service Principal for Kentik NSG Flow Exporter application
 * Reader and Contributor Roles for above mentioned Service Principal
 * One Storage Account for flow logs per requested Resource Group
-* One Flow log per NSG across all requested Resource Groups
 * Registers flow in Kentik platform per requested Resource Group
 
-All created resources are tagged with:  
+All resources created in Azure are tagged with:  
 `app = "kentik_flow_log_exporter"`  
 
 Module assumes that NetworkWatcher resource exists in NetworkWatcherRG resource group in specified Azure location (see variable "location"). It is automatically created by Azure when VirtualNetwork is created or updated, [as per documentation.](https://docs.microsoft.com/en-us/azure/network-watcher/network-watcher-create)
@@ -28,6 +27,8 @@ module kentik_azure_integration {
   subscription_id = var.subscription_id
   resource_group_names = var.resource_group_names
   prefix = var.prefix
+  email = "dummy@test.mail"
+  token = "dummy_token"
   plan_id = var.plan_id
   name = var.name
 }
@@ -71,11 +72,13 @@ To install python and its requirements:
 | subscription_id | Id of the subscription in which resource are located | `string` | `` | yes |
 | resource_group_names | List of Resource Group names to gather logs from | `list of strings` | `` | yes |
 | prefix| Prefix for the naming resources created by this module | `string` | `` | yes |
+| email | Kentik account email | `string` | `` | yes |
+| token | Kentik account token | `string` | `` | yes |
 | plan_id | Billing plan ID | `string` | `` | yes |
 | name | Cloudexport entry name in Kentik | `string` | `` | yes |
 | flow_exporter_application_id | Kentik NSG Flow Exporter application ID | `string` | `a20ce222-63c0-46db-86d5-58551eeee89f` | no |
 | enabled | Defines if cloud export to Kentik is enabled | `bool` | true | no |
-| description | Cloudexport entry description in Kentik | `string` | `` | no |
+| description | Cloudexport entry description in Kentik | `string` | `Created using Terraform` | no |
 
 
 ## Outputs
