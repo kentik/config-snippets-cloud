@@ -1,7 +1,21 @@
-# provideres: azurerm & azuread
 variable "subscription_id" {
     type = string
     description = "Azure subscription ID"
+}
+
+variable "tenant_id" {
+    type = string
+    description = "Azure tenant ID"
+}
+
+variable "principal_id" {
+    type = string
+    description = "Azure service principal ID"
+}
+
+variable "principal_secret" {
+    type = string
+    description = "Azure service principal secret (aka password)"
 }
 
 variable "location" {
@@ -11,10 +25,9 @@ variable "location" {
 
 variable "resource_group_names" {
     type = list(string)
-    description = "Resource Group names for which flow logs are to be collected"
+    description = "List of Azure resource group names"
 }
 
-# provider: kentik-cloudexport
 variable "email" {
   description = "Kentik account email"
   type        = string
@@ -38,17 +51,9 @@ variable "name" {
 variable "description" {
   description = "Cloudexport entry description in Kentik"
   type        = string
-  default     = "Created using Terraform"
 }
 
 variable "enabled" {
   description = "Defines if cloud export to Kentik is enabled"
   type        = bool
-  default     = true
-}
-
-variable "flow_exporter_application_id" {
-  type = string
-  default = "a20ce222-63c0-46db-86d5-58551eeee89f"
-  description = "Kentik NSG Flow Exporter application ID"
 }

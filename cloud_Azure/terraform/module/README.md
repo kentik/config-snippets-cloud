@@ -14,31 +14,17 @@ Module creates:
 All resources created in Azure are tagged with:  
 `app = "kentik_flow_log_exporter"`  
 
-Module assumes that NetworkWatcher resource exists in NetworkWatcherRG resource group in specified Azure location (see variable "location"). It is automatically created by Azure when VirtualNetwork is created or updated, [as per documentation.](https://docs.microsoft.com/en-us/azure/network-watcher/network-watcher-create)
+Module assumes that NetworkWatcher resource exists in NetworkWatcherRG resource group in specified Azure location (see variable "location" in [variables.tf](./variables.tf)).  
+For example, in location "eastus" there should be "NetworkWatcher_eastus" in "NetworkWatcherRG" resource group.  
+NetworkWatcher is automatically created by Azure when VirtualNetwork is created or updated, [as per documentation.](https://docs.microsoft.com/en-us/azure/network-watcher/network-watcher-create), this happens eg. when launching a new virtual machine.
 
-## Usage
+## Usage examples
 
-### All Network Security Groups in Resource Group
-
-```hcl
-module kentik_azure_integration {
-  source  = "../../"
-  location = var.location
-  subscription_id = var.subscription_id
-  resource_group_names = var.resource_group_names
-  prefix = var.prefix
-  email = "dummy@test.mail"
-  token = "dummy_token"
-  plan_id = var.plan_id
-  name = var.name
-}
-```
-
-## Examples
-
-* [All Network Security Groups in requested Resource Groups](examples/all_nsg)
+* [All Network Security Groups in requested Resource Groups in single Azure Account](examples/single_account_multiple_resource_groups)
+* [All Network Security Groups in requested Resource Groups in multiple Azure Accounts](examples/multiple_accounts_multiple_resource_group)
 
 ## Demo
+
 * [Demo showing how to add list of subnets to Kentik portal using this module](demo) (TBD)
 
 ## Requirements
@@ -46,47 +32,53 @@ module kentik_azure_integration {
 | Name | Version |
 |------|---------|
 | terraform | >= 1.0.0 |
-| azurerm provider | >= 2.85.0 |
-| azuread provider | >= 2.14.0 |
-| kentik-cloudexport provider | >= 0.4.1 |
-| null provider | >= 2.1.2 |
-| external provider | >= 2.0.0 |
 | python | >= 3.7.5 |
 | pip | >= 20.2.4 |
 | az.cli python package | >= 0.4 |
-| terraform-external-data python package | >= 1.1.0 |
+| terraform-external-data python package | >= 1.0.3 |
 
-### Python and dependencies
+## Providers
 
-This module uses python to gather all NSG from Resource Groups and expose it to terraform as external data source.
+| Name | Version |
+|------|---------|
+| azurerm | >= 2.85.0 |
+| azuread | >= 2.14.0 |
+| kentik-cloudexport | >= 0.4.1 |
+| null | >= 2.1.2 |
+| external | >= 2.0.0 |
+
+## Python and dependencies
+
+This module uses python to gather all Network Security Groups from specified Resource Groups and expose them to terraform as external data source.
 To install python and its requirements:
 * [Install Python 3](https://docs.python.org/3/using/index.html)
 * [Install pip3](https://pip.pypa.io/en/stable/installing/)
-* Install packages: run `pip3 install -r ../../requirements.txt` in example directory
-
+* Install packages: in module directory, run:
+```bash
+pip3 install -r requirements.txt
+```
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| location | Azure location of the resources to gather logs | `string` | `` | yes |
-| subscription_id | Id of the subscription in which resource are located | `string` | `` | yes |
-| resource_group_names | List of Resource Group names to gather logs from | `list of strings` | `` | yes |
-| prefix| Prefix for the naming resources created by this module | `string` | `` | yes |
+| subscription_id | Azure subscription ID | `string` | `` | yes |
+| location | Azure location  | `string` | `` | yes |
+| resource_group_names | Resource Group names for which flow logs are to be collected | `list of strings` | `[]` | yes |
 | email | Kentik account email | `string` | `` | yes |
 | token | Kentik account token | `string` | `` | yes |
-| plan_id | Billing plan ID | `string` | `` | yes |
+| plan_id | Kentik billing plan ID | `string` | `` | yes |
 | name | Cloudexport entry name in Kentik | `string` | `` | yes |
-| flow_exporter_application_id | Kentik NSG Flow Exporter application ID | `string` | `a20ce222-63c0-46db-86d5-58551eeee89f` | no |
 | enabled | Defines if cloud export to Kentik is enabled | `bool` | true | no |
 | description | Cloudexport entry description in Kentik | `string` | `Created using Terraform` | no |
+| flow_exporter_application_id | Kentik NSG Flow Exporter application ID | `string` | `a20ce222-63c0-46db-86d5-58551eeee89f` | no |
 
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| network_security_groups | Id's of the Network Security groups that logs will be gathered from |
-| subscription_id | Subscription Id |
-| resource_group_names | Resource group names |
-| storage_accounts | Storage account names where logs will be gathered |
-| principal_id | Principal ID created for Kentik NSG Flow Exporter application |
+| network_security_groups | Id's of the Network Security Groups which flow logs will be collected |
+| subscription_id | Azure subscription ID |
+| resource_group_names | Resource Group names for which flow logs will be collected |
+| storage_accounts | Storage Account names where flow logs will be collected |
+| principal_id | Service Principal ID created for Kentik NSG Flow Exporter application |

@@ -1,4 +1,3 @@
-# provideres: azurerm & azuread
 variable "subscription_id" {
     type = string
     description = "Azure subscription ID"
@@ -14,7 +13,6 @@ variable "resource_group_names" {
     description = "Resource Group names for which flow logs are to be collected"
 }
 
-# provider: kentik-cloudexport
 variable "email" {
   description = "Kentik account email"
   type        = string
@@ -33,22 +31,4 @@ variable "plan_id" {
 variable "name" {
   description = "Cloudexport entry name in Kentik"
   type        = string
-}
-
-variable "description" {
-  description = "Cloudexport entry description in Kentik"
-  type        = string
-  default     = "Created using Terraform"
-}
-
-variable "enabled" {
-  description = "Defines if cloud export to Kentik is enabled"
-  type        = bool
-  default     = true
-}
-
-variable "flow_exporter_application_id" {
-  type = string
-  default = "a20ce222-63c0-46db-86d5-58551eeee89f"
-  description = "Kentik NSG Flow Exporter application ID"
 }

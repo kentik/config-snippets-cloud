@@ -1,11 +1,12 @@
-# Network Watcher is created automatically by Azure when VirtualNetwork is created or updated in the subscription, see:
-# https://docs.microsoft.com/en-us/azure/network-watcher/network-watcher-create
+# Network Watcher is created automatically by Azure when VirtualNetwork is created or updated in the subscription
+# see: https://docs.microsoft.com/en-us/azure/network-watcher/network-watcher-create
 data "azurerm_network_watcher" "network_watcher" {
-  name                = "NetworkWatcher_${var.location}"
+  name                = "NetworkWatcher_${var.location}" # Azure creates NetworkWatcher named exactly that
   resource_group_name = "NetworkWatcherRG"
 }
 
 # Runs python script to gather network security groups from each requested resource group
+# This is required because no Terraform provider exposes such functionality
 # Resulting "data.external.nsg_data_source.results" is a map of string -> string, eg.
 # {
 #   "ResourceGroupName1" -> "NetworkSercurityGroupId1,NetworkSecurityGroupId2",
@@ -34,10 +35,10 @@ locals {
   flat_nsgs = flatten([ 
     for rg, nsg_list in data.external.nsg_data_source.result : [
       for nsg in split(",", nsg_list): {
-        rg = rg    # Resource Group
-        nsg = nsg  # Network Security Group
+        rg = rg    # Resource Group name
+        nsg = nsg  # Network Security Group ID
       }
-    ]
+    ] if length(nsg_list) > 0 # filter out Resource Groups that have no Network Security Groups
   ])
 }
 
