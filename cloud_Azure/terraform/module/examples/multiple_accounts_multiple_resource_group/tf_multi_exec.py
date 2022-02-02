@@ -122,8 +122,8 @@ def prepare_workspace_name(name: str, workspace_names={}) -> str:  # pylint: dis
     # workspace name is used as a suffix to certain Azure and Kentik resource names to make them unique;
     # only lower case alphanumeric characters are allowed - Azure StorageAccount name limitation
 
-    # produce a name made of 20 lower case alpha num characters
-    ws_name = blake2b(name.encode("utf-8"), digest_size=10).hexdigest()
+    # produce a name made of 10 lower case alpha num characters
+    ws_name = blake2b(name.encode("utf-8"), digest_size=5).hexdigest()
 
     # ensure name uniqueness
     while ws_name in workspace_names:

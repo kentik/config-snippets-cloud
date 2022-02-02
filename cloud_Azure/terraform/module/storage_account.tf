@@ -3,7 +3,7 @@
 resource "azurerm_storage_account" "logs_storage_account" {
   count = length(var.resource_group_names)
   
-  name                     = "${terraform.workspace}${tostring(count.index)}" # constrainst: Azure-wide unique, up to 24 alphanum letters
+  name                     = "logs${terraform.workspace}${tostring(count.index)}" # constrainst: Azure-wide unique, up to 24 alphanum letters
   resource_group_name      = var.resource_group_names[count.index]
   location                 = var.location
   account_tier             = "Standard"
