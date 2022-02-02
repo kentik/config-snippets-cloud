@@ -8,7 +8,7 @@ from typing import Callable, List, Optional, Tuple
 
 import boto3.session as aws
 from botocore.exceptions import BotoCoreError
-from python_terraform import IsFlagged, Terraform
+from python_terraform import IsFlagged, IsNotFlagged, Terraform
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.WARNING)
@@ -48,6 +48,7 @@ def execute_action(action: TerraformAction, profiles: List[AwsProfile]) -> bool:
 # create or just switch workspace
 def prepare_workspace(t: Terraform, workspace: str) -> bool:
     print(f'Preparing TF workspace "{workspace}"')
+
     # try switch to workspace
     return_code, _, _ = t.set_workspace(workspace)
     if return_code == os.EX_OK:
@@ -67,7 +68,7 @@ def prepare_workspace(t: Terraform, workspace: str) -> bool:
 
 # TerraformAction
 def action_plan(t: Terraform, region: str) -> bool:
-    code, stdout, stderr = t.plan(var=f"region={region}")
+    code, stdout, stderr = t.plan(detailed_exitcode=IsNotFlagged, var=f"region={region}")
     report_tf_output(code, stdout, stderr)
     return code != EX_FAILED
 
@@ -86,11 +87,11 @@ def action_destroy(t: Terraform, region: str) -> bool:
     return code != EX_FAILED
 
 
-def prepare_workspace_name(name: str, workspace_names=dict()) -> str:  # pylint: disable=dangerous-default-value
+def prepare_workspace_name(name: str, workspace_names={}) -> str:  # pylint: disable=dangerous-default-value
     # workspace name is used as a suffix to certain AWS and Kentik resource names to make them unique;
     # only lower case alphanumeric characters and hyphens are allowed - S3 bucket name limitation
 
-    # produce a name made of 21 lower case alpha num characters
+    # produce a name made of 20 lower case alpha num characters
     ws_name = blake2b(name.encode("utf-8"), digest_size=10).hexdigest()
 
     # ensure name uniqueness
@@ -150,9 +151,10 @@ def get_aws_profiles(requested: RequestedProfileNames) -> List[AwsProfile]:
 
         profiles.append(AwsProfile(profile, session.region_name, cred.access_key, cred.secret_key))
 
-    missing_profiles = set(requested) - set(available_profiles)
-    if missing_profiles:
-        print("Missing config for profiles:", missing_profiles, ". Profiles skipped")
+    if requested:
+        missing_profiles = list(set(requested) - set(available_profiles))
+        if missing_profiles:
+            print("Missing config for profiles:", missing_profiles, ". Profiles skipped")
     return profiles
 
 
