@@ -28,7 +28,7 @@ subscription_id = e0ae040b-2d16-41ad-bd29-faaa3ec975b9
 
 ## Requirements (in addition to [module requirements](../../README.md#requirements))
 
-* virtualenv >= 20.4.0
+None.
 
 ## Prepare
 
@@ -44,15 +44,26 @@ subscription_id = e0ae040b-2d16-41ad-bd29-faaa3ec975b9
     enabled = true
     ```
 
-1. Execute:
+1. Execute:  
+    PowerShell:
+    ```powershell
+    virtualenv venv
+    .\venv\Scripts\activate
+    pip install -r ..\..\requirements.txt
+    pip install -r requirements.txt
+    terraform init
+    ```
+
+    or Bash:
     ```bash
-    virtualenv venv && source venv/bin/activate
+    virtualenv venv
+    source venv/bin/activate
     pip install -r ../../requirements.txt
     pip install -r requirements.txt
     terraform init
     ```
 
-## Usage
+## Usage (PowerShell or Bash)
 
 - Execute **terraform plan** step on multiple Azure accounts:  
     ```bash

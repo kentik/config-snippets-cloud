@@ -12,6 +12,7 @@ from python_terraform import IsFlagged, IsNotFlagged, Terraform
 
 log = logging.getLogger(__name__)
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.WARNING)
+EX_OK: int = 0  # exit code for successful command
 EX_FAILED: int = 1  # exit  code for failed command
 PROFILES_FILE: str = "profiles.ini"
 
@@ -62,7 +63,7 @@ def execute_action(action: TerraformAction, profiles: List[AzureProfile]) -> boo
 def azure_login(profile: AzureProfile) -> bool:
     azure_login_command = f"login --service-principal -u {profile.principal_id} -p {profile.principal_secret} --tenant {profile.tenant_id}"
     exit_code, _, logs = az(azure_login_command)
-    if exit_code != os.EX_OK:
+    if exit_code != EX_OK:
         log.warning(
             "Failed to sign into Azure using profile '%s' credentials. Skipping profile. Error message: '%s'",
             profile.name,
@@ -82,13 +83,13 @@ def prepare_workspace(t: Terraform, workspace: str) -> bool:
 
     # try switch to workspace
     return_code, _, _ = t.set_workspace(workspace)
-    if return_code == os.EX_OK:
+    if return_code == EX_OK:
         print("Workspace activated")
         return True
 
     # probably no such worskpace exists, try to create it
     return_code, stdout, stderr = t.create_workspace(workspace)
-    if return_code == os.EX_OK:
+    if return_code == EX_OK:
         print("Workspace created and activated")
         return True
 
@@ -143,7 +144,7 @@ def report_tf_output(return_code: int, stdout: str, stderr: str) -> None:
     if stderr:
         print(stderr.strip(), file=sys.stderr)
 
-    if return_code == os.EX_OK:
+    if return_code == EX_OK:
         print("Success")
     elif return_code == EX_FAILED:
         print("FAILED", file=sys.stderr)
@@ -211,5 +212,5 @@ if __name__ == "__main__":
     terraform_action, requested_profiles = parse_cmd_line()
     azure_profiles = get_azure_profiles(requested_profiles)
     execution_successful = execute_action(terraform_action, azure_profiles)
-    RETURN_CODE = os.EX_OK if execution_successful else EX_FAILED
+    RETURN_CODE = EX_OK if execution_successful else EX_FAILED
     sys.exit(RETURN_CODE)

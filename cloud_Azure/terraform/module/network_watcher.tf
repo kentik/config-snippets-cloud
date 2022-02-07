@@ -13,7 +13,7 @@ data "azurerm_network_watcher" "network_watcher" {
 #   "ResourceGroupName2" -> "NetworkSercurityGroupId3,NetworkSecurityGroupId4"
 # }
 data "external" "nsg_data_source" {
-  program = ["python3", "${path.module}/get_nsg.py"]
+  program = ["python", "${path.module}/get_nsg.py"]
   query = {
     resource_group_names = join(",", var.resource_group_names)
   }

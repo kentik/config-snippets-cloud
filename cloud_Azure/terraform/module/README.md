@@ -16,7 +16,8 @@ All resources created in Azure are tagged with:
 
 Module assumes that NetworkWatcher resource exists in NetworkWatcherRG resource group in specified Azure location (see variable "location" in [variables.tf](./variables.tf)).  
 For example, in location "eastus" there should be "NetworkWatcher_eastus" in "NetworkWatcherRG" resource group.  
-NetworkWatcher is automatically created by Azure when VirtualNetwork is created or updated, [as per documentation.](https://docs.microsoft.com/en-us/azure/network-watcher/network-watcher-create), this happens eg. when launching a new virtual machine.
+NetworkWatcher is automatically created by Azure when VirtualNetwork is created or updated, [as per documentation.](https://docs.microsoft.com/en-us/azure/network-watcher/network-watcher-create)  
+This happens eg. when launching a new virtual machine.
 
 ## Usage examples
 
@@ -34,8 +35,7 @@ NetworkWatcher is automatically created by Azure when VirtualNetwork is created 
 | terraform | >= 1.0.0 |
 | python | >= 3.7.5 |
 | pip | >= 20.2.4 |
-| az.cli python package | >= 0.4 |
-| terraform-external-data python package | >= 1.0.3 |
+| [requirements.txt](./requirements.txt) | (as specified) |
 
 ## Providers
 
@@ -49,14 +49,13 @@ NetworkWatcher is automatically created by Azure when VirtualNetwork is created 
 
 ## Python and dependencies
 
-This module uses python to gather all Network Security Groups from specified Resource Groups and expose them to terraform as external data source.
-To install python and its requirements:
-* [Install Python 3](https://docs.python.org/3/using/index.html)
-* [Install pip3](https://pip.pypa.io/en/stable/installing/)
-* Install packages: in module directory, run:
-```bash
-pip3 install -r requirements.txt
-```
+This module uses python to gather all Network Security Groups from specified Resource Groups and expose them to terraform as external data source.  
+To install python and required packages:
+* [Install Python and PIP](https://docs.python.org/3/using/index.html)
+* Install packages: in module directory, run (PowerShell or Bash):
+  ```bash
+  pip install -r requirements.txt
+  ```
 ## Inputs
 
 | Name | Description | Type | Default | Required |
