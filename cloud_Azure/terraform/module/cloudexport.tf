@@ -16,7 +16,7 @@ provider "kentik-cloudexport" {
 resource "kentik-cloudexport_item" "azure_export" {
   count = length(var.resource_group_names)
 
-  name           = "${var.name}-${terraform.workspace}-${tostring(count.index)}" # cloudexport name must be unique
+  name           = "${var.name}-${var.resource_group_names[count.index]}-${var.subscription_id}" # resource group name + subscription id make the name unique
   type           = "CLOUD_EXPORT_TYPE_KENTIK_MANAGED"
   enabled        = var.enabled
   description    = var.description

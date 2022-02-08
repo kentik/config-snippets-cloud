@@ -16,8 +16,7 @@ All resources created in Azure are tagged with:
 
 Module assumes that NetworkWatcher resource exists in NetworkWatcherRG resource group in specified Azure location (see variable "location" in [variables.tf](./variables.tf)).  
 For example, in location "eastus" there should be "NetworkWatcher_eastus" in "NetworkWatcherRG" resource group.  
-NetworkWatcher is automatically created by Azure when VirtualNetwork is created or updated, [as per documentation.](https://docs.microsoft.com/en-us/azure/network-watcher/network-watcher-create)  
-This happens eg. when launching a new virtual machine.
+NetworkWatcher is automatically created by Azure when VirtualNetwork is created or updated, [as per documentation.](https://docs.microsoft.com/en-us/azure/network-watcher/network-watcher-create). This happens eg. when launching a new virtual machine.
 
 ## Usage examples
 

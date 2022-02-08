@@ -4,7 +4,7 @@ This example creates cloud export configuration for all Network Security Groups 
 
 ## Requirements (in addition to [module requirements](../../README.md#requirements))
 
-* virtualenv >= 20.4.0
+None.
 
 ## Prepare
 
@@ -31,7 +31,6 @@ This example creates cloud export configuration for all Network Security Groups 
     virtualenv venv && source venv/bin/activate
     pip install -r ../../requirements.txt
     terraform init
-    terraform workspace new azureonboarding # workspace name must meet Azure Storage Account naming requirements
     ```
 
 ## Usage
@@ -41,7 +40,6 @@ Execute:
 terraform apply
 ```
 
-**Note:** in case of error "The storage account named <nane> is already taken", please use different name for Terraform workspace; workspace name is used for naming Azure Storage Account.
 
 ## Inputs
 

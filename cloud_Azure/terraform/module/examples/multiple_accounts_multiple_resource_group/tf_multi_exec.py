@@ -4,7 +4,6 @@ import logging
 import os
 import sys
 from dataclasses import dataclass
-from hashlib import blake2b
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from az.cli import az
@@ -39,7 +38,6 @@ def execute_action(action: TerraformAction, profiles: List[AzureProfile]) -> boo
     for profile in profiles:
         print(f'Profile: "{profile.name}" ({profile.location})')
 
-        workspace = prepare_workspace_name(profile.subscription_id)  # subscriptions are mapped to Terraform workspaces
         tf_vars = {
             "subscription_id": profile.subscription_id,
             "tenant_id": profile.tenant_id,
@@ -49,7 +47,7 @@ def execute_action(action: TerraformAction, profiles: List[AzureProfile]) -> boo
             "resource_group_names": profile.resource_group_names,
         }
 
-        if prepare_workspace(t, workspace) and azure_login(profile) and action(t, tf_vars):
+        if prepare_workspace(t, profile.name) and azure_login(profile) and action(t, tf_vars):
             successful_count += 1
 
     if successful_count > 0:
@@ -117,24 +115,6 @@ def action_destroy(t: Terraform, tf_vars: TerraformVars) -> bool:
     code, stdout, stderr = t.apply(destroy=IsFlagged, skip_plan=True, var=tf_vars)  # auto-approve
     report_tf_output(code, stdout, stderr)
     return code != EX_FAILED
-
-
-def prepare_workspace_name(name: str, workspace_names={}) -> str:  # pylint: disable=dangerous-default-value
-    # workspace name is used as a suffix to certain Azure and Kentik resource names to make them unique;
-    # only lower case alphanumeric characters are allowed - Azure StorageAccount name limitation
-
-    # produce a name made of 10 lower case alpha num characters
-    ws_name = blake2b(name.encode("utf-8"), digest_size=5).hexdigest()
-
-    # ensure name uniqueness
-    while ws_name in workspace_names:
-        log.debug(
-            "Workspace name collision for '%s'. '%s' already used for '%s'", name, ws_name, workspace_names[ws_name]
-        )
-        ws_name += "-"
-        log.debug("Changing to %s", ws_name)
-    workspace_names[ws_name] = name
-    return ws_name
 
 
 def report_tf_output(return_code: int, stdout: str, stderr: str) -> None:
