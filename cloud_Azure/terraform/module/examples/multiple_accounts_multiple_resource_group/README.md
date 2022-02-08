@@ -11,6 +11,7 @@ principal_id = 73eb43bb-5c85-9234-b214-4fb17097a3c3
 principal_secret = rjdpGCOtUpGd12mne7W8w3dGnMLMC-PE8R
 location = eastus
 resource_group_names = dev-resource-group,test-resource-group
+storage_account_names = developmentflowlogs,testingflowlogs
 
 [second-profile] 
 subscription_id = e0ae040b-2d16-41ad-bd29-faaa3ec975b9

@@ -59,16 +59,17 @@ To install python and required packages:
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| subscription_id | Azure subscription ID | `string` | `` | yes |
-| location | Azure location  | `string` | `` | yes |
-| resource_group_names | Resource Group names for which flow logs are to be collected | `list of strings` | `[]` | yes |
-| email | Kentik account email | `string` | `` | yes |
-| token | Kentik account token | `string` | `` | yes |
-| plan_id | Kentik billing plan ID | `string` | `` | yes |
-| name | Cloudexport entry name in Kentik | `string` | `` | yes |
+| subscription_id | Azure subscription ID | `string` | none | yes |
+| location | Azure location  | `string` | none | yes |
+| resource_group_names | Resource Group names for which flow logs are to be collected | `list of strings` | none | yes |
+| email | Kentik account email | `string` | none | yes |
+| token | Kentik account token | `string` | none | yes |
+| plan_id | Kentik billing plan ID | `string` | none | yes |
+| name | Cloudexport entry name in Kentik | `string` | none | yes |
 | enabled | Defines if cloud export to Kentik is enabled | `bool` | true | no |
 | description | Cloudexport entry description in Kentik | `string` | `Created using Terraform` | no |
 | flow_exporter_application_id | Kentik NSG Flow Exporter application ID | `string` | `a20ce222-63c0-46db-86d5-58551eeee89f` | no |
+| storage_account_names | Storage Account names to store the flow logs in. They must meet Azure Storage Account naming restrictions.<br>There should be either one Storage Account name per Resource Group name, or none (in that case, names will be generated) | `list of strings` | `[]` | no |
 
 
 ## Outputs

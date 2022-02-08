@@ -14,7 +14,8 @@ None.
     subscription_id = "a37491e5-fdc6-4fad-96ce-ec33c4f7e99d"
     location = "eastus"
     resource_group_names = ["resource-group-1", "resource-group-2", "resource-group-3"] # groups must exist in selected location
-
+    storage_account_names = []
+    
     # Kentik
     email = "dummy@test.mail"
     token = "dummy_token"

@@ -37,6 +37,7 @@ module kentik_azure_integration {
   subscription_id = var.subscription_id
   location = var.location
   resource_group_names = var.resource_group_names
+  storage_account_names = var.storage_account_names
   email = var.email
   token = var.token
   plan_id = var.plan_id

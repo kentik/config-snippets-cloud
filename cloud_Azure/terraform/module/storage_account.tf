@@ -1,10 +1,10 @@
 # Prepare names that meet Azure Storage Account naming restrictions (only alphanum letters, max 24 length, Azure-wide unique)
 # Each output name is concatenation of Resource Group name and Subscription ID, adjusted to naming restrictions
 locals {
-    sa_names = [for s in var.resource_group_names : "${s}${var.subscription_id}"]
-    sa_lowercase_names = [for s in local.sa_names: lower(s)]
-    sa_alphanum_lowercase_names = [for s in local.sa_lowercase_names: join("", regexall("[[:alnum:]]+", s))]
-    sa_limitedlength_alphanum_lowercase_names = [for s in local.sa_alphanum_lowercase_names: substr(s, 0, 24)]
+    _names = [for name in var.resource_group_names : "${name}${var.subscription_id}"]
+    _lowercase_names = [for name in local._names: lower(name)]
+    _alphanum_lowercase_names = [for name in local._lowercase_names: join("", regexall("[[:alnum:]]+", name))]
+    generated_storage_account_names = [for name in local._alphanum_lowercase_names: substr(name, 0, 24)]
 }
 
 # Creates one storage account per resource group to store flow logs
@@ -12,7 +12,8 @@ locals {
 resource "azurerm_storage_account" "logs_storage_account" {
   count = length(var.resource_group_names)
   
-  name                     = local.sa_limitedlength_alphanum_lowercase_names[count.index]
+  # use either custom name if one is provided, or generated one
+  name                     = length(var.storage_account_names) == length(var.resource_group_names) ? var.storage_account_names[count.index] : local.generated_storage_account_names[count.index]
   resource_group_name      = var.resource_group_names[count.index]
   location                 = var.location
   account_tier             = "Standard"

@@ -16,6 +16,7 @@ EX_FAILED: int = 1  # exit  code for failed command
 PROFILES_FILE: str = "profiles.ini"
 
 
+# pylint: disable=too-many-instance-attributes
 @dataclass
 class AzureProfile:
     name: str
@@ -25,6 +26,7 @@ class AzureProfile:
     principal_secret: str
     location: str
     resource_group_names: List[str]
+    storage_account_names: List[str]
 
 
 TerraformVars = Dict[str, Any]  # variables passed in terraform plan/apply/destroy call
@@ -45,6 +47,7 @@ def execute_action(action: TerraformAction, profiles: List[AzureProfile]) -> boo
             "principal_secret": profile.principal_secret,
             "location": profile.location,
             "resource_group_names": profile.resource_group_names,
+            "storage_account_names": profile.storage_account_names,
         }
 
         if prepare_workspace(t, profile.name) and azure_login(profile) and action(t, tf_vars):
@@ -153,12 +156,14 @@ def get_azure_profiles(requested: RequestedProfileNames) -> List[AzureProfile]:
     for profile_name in filtered_profiles:
         profile = config[profile_name]
         try:
+            resource_groups, storage_accounts = get_resource_groups_and_storage_accounts(profile_name, dict(profile))
             azure_profile = AzureProfile(
                 name=profile_name,
                 subscription_id=profile["subscription_id"],
                 tenant_id=profile["tenant_id"],
                 location=profile["location"],
-                resource_group_names=[name.strip() for name in profile["resource_group_names"].split(",")],
+                resource_group_names=resource_groups,
+                storage_account_names=storage_accounts,
                 principal_id=profile["principal_id"],
                 principal_secret=profile["principal_secret"],
             )
@@ -172,6 +177,37 @@ def get_azure_profiles(requested: RequestedProfileNames) -> List[AzureProfile]:
         if missing_profiles:
             log.warning("Missing config for profiles: %s in `%s`. Profiles skipped", missing_profiles, PROFILES_FILE)
     return output_profiles
+
+
+def get_resource_groups_and_storage_accounts(name: str, profile: Dict[str, Any]) -> Tuple[List[str], List[str]]:
+    split_names = lambda names: [name.strip() for name in names.split(",")] if names else []
+
+    # get resource groups and storage accounts
+    resource_groups = split_names(profile["resource_group_names"])  # required
+    storage_accounts = split_names(profile.get("storage_account_names", ""))  # optional
+
+    # if storage_accounts are specified, there should be a Storage Account name specified for every Resource Group name
+    if storage_accounts and len(storage_accounts) != len(resource_groups):
+        log.warning(
+            "In profile '%s', 'storage_account_names' is specified but has different item count than 'resource_group_names'. Ignoring",
+            name,
+        )
+        return (resource_groups, [])
+
+    # Storage Account names should meet Azure Storage Account naming restrictions
+    valid_names = map(is_valid_azure_storage_account_name, storage_accounts)
+    if not all(valid_names):
+        log.warning(
+            "In profile '%s', 'storage_account_names' is specified but does not meet Azure Storage Account naming restrictions. Ignoring",
+            name,
+        )
+        return (resource_groups, [])
+
+    return (resource_groups, storage_accounts)
+
+
+def is_valid_azure_storage_account_name(name: str) -> bool:
+    return len(name) >= 3 and len(name) <= 24 and name.isalnum() and name.islower()
 
 
 def parse_cmd_line() -> Tuple[TerraformAction, RequestedProfileNames]:
