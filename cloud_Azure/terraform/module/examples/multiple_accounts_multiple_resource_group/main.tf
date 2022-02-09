@@ -6,7 +6,7 @@ terraform {
       version = ">= 2.85.0"
     }
     azuread = {
-      source = "hashicorp/azuread"
+      source  = "hashicorp/azuread"
       version = ">= 2.14.0"
     }
     kentik-cloudexport = {
@@ -26,23 +26,23 @@ provider "azurerm" {
 }
 
 provider "azuread" {
-  tenant_id       = var.tenant_id
-  client_id       = var.principal_id
-  client_secret   = var.principal_secret
+  tenant_id     = var.tenant_id
+  client_id     = var.principal_id
+  client_secret = var.principal_secret
 }
 
-module kentik_azure_integration {
-  source  = "../../"
+module "kentik_azure_integration" {
+  source = "../../"
 
-  subscription_id = var.subscription_id
-  location = var.location
-  resource_group_names = var.resource_group_names
+  subscription_id       = var.subscription_id
+  location              = var.location
+  resource_group_names  = var.resource_group_names
   storage_account_names = var.storage_account_names
-  resource_tag = var.resource_tag
-  email = var.email
-  token = var.token
-  plan_id = var.plan_id
-  name = var.name
-  description = var.description
-  enabled = var.enabled
+  resource_tag          = var.resource_tag
+  email                 = var.email
+  token                 = var.token
+  plan_id               = var.plan_id
+  name                  = var.name
+  description           = var.description
+  enabled               = var.enabled
 }

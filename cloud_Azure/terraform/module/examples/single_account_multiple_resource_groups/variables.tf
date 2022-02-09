@@ -1,21 +1,21 @@
 variable "subscription_id" {
-    type = string
-    description = "Azure subscription ID"
+  type        = string
+  description = "Azure subscription ID"
 }
 
 variable "location" {
-    type = string
-    description = "Azure location"
+  type        = string
+  description = "Azure location"
 }
 
 variable "resource_group_names" {
-    type = list(string)
-    description = "Names of Resource Groups from which to collect flow logs"
+  type        = list(string)
+  description = "Names of Resource Groups from which to collect flow logs"
 }
 
 variable "storage_account_names" {
-    type = list(string)
-    description = "Storage Account names to store the flow logs in. They must meet Azure Storage Account naming restrictions. There should be either one Storage Account name per Resource Group name, or none (in that case, names will be generated)"
+  type        = list(string)
+  description = "Storage Account names to store the flow logs in. They must meet Azure Storage Account naming restrictions. There should be either one Storage Account name per Resource Group name, or none (in that case, names will be generated)"
 }
 
 variable "email" {

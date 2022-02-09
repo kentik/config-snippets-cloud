@@ -6,7 +6,7 @@ terraform {
       version = ">= 2.85.0"
     }
     azuread = {
-      source = "hashicorp/azuread"
+      source  = "hashicorp/azuread"
       version = ">= 2.14.0"
     }
     kentik-cloudexport = {
@@ -26,14 +26,14 @@ provider "kentik-cloudexport" {
   token = "dummy_token"
 }
 
-module kentik_azure_integration {
-  source  = "../"
+module "kentik_azure_integration" {
+  source = "../"
 
-  subscription_id = "test_sub_id"
-  location = "westeurope"
+  subscription_id      = "test_sub_id"
+  location             = "westeurope"
   resource_group_names = ["resource-group-1", "resource-group-2"]
-  email = "dummy@test.mail"
-  token = "dummy_token"
-  plan_id = "12345"
-  name = "azure_europe_west"
+  email                = "dummy@test.mail"
+  token                = "dummy_token"
+  plan_id              = "12345"
+  name                 = "azure_europe_west"
 }

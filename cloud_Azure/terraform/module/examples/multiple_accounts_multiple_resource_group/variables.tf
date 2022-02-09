@@ -1,42 +1,42 @@
 variable "subscription_id" {
-    type = string
-    description = "Azure subscription ID"
+  type        = string
+  description = "Azure subscription ID"
 }
 
 variable "tenant_id" {
-    type = string
-    description = "Azure tenant ID"
+  type        = string
+  description = "Azure tenant ID"
 }
 
 variable "principal_id" {
-    type = string
-    description = "Azure service principal ID"
+  type        = string
+  description = "Azure service principal ID"
 }
 
 variable "principal_secret" {
-    type = string
-    description = "Azure service principal secret (aka password)"
+  type        = string
+  description = "Azure service principal secret (aka password)"
 }
 
 variable "location" {
-    type = string
-    description = "Azure location"
+  type        = string
+  description = "Azure location"
 }
 
 variable "resource_group_names" {
-    type = list(string)
-    description = "Names of Resource Groups from which to collect flow logs"
+  type        = list(string)
+  description = "Names of Resource Groups from which to collect flow logs"
 }
 
 variable "storage_account_names" {
-    type = list(string)
-    description = "Storage Account names to store the flow logs in. They must meet Azure Storage Account naming restrictions. There should be either one Storage Account name per Resource Group name, or none (in that case, names will be generated)"
+  type        = list(string)
+  description = "Storage Account names to store the flow logs in. They must meet Azure Storage Account naming restrictions. There should be either one Storage Account name per Resource Group name, or none (in that case, names will be generated)"
 }
 
 variable "resource_tag" {
-  type = string
+  type        = string
   description = "Azure Tag value to apply to created resources"
-  default = "flow_log_exporter"
+  default     = "flow_log_exporter"
 }
 
 variable "email" {

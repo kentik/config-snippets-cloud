@@ -32,11 +32,11 @@ data "external" "nsg_data_source" {
 #   {rg = "ResourceGroupName2", nsg = "NetworkSercurityGroupId4"}
 # ]
 locals {
-  flat_nsgs = flatten([ 
+  flat_nsgs = flatten([
     for rg, nsg_list in data.external.nsg_data_source.result : [
-      for nsg in split(",", nsg_list): {
-        rg = rg    # Resource Group name
-        nsg = nsg  # Network Security Group ID
+      for nsg in split(",", nsg_list) : {
+        rg  = rg  # Resource Group name
+        nsg = nsg # Network Security Group ID
       }
     ] if length(nsg_list) > 0 # filter out Resource Groups that have no Network Security Groups
   ])
@@ -58,6 +58,6 @@ resource "azurerm_network_watcher_flow_log" "kentik_network_flow_log" {
     days    = 7
   }
   tags = {
-     app = var.resource_tag
+    app = var.resource_tag
   }
 }

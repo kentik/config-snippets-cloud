@@ -1,29 +1,29 @@
 # provideres: azurerm & azuread
 variable "subscription_id" {
-    type = string
-    description = "Azure subscription ID"
+  type        = string
+  description = "Azure subscription ID"
 }
 
 variable "location" {
-    type = string
-    description = "Azure location"
+  type        = string
+  description = "Azure location"
 }
 
 variable "resource_group_names" {
-    type = list(string)
-    description = "Names of Resource Groups from which to collect flow logs"
+  type        = list(string)
+  description = "Names of Resource Groups from which to collect flow logs"
 }
 
 variable "storage_account_names" {
-    type = list(string)
-    description = "Storage Account names to store the flow logs in. They must meet Azure Storage Account naming restrictions. There should be either one Storage Account name per Resource Group name, or none (in that case, names will be generated)"
-    default = []
+  type        = list(string)
+  description = "Storage Account names to store the flow logs in. They must meet Azure Storage Account naming restrictions. There should be either one Storage Account name per Resource Group name, or none (in that case, names will be generated)"
+  default     = []
 }
 
 variable "resource_tag" {
-  type = string
+  type        = string
   description = "Azure Tag value to apply to created resources"
-  default = "flow_log_exporter"
+  default     = "flow_log_exporter"
 }
 
 # provider: kentik-cloudexport
@@ -60,7 +60,7 @@ variable "enabled" {
 }
 
 variable "flow_exporter_application_id" {
-  type = string
-  default = "a20ce222-63c0-46db-86d5-58551eeee89f"
+  type        = string
+  default     = "a20ce222-63c0-46db-86d5-58551eeee89f"
   description = "Kentik NSG Flow Exporter application ID"
 }
