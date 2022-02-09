@@ -20,10 +20,9 @@ subscription_id = e0ae040b-2d16-41ad-bd29-faaa3ec975b9
 
 ## The process
 
-1. Information on available Azure profiles is read from [profiles.ini](./profiles.ini)
-1. Information on desired profiles to export flow logs for is read from command line
-1. Iterate over desired profiles:
-    1. Derive Terraform workspace name by hashing the Azure Subscription ID (so only lower case alphanumeric characters are used)
+1. Information on Azure profiles is read from [profiles.ini](./profiles.ini)
+1. Iterate over the profiles:
+    1. Use profile name as Terraform workspace name
     1. Create Terraform workspace and activate it
     1. Apply Terraform configuration in activated workspace
 
@@ -33,7 +32,7 @@ None.
 
 ## Prepare
 
-1. Prepare Azure profiles for which flow logs should be exported in [profiles.ini](./profiles.ini)  
+1. Prepare Azure profiles, for which flow logs should be exported, in [profiles.ini](./profiles.ini)  
 1. Prepare configuration in [terraform.tfvars](./terraform.tfvars) file. Example:
     ```hcl
     # Kentik
@@ -68,19 +67,15 @@ None.
 
 - Execute **terraform plan** step on multiple Azure accounts:  
     ```bash
-    python tf_multi_exec.py plan --profiles=*
+    python tf_multi_exec.py plan
     ```
 - Execute **terraform apply** step on multiple Azure accounts  
     ```bash
-    python tf_multi_exec.py apply --profiles=*
+    python tf_multi_exec.py apply
     ```
 - Execute **terraform destroy** step on multiple Azure accounts  
     ```bash
-    python tf_multi_exec.py destroy --profiles=*
-    ```
-- Execute **terraform apply** step on multiple Azure accounts (selected profiles only)  
-    ```bash
-    python tf_multi_exec.py apply --profiles=test,integration
+    python tf_multi_exec.py destroy
     ```
 - Help  
     ```bash

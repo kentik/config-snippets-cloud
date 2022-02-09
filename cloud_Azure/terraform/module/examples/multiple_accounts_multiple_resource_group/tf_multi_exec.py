@@ -4,7 +4,7 @@ import logging
 import os
 import sys
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Tuple
 
 from az.cli import az
 from python_terraform import IsFlagged, IsNotFlagged, Terraform
@@ -31,7 +31,6 @@ class AzureProfile:
 
 TerraformVars = Dict[str, Any]  # variables passed in terraform plan/apply/destroy call
 TerraformAction = Callable[[Terraform, TerraformVars], bool]  # terraform plan/apply/destroy
-RequestedProfileNames = Optional[List[str]]  # list of profile names matching profiles in profiles.ini
 
 # execute an action for every profile
 def execute_action(action: TerraformAction, profiles: List[AzureProfile]) -> bool:
@@ -137,7 +136,7 @@ def report_tf_output(return_code: int, stdout: str, stderr: str) -> None:
     print()
 
 
-def get_azure_profiles(requested: RequestedProfileNames) -> List[AzureProfile]:
+def get_azure_profiles() -> List[AzureProfile]:
     # configparser.read silently ignores the fact that ini file doesn't exist, so need to check manually
     if not os.path.exists(PROFILES_FILE):
         log.fatal("Azure profiles input file '%s' doesn't exists", PROFILES_FILE)
@@ -152,8 +151,7 @@ def get_azure_profiles(requested: RequestedProfileNames) -> List[AzureProfile]:
 
     output_profiles: List[AzureProfile] = []
     available_profiles: List[str] = [p for p in config.keys() if p != "DEFAULT"]  # skip ini file "DEFAULT" section
-    filtered_profiles: List[str] = [p for p in available_profiles if not requested or p in requested]
-    for profile_name in filtered_profiles:
+    for profile_name in available_profiles:
         profile = config[profile_name]
         try:
             resource_groups, storage_accounts = get_resource_groups_and_storage_accounts(profile_name, dict(profile))
@@ -172,10 +170,6 @@ def get_azure_profiles(requested: RequestedProfileNames) -> List[AzureProfile]:
             continue
         output_profiles.append(azure_profile)
 
-    if requested:
-        missing_profiles = list(set(requested) - set(available_profiles))
-        if missing_profiles:
-            log.warning("Missing config for profiles: %s in `%s`. Profiles skipped", missing_profiles, PROFILES_FILE)
     return output_profiles
 
 
@@ -210,23 +204,17 @@ def is_valid_azure_storage_account_name(name: str) -> bool:
     return len(name) >= 3 and len(name) <= 24 and name.isalnum() and name.islower()
 
 
-def parse_cmd_line() -> Tuple[TerraformAction, RequestedProfileNames]:
+def parse_cmd_line() -> TerraformAction:
     ACTIONS = {"plan": action_plan, "apply": action_apply, "destroy": action_destroy}
-    ALL_PROFILES = "*"
     parser = argparse.ArgumentParser()
     parser.add_argument("action", choices=["plan", "apply", "destroy"], help="Terraform step to execute")
-    parser.add_argument(
-        "--profiles",
-        required=True,
-        help=f'Required. List of Azure profiles, eg. profile1,profile2,profile3. Use "{ALL_PROFILES}" to select all profiles',
-    )
     args = parser.parse_args()
-    return ACTIONS[args.action], args.profiles.split(",") if args.profiles != ALL_PROFILES else None
+    return ACTIONS[args.action]
 
 
 if __name__ == "__main__":
-    terraform_action, requested_profiles = parse_cmd_line()
-    azure_profiles = get_azure_profiles(requested_profiles)
+    terraform_action = parse_cmd_line()
+    azure_profiles = get_azure_profiles()
     execution_successful = execute_action(terraform_action, azure_profiles)
     RETURN_CODE = EX_OK if execution_successful else EX_FAILED
     sys.exit(RETURN_CODE)
