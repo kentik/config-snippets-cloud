@@ -62,8 +62,8 @@ def execute_action(action: TerraformAction, profiles: List[AzureProfile]) -> boo
 # az login is required prior to calling terraform: "get_nsg.py" uses Azure CLI to gather Network Security Group names
 def azure_login(profile: AzureProfile) -> bool:
     azure_login_command = f"login --service-principal -u {profile.principal_id} -p {profile.principal_secret} --tenant {profile.tenant_id}"
-    exit_code, _, logs = az(azure_login_command)
-    if exit_code != EX_OK:
+    return_code, _, logs = az(azure_login_command)
+    if return_code != EX_OK:
         log.warning(
             "Failed to sign into Azure using profile '%s' credentials. Skipping profile. Error message: '%s'",
             profile.name,
@@ -216,5 +216,5 @@ if __name__ == "__main__":
     terraform_action = parse_cmd_line()
     azure_profiles = get_azure_profiles()
     execution_successful = execute_action(terraform_action, azure_profiles)
-    RETURN_CODE = EX_OK if execution_successful else EX_FAILED
-    sys.exit(RETURN_CODE)
+    exit_code = EX_OK if execution_successful else EX_FAILED
+    sys.exit(exit_code)

@@ -177,5 +177,5 @@ if __name__ == "__main__":
     terraform_action, requested_profiles = parse_cmd_line()
     aws_profiles = get_aws_profiles(requested_profiles)
     execution_successful = execute_action(terraform_action, aws_profiles)
-    RETURN_CODE = os.EX_OK if execution_successful else EX_FAILED
-    sys.exit(RETURN_CODE)
+    exit_code = os.EX_OK if execution_successful else EX_FAILED
+    sys.exit(exit_code)

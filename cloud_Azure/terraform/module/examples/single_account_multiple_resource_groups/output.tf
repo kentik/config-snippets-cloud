@@ -11,7 +11,7 @@ output "subscription_id" {
 
 output "resource_group_names" {
   value = module.kentik_azure_integration.resource_group_names
-  description = "Resource Group names for which flow logs will be collected"
+  description = "Names of Resource Groups from which to collect flow logs"
 }
 
 output "storage_accounts" {

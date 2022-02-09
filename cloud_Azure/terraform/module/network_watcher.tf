@@ -58,6 +58,6 @@ resource "azurerm_network_watcher_flow_log" "kentik_network_flow_log" {
     days    = 7
   }
   tags = {
-     app = "kentik_flow_log_exporter"
+     app = var.resource_tag
   }
 }

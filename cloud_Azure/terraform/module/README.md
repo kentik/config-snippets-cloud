@@ -48,26 +48,39 @@ NetworkWatcher is automatically created by Azure when VirtualNetwork is created 
 
 ## Python and dependencies
 
-This module uses python to gather all Network Security Groups from specified Resource Groups and expose them to terraform as external data source.  
-To install python and required packages:
+This module uses Python to gather all Network Security Groups from specified Resource Groups and expose them to Terraform as external data source.  
+To install Python and required packages:
 * [Install Python and PIP](https://docs.python.org/3/using/index.html)
-* Install packages: in module directory, run (PowerShell or Bash):
-  ```bash
-  pip install -r requirements.txt
-  ```
+* Install packages - in module directory, execute:  
+    PowerShell:
+    ```powershell
+    pip install virtualenv
+    virtualenv venv
+    .\venv\Scripts\activate
+    pip install -r requirements.txt
+    ```
+
+    or Bash:
+    ```bash
+    pip install virtualenv
+    virtualenv venv
+    source venv/bin/activate
+    pip install -r requirements.txt
+    ```
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | subscription_id | Azure subscription ID | `string` | none | yes |
 | location | Azure location  | `string` | none | yes |
-| resource_group_names | Resource Group names for which flow logs are to be collected | `list of strings` | none | yes |
+| resource_group_names | Names of Resource Groups from which to collect flow logs | `list of strings` | none | yes |
 | email | Kentik account email | `string` | none | yes |
 | token | Kentik account token | `string` | none | yes |
 | plan_id | Kentik billing plan ID | `string` | none | yes |
 | name | Cloudexport entry name in Kentik | `string` | none | yes |
 | enabled | Defines if cloud export to Kentik is enabled | `bool` | true | no |
 | description | Cloudexport entry description in Kentik | `string` | `Created using Terraform` | no |
+| resource_tag | Azure Tag value to apply to created resources | `string` | `flow_log_exporter` | no |
 | flow_exporter_application_id | Kentik NSG Flow Exporter application ID | `string` | `a20ce222-63c0-46db-86d5-58551eeee89f` | no |
 | storage_account_names | Storage Account names to store the flow logs in. They must meet Azure Storage Account naming restrictions.<br>There should be either one Storage Account name per Resource Group name, or none (in that case, names will be generated) | `list of strings` | `[]` | no |
 
@@ -78,6 +91,6 @@ To install python and required packages:
 |------|-------------|
 | network_security_groups | Id's of the Network Security Groups which flow logs will be collected |
 | subscription_id | Azure subscription ID |
-| resource_group_names | Resource Group names for which flow logs will be collected |
+| resource_group_names | Names of Resource Groups from which to collect flow logs |
 | storage_accounts | Storage Account names where flow logs will be collected |
 | principal_id | Service Principal ID created for Kentik NSG Flow Exporter application |

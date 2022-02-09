@@ -11,13 +11,19 @@ variable "location" {
 
 variable "resource_group_names" {
     type = list(string)
-    description = "Resource Group names for which flow logs are to be collected"
+    description = "Names of Resource Groups from which to collect flow logs"
 }
 
 variable "storage_account_names" {
     type = list(string)
     description = "Storage Account names to store the flow logs in. They must meet Azure Storage Account naming restrictions. There should be either one Storage Account name per Resource Group name, or none (in that case, names will be generated)"
     default = []
+}
+
+variable "resource_tag" {
+  type = string
+  description = "Azure Tag value to apply to created resources"
+  default = "flow_log_exporter"
 }
 
 # provider: kentik-cloudexport

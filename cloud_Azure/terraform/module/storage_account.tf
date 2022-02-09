@@ -20,6 +20,6 @@ resource "azurerm_storage_account" "logs_storage_account" {
   account_replication_type = "GRS"
 
   tags = {
-    app = "kentik_flow_log_exporter"
+    app = var.resource_tag
   }
 }

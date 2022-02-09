@@ -1,3 +1,6 @@
+# Azure
+resource_tag = ""
+
 # Kentik
 email= ""
 token = ""

@@ -32,9 +32,14 @@ None.
 
 ## Prepare
 
-1. Prepare Azure profiles, for which flow logs should be exported, in [profiles.ini](./profiles.ini)  
+1. Prepare your Azure profiles in [profiles.ini](./profiles.ini)  
+   These profiles should represent details of Azure accounts and Resource Groups from which to collect flow logs.  
+   For `principal_id` and `principal_secret`, see: [Azure Service Principal](./README.md#azure-service-principal)
 1. Prepare configuration in [terraform.tfvars](./terraform.tfvars) file. Example:
     ```hcl
+    # Azure
+    resource_tag = "flow_log_exporter"
+    
     # Kentik
     email= "john.doe@example.com"
     token = "4e88742accb6f31bcb5a6fe90a068974"
@@ -95,15 +100,10 @@ None.
 |------|-------------|
 | (none) |
 
-## Azure Service Principal required for Terraform authentication into Azure Account
+## Azure Service Principal
 
 For Terraform to authenticate and make changes in Azure account, a Service Principal with Owner role and Application.ReadWrite.All permission is required to assign roles and create resources.  
 Terraform will use the principal_id and principal_secret credentials loaded from [profiles.ini](./profiles.ini) to authenticate into Azure Account. 
-
-### Create Service Principal using Azure Portal
-
-Service Principal is created in Azure Portal by creating an App Registration under `Azure Active Directory->App registrations->New registration`. Let's name it KentikTerraformOnboarder.  
-Permission is added by selecting checkbox under `Azure Active Directory->App registrations->KentikTerraformOnboarder->API Permissions->Add a permission->Microsoft Graph->Application Permissions->Application->Application.ReadWrite.All`, then `Grant admin consent` button in `Azure Active Directory->App registrations->KentikTerraformOnboarder->API Permissions` to effectively activate the permission.  
 
 ### Create Service Principal using az cli
 
@@ -111,7 +111,7 @@ Permission is added by selecting checkbox under `Azure Active Directory->App reg
 # login as privileged user
 az login
 
-# crate service principal. Write down the outputted appId and password. These are your principal_id_ and principal_secret
+# create service principal. Write down the outputted appId and password. These are your principal_id_ and principal_secret
 az ad sp create-for-rbac --role="Owner" --scopes="/subscriptions/<azure subscription id>" --name KentikTerraformOnboarder
 
 # add Application.ReadWrite.All permission (1bfefb4e-e0b5-418b-a88f-73c46d2cc8e9) in Microsoft Graph API (00000003-0000-0000-c000-000000000000) to just created service principal

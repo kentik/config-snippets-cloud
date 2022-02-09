@@ -10,7 +10,7 @@ output subscription_id {
 
 output resource_group_names {
   value       = var.resource_group_names
-  description = "Resource Group names for which flow logs will be collected"
+  description = "Names of Resource Groups from which to collect flow logs"
 }
 
 output storage_accounts {

@@ -10,7 +10,7 @@ variable "location" {
 
 variable "resource_group_names" {
     type = list(string)
-    description = "Resource Group names for which flow logs are to be collected"
+    description = "Names of Resource Groups from which to collect flow logs"
 }
 
 variable "storage_account_names" {
