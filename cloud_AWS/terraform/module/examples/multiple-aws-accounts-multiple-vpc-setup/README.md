@@ -51,23 +51,23 @@ terraform init
 
 - Execute **terraform plan** step on multiple AWS accounts:  
   ```bash
-  python tf_multi_exec.py plan --profiles=*
+  python aws_onboarder.py plan --profiles=*
   ```
 - Execute **terraform apply** step on multiple AWS accounts  
   ```bash
-  python tf_multi_exec.py apply --profiles=*
+  python aws_onboarder.py apply --profiles=*
   ```
 - Execute **terraform destroy** step on multiple AWS accounts  
   ```bash
-  python tf_multi_exec.py destroy --profiles=*
+  python aws_onboarder.py destroy --profiles=*
   ```
 - Execute **terraform apply** step on multiple AWS accounts (selected profiles only)  
   ```bash
-  python tf_multi_exec.py apply --profiles=test,integration
+  python aws_onboarder.py apply --profiles=test,integration
   ```
 - Help  
   ```bash
-  python tf_multi_exec.py --help
+  python aws_onboarder.py --help
   ```
 
 **Note:** "destroy" action will also delete AWS S3 buckets where the flow logs are stored. See: `s3_delete_nonempty_buckets` in [main.tf](main.tf)

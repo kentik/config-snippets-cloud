@@ -72,19 +72,19 @@ None.
 
 - Execute **terraform plan** step on multiple Azure accounts:  
     ```bash
-    python tf_multi_exec.py plan
+    python azure_onboarder.py plan
     ```
 - Execute **terraform apply** step on multiple Azure accounts  
     ```bash
-    python tf_multi_exec.py apply
+    python azure_onboarder.py apply
     ```
 - Execute **terraform destroy** step on multiple Azure accounts  
     ```bash
-    python tf_multi_exec.py destroy
+    python azure_onboarder.py destroy
     ```
 - Help  
     ```bash
-    python tf_multi_exec.py --help
+    python azure_onboarder.py --help
     ```
 
 ## Inputs
