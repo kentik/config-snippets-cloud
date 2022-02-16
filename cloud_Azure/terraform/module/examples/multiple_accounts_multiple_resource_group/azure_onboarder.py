@@ -3,9 +3,9 @@ import logging
 import sys
 from typing import Any, Callable, Dict, List, Tuple
 
-from az.cli import az
 from python_terraform import IsFlagged, IsNotFlagged, Terraform
 
+from azure_cli import az_cli
 from profiles import AzureProfile, load_profiles
 
 log = logging.getLogger(__name__)
@@ -49,20 +49,16 @@ def execute_action(action: TerraformAction, profiles: List[AzureProfile]) -> boo
 
 # az login is required prior to calling terraform: "get_nsg.py" uses Azure CLI to gather Network Security Group names
 def azure_login(profile: AzureProfile) -> bool:
-    azure_login_command = f"login --service-principal -u {profile.principal_id} -p {profile.principal_secret} --tenant {profile.tenant_id}"
-    return_code, _, logs = az(azure_login_command)
-    if return_code != EX_OK:
-        log.warning(
-            "Failed to sign into Azure using profile '%s' credentials. Skipping profile. Error message: '%s'",
-            profile.name,
-            logs,
-        )
+    command = f"login --service-principal -u {profile.principal_id} -p {profile.principal_secret} --tenant {profile.tenant_id}"  # returns a list
+    output_dict = az_cli(command)
+    if not isinstance(output_dict, list):
+        log.error("Failed to login to Azure account using profile '%s' credentials", profile.name)
         return False
     return True
 
 
 def azure_logout() -> None:
-    az("logout")
+    az_cli("logout")
 
 
 # create or just switch workspace

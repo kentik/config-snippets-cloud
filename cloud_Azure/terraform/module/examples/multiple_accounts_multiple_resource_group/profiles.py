@@ -4,7 +4,7 @@ import os
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
-log = logging.getLogger("onboarder")
+log = logging.getLogger(__name__)
 
 # pylint: disable=too-many-instance-attributes
 @dataclass
