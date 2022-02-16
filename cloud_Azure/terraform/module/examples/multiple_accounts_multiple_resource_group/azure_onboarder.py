@@ -1,7 +1,7 @@
 import argparse
 import logging
 import sys
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Tuple
 
 from az.cli import az
 from python_terraform import IsFlagged, IsNotFlagged, Terraform
@@ -124,19 +124,20 @@ def report_tf_output(return_code: int, stdout: str, stderr: str) -> None:
     print()
 
 
-def parse_cmd_line() -> TerraformAction:
+def parse_cmd_line() -> Tuple[TerraformAction, str]:
     ACTIONS = {"plan": action_plan, "apply": action_apply, "destroy": action_destroy}
     parser = argparse.ArgumentParser()
     parser.add_argument("action", choices=["plan", "apply", "destroy"], help="Terraform step to execute")
+    parser.add_argument("--filename", default=DEFAULT_PROFILES_FILE_NAME, help="Profiles file name")
     args = parser.parse_args()
-    return ACTIONS[args.action]
+    return (ACTIONS[args.action], args.filename)
 
 
 if __name__ == "__main__":
-    terraform_action = parse_cmd_line()
-    azure_profiles = load_profiles(DEFAULT_PROFILES_FILE_NAME)
+    terraform_action, profiles_file_name = parse_cmd_line()
+    azure_profiles = load_profiles(profiles_file_name)
     if azure_profiles is None:
-        print(f"Failed to load profiles from {DEFAULT_PROFILES_FILE_NAME}")
+        print(f"Failed to load profiles from {profiles_file_name}")
         sys.exit(EX_FAILED)
     execution_successful = execute_action(terraform_action, azure_profiles)
     exit_code = EX_OK if execution_successful else EX_FAILED
