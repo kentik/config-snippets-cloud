@@ -1,32 +1,20 @@
 import argparse
-import configparser
 import logging
-import os
 import sys
-from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any, Callable, Dict, List
 
 from az.cli import az
 from python_terraform import IsFlagged, IsNotFlagged, Terraform
 
+from profiles import AzureProfile, load_profiles
+
 log = logging.getLogger(__name__)
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.WARNING)
+
 EX_OK: int = 0  # exit code for successful command
 EX_FAILED: int = 1  # exit  code for failed command
-PROFILES_FILE: str = "profiles.ini"
 
-
-# pylint: disable=too-many-instance-attributes
-@dataclass
-class AzureProfile:
-    name: str
-    subscription_id: str
-    tenant_id: str
-    principal_id: str
-    principal_secret: str
-    location: str
-    resource_group_names: List[str]
-    storage_account_names: List[str]
+DEFAULT_PROFILES_FILE_NAME: str = "profiles.ini"
 
 
 TerraformVars = Dict[str, Any]  # variables passed in terraform plan/apply/destroy call
@@ -87,7 +75,7 @@ def prepare_workspace(t: Terraform, workspace: str) -> bool:
         print("Workspace activated")
         return True
 
-    # probably no such worskpace exists, try to create it
+    # probably no such workspace exists, try to create it
     return_code, stdout, stderr = t.create_workspace(workspace)
     if return_code == EX_OK:
         print("Workspace created and activated")
@@ -136,74 +124,6 @@ def report_tf_output(return_code: int, stdout: str, stderr: str) -> None:
     print()
 
 
-def get_azure_profiles() -> List[AzureProfile]:
-    # configparser.read silently ignores the fact that ini file doesn't exist, so need to check manually
-    if not os.path.exists(PROFILES_FILE):
-        log.fatal("Azure profiles input file '%s' doesn't exists", PROFILES_FILE)
-        sys.exit(EX_FAILED)
-
-    config = configparser.ConfigParser()
-    try:
-        config.read(PROFILES_FILE)
-    except configparser.Error as err:
-        log.fatal("Error reading Azure profiles file '%s'. Error message: '%s'", PROFILES_FILE, str(err))
-        sys.exit(EX_FAILED)
-
-    output_profiles: List[AzureProfile] = []
-    available_profiles: List[str] = [p for p in config.keys() if p != "DEFAULT"]  # skip ini file "DEFAULT" section
-    for profile_name in available_profiles:
-        profile = config[profile_name]
-        try:
-            resource_groups, storage_accounts = get_resource_groups_and_storage_accounts(profile_name, dict(profile))
-            azure_profile = AzureProfile(
-                name=profile_name,
-                subscription_id=profile["subscription_id"],
-                tenant_id=profile["tenant_id"],
-                location=profile["location"],
-                resource_group_names=resource_groups,
-                storage_account_names=storage_accounts,
-                principal_id=profile["principal_id"],
-                principal_secret=profile["principal_secret"],
-            )
-        except KeyError as err:
-            log.warning("Error reading profile data '%s'. Profile skipped. Error message: '%s'", profile_name, str(err))
-            continue
-        output_profiles.append(azure_profile)
-
-    return output_profiles
-
-
-def get_resource_groups_and_storage_accounts(name: str, profile: Dict[str, Any]) -> Tuple[List[str], List[str]]:
-    split_names = lambda names: [name.strip() for name in names.split(",")] if names else []
-
-    # get resource groups and storage accounts
-    resource_groups = split_names(profile["resource_group_names"])  # required
-    storage_accounts = split_names(profile.get("storage_account_names", ""))  # optional
-
-    # if storage_accounts are specified, there should be a Storage Account name specified for every Resource Group name
-    if storage_accounts and len(storage_accounts) != len(resource_groups):
-        log.warning(
-            "In profile '%s', 'storage_account_names' is specified but has different item count than 'resource_group_names'. Ignoring",
-            name,
-        )
-        return (resource_groups, [])
-
-    # Storage Account names should meet Azure Storage Account naming restrictions
-    valid_names = map(is_valid_azure_storage_account_name, storage_accounts)
-    if not all(valid_names):
-        log.warning(
-            "In profile '%s', 'storage_account_names' is specified but does not meet Azure Storage Account naming restrictions. Ignoring",
-            name,
-        )
-        return (resource_groups, [])
-
-    return (resource_groups, storage_accounts)
-
-
-def is_valid_azure_storage_account_name(name: str) -> bool:
-    return len(name) >= 3 and len(name) <= 24 and name.isalnum() and name.islower()
-
-
 def parse_cmd_line() -> TerraformAction:
     ACTIONS = {"plan": action_plan, "apply": action_apply, "destroy": action_destroy}
     parser = argparse.ArgumentParser()
@@ -214,7 +134,10 @@ def parse_cmd_line() -> TerraformAction:
 
 if __name__ == "__main__":
     terraform_action = parse_cmd_line()
-    azure_profiles = get_azure_profiles()
+    azure_profiles = load_profiles(DEFAULT_PROFILES_FILE_NAME)
+    if azure_profiles is None:
+        print(f"Failed to load profiles from {DEFAULT_PROFILES_FILE_NAME}")
+        sys.exit(EX_FAILED)
     execution_successful = execute_action(terraform_action, azure_profiles)
     exit_code = EX_OK if execution_successful else EX_FAILED
     sys.exit(exit_code)
