@@ -10,7 +10,9 @@ from azure_cli import az_cli
 from profiles import AzureProfile, load_profiles
 
 log = logging.getLogger(__name__)
-logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.WARNING)
+logging.basicConfig(
+    format="%(asctime)s [%(name)s] %(levelname)s: %(message)s", level=logging.INFO, filename="onboarder.log"
+)
 
 EX_OK: int = 0  # exit code for successful command
 EX_FAILED: int = 1  # exit  code for failed command
@@ -28,7 +30,7 @@ def execute_action(action: TerraformAction, profiles: List[AzureProfile]) -> boo
     t = Terraform()
     successful_count = 0
     for profile in profiles:
-        print(f'Profile: "{profile.name}" ({profile.location})')
+        print_log(f'Profile: "{profile.name}" ({profile.location})')
 
         tf_vars = {
             "subscription_id": profile.subscription_id,
@@ -45,7 +47,7 @@ def execute_action(action: TerraformAction, profiles: List[AzureProfile]) -> boo
 
     azure_logout()
 
-    print(f"Terraform action successfully executed for {successful_count}/{len(profiles)} Azure profile(s).")
+    print_log(f"Terraform action successfully executed for {successful_count}/{len(profiles)} Azure profile(s).")
     return successful_count == len(profiles)
 
 
@@ -55,8 +57,14 @@ def azure_login(profile: AzureProfile) -> bool:
     command = f"login --service-principal -u {profile.principal_id} -p {profile.principal_secret} --tenant {profile.tenant_id}"  # returns a list
     output_list = az_cli(command)
     if not isinstance(output_list, list):
-        log.error("Failed to login to Azure account using profile '%s' credentials", profile.name)
+        print_log(
+            f"Failed to login to Azure account using profile '{profile.name}' credentials",
+            file=sys.stderr,
+            level=logging.ERROR,
+        )
         return False
+
+    log.info("Logged into Azure account using profile '%s' credentials", profile.name)
     return True
 
 
@@ -67,7 +75,7 @@ def azure_logout() -> None:
 def prepare_workspace(t: Terraform, workspace: str) -> bool:
     """Create or just switch workspace"""
 
-    log.info('Preparing TF workspace "%s"', workspace)
+    log.info('Preparing Terraform workspace "%s"', workspace)
 
     # try switch to workspace
     return_code, _, _ = t.set_workspace(workspace)
@@ -89,6 +97,7 @@ def prepare_workspace(t: Terraform, workspace: str) -> bool:
 def action_plan(t: Terraform, tf_vars: TerraformVars) -> bool:
     """TerraformAction"""
 
+    print_log("Terraform plan...")
     code, stdout, stderr = t.plan(detailed_exitcode=IsNotFlagged, var=tf_vars)
     report_tf_output(code, stdout, stderr)
     return code != EX_FAILED
@@ -97,6 +106,7 @@ def action_plan(t: Terraform, tf_vars: TerraformVars) -> bool:
 def action_apply(t: Terraform, tf_vars: TerraformVars) -> bool:
     """TerraformAction"""
 
+    print_log("Terraform apply...")
     code, stdout, stderr = t.apply(skip_plan=True, var=tf_vars)  # skip_plan means auto-approve
     report_tf_output(code, stdout, stderr)
     return code != EX_FAILED
@@ -105,26 +115,30 @@ def action_apply(t: Terraform, tf_vars: TerraformVars) -> bool:
 def action_destroy(t: Terraform, tf_vars: TerraformVars) -> bool:
     """TerraformAction"""
 
+    print_log("Terraform destroy...")
     code, stdout, stderr = t.apply(destroy=IsFlagged, skip_plan=True, var=tf_vars)  # auto-approve
     report_tf_output(code, stdout, stderr)
     return code != EX_FAILED
 
 
 def report_tf_output(return_code: int, stdout: str, stderr: str) -> None:
+    """Report Terraform operation result to the user"""
+
     if stdout:
-        print(stdout.strip())
+        print_log(stdout.strip())
 
     if stderr:
-        print(stderr.strip(), file=sys.stderr)
+        print_log(stderr.strip(), file=sys.stderr, level=logging.ERROR)
 
     if return_code == EX_OK:
-        print("Success")
+        print_log("Terraform action successful")
     elif return_code == EX_FAILED:
-        print("FAILED", file=sys.stderr)
+        print_log("Terraform action FAILED", file=sys.stderr, level=logging.ERROR)
     else:
-        print("Return code: ", return_code)  # Terraform uses codes > 1 for reporting detailed status
+        # Terraform uses codes > 1 for reporting detailed status, eg. for resource configuration diff to be applied
+        print_log("Terraform action successful, return code: ", return_code)
 
-    print()
+    print_log()
 
 
 def parse_cmd_line() -> Tuple[TerraformAction, str]:
@@ -143,15 +157,20 @@ def load_profiles_or_exit(file_path: str) -> List[AzureProfile]:
     """
 
     if not os.path.exists(file_path):
-        print(f"File '{file_path}' doesn't exist")
+        print_log(f"File '{file_path}' doesn't exist", file=sys.stderr, level=logging.FATAL)
         sys.exit(EX_FAILED)
 
     profiles = load_profiles(file_path)
     if profiles is None:
-        print(f"Failed to read profiles file '{file_path}'")
+        print_log(f"Failed to read profiles file '{file_path}'", file=sys.stderr, level=logging.FATAL)
         sys.exit(EX_FAILED)
 
     return profiles
+
+
+def print_log(msg: str = "", level: int = logging.INFO, file=sys.stdout) -> None:
+    print(msg, file=file)
+    log.log(level=level, msg=msg)
 
 
 if __name__ == "__main__":
