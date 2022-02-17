@@ -16,7 +16,7 @@ variable "resource_group_names" {
 
 variable "storage_account_names" {
   type        = list(string)
-  description = "Storage Account names to store the flow logs in. They must meet Azure Storage Account naming restrictions. There should be either one Storage Account name per Resource Group name, or none (in that case, names will be generated)"
+  description = "Names of Storage Accounts for storing flow logs. Names must meet Azure Storage Account naming restrictions. The list should either contain 1 Storage Account name for each Resource Group, or be empty, in which case names will be generated automatically"
   default     = []
 }
 

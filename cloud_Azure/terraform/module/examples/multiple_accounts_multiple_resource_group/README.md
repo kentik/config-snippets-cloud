@@ -2,21 +2,7 @@
 
 This example creates cloud export configuration for all Network Security Groups in requested Resource Groups in multiple Azure accounts.  
 Handling of multiple Azure accounts is possible by means of profiles.  
-Profiles are stored in [profiles.ini](./profiles.ini) file. For example:
-```ini
-[first-profile] 
-subscription_id = abc543ce-6e3b-4f4d-83da-0f7b0762e75f
-tenant_id = 934cbdb4-6e26-7e5e-8146-f598249437a0
-principal_id = 73eb43bb-5c85-9234-b214-4fb17097a3c3
-principal_secret = rjdpGCOtUpGd12mne7W8w3dGnMLMC-PE8R
-location = eastus
-resource_group_names = dev-resource-group,test-resource-group
-storage_account_names = developmentflowlogs,testingflowlogs
-
-[second-profile] 
-subscription_id = e0ae040b-2d16-41ad-bd29-faaa3ec975b9
-...
-```
+Profiles are stored in [profiles.ini](./profiles.ini) file.
 
 ## The process
 
@@ -26,16 +12,38 @@ subscription_id = e0ae040b-2d16-41ad-bd29-faaa3ec975b9
     1. Create Terraform workspace and activate it
     1. Apply Terraform configuration in activated workspace
 
-## Requirements (in addition to [module requirements](../../README.md#requirements))
-
-None.
-
 ## Prepare
 
 1. Prepare your Azure profiles in [profiles.ini](./profiles.ini)  
-   These profiles should represent details of Azure accounts and Resource Groups from which to collect flow logs.  
-   For `principal_id` and `principal_secret`, see: [Azure Service Principal](./README.md#azure-service-principal)
-1. Prepare configuration in [terraform.tfvars](./terraform.tfvars) file. Example:
+   Entries in this file must contain following data for all Azure Accounts and Resource Groups from which flow logs are to be collected.  
+   Example:
+    ```ini
+    [first-profile] 
+    subscription_id = abc543ce-6e3b-4f4d-83da-0f7b0762e75f
+    tenant_id = 934cbdb4-6e26-7e5e-8146-f598249437a0
+    principal_id = 73eb43bb-5c85-9234-b214-4fb17097a3c3
+    principal_secret = rjdpGCOtUpGd12mne7W8w3dGnMLMC-PE8R
+    location = eastus
+    resource_group_names = dev-resource-group,test-resource-group
+    storage_account_names = developmentflowlogs,testingflowlogs
+
+    [second-profile] 
+    subscription_id = e0ae040b-2d16-41ad-bd29-faaa3ec975b9
+    ...
+    ```
+
+   | Name | Description | Type | Default | Required |
+   |------|-------------|------|---------|:--------:|
+   | subscription_id | Azure subscription ID | `string` | none | yes |
+   | tenant_id | Azure Tenant ID | `string` | none | yes |
+   | principal_id | Service Principal ID, see: [Azure Service Principal](./README.md#azure-service-principal) | `string` | none | yes |
+   | principal_secret | Service Principal secret (aka. password), see: [Azure Service Principal](./README.md#azure-service-principal) | `string` | none | yes |
+   | location | Azure location  | `string` | none | yes |
+   | resource_group_names | Names of Resource Groups from which to collect flow logs | `comma-separated strings` | none | yes |
+   | storage_account_names | Names of Storage Accounts for storing flow logs. Names must meet Azure Storage Account naming restrictions.<br>The list should either contain 1 Storage Account name for each Resource Group, or be empty, in which case names will be generated automatically. | `comma-separated strings` | `` | no |
+
+1. Prepare configuration in [terraform.tfvars](./terraform.tfvars) file.  
+    Example:
     ```hcl
     # Azure
     resource_tag = "flow_log_exporter"
@@ -48,6 +56,15 @@ None.
     description = "Created by Terraform"
     enabled = true
     ```
+    | Name | Description | Type | Default | Required |
+    |------|-------------|------|---------|:--------:|
+    | email | Kentik account email | `string` | none | yes |
+    | token | Kentik account token | `string` | none | yes |
+    | plan_id | Kentik billing plan ID | `string` | none | yes |
+    | name | Cloudexport entry name in Kentik | `string` | none | yes |
+    | description | Cloudexport entry description in Kentik | `string` | `Created using Terraform` | no |
+    | enabled | Defines if cloud export to Kentik is enabled | `bool` | true | no |
+    | resource_tag | Azure Tag value to apply to created resources | `string` | `flow_log_exporter` | no |
 
 1. Execute:  
     PowerShell:
@@ -82,6 +99,10 @@ None.
     ```bash
     python azure_onboarder.py destroy
     ```
+- Execute **terraform plan** step on multiple Azure accounts, custom profiles file:  
+    ```bash
+    python azure_onboarder.py --filename custom_profiles.ini plan
+    ```
 - Help  
     ```bash
     python azure_onboarder.py --help
@@ -102,10 +123,10 @@ None.
 
 ## Azure Service Principal
 
-For Terraform to authenticate and make changes in Azure account, a Service Principal with Owner role and Application.ReadWrite.All permission is required to assign roles and create resources.  
+Terraform requires Service Principal with "Owner" role and "Application.ReadWrite.All" permission to assign roles and create resources in the Azure Account.   
 Terraform will use the principal_id and principal_secret credentials loaded from [profiles.ini](./profiles.ini) to authenticate into Azure Account. 
 
-### Create Service Principal using az cli
+### Create Service Principal using Azure CLI (`az`)
 
 ```sh
 # login as privileged user

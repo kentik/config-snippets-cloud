@@ -1,6 +1,5 @@
 import configparser
 import logging
-import os
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -26,12 +25,9 @@ def load_profiles(file_path: str) -> Optional[List[AzureProfile]]:
     Return None on file reading error/parsing error
     """
 
-    if not os.path.exists(file_path):
-        log.info("Profiles file '%s' doesn't exist. Returning empty profiles list", file_path)
-        return []
-
     config = configparser.ConfigParser()
     try:
+        # note: config.read silently ignores the fact that file_path doesn't exist, resulting in empty config dict and no error reported
         config.read(file_path)
     except configparser.Error:
         log.exception("Failed to read profiles file '%s'.", file_path)
@@ -79,11 +75,12 @@ def get_resource_groups_and_storage_accounts(name: str, profile: Dict[str, Any])
         return (resource_groups, [])
 
     # Storage Account names should meet Azure Storage Account naming restrictions
-    valid_names = map(is_valid_azure_storage_account_name, storage_accounts)
-    if not all(valid_names):
+    bad_names = [n for n in storage_accounts if not is_valid_azure_storage_account_name(n)]
+    if bad_names:
         log.warning(
-            "In profile '%s', 'storage_account_names' is specified but does not meet Azure Storage Account naming restrictions. Ignoring",
+            "Profile '%s' contains invalid custom storage account names: '%s'. Ignoring",
             name,
+            ", ".join(bad_names),
         )
         return (resource_groups, [])
 

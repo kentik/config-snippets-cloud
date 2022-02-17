@@ -11,8 +11,7 @@ Module creates:
 * One Storage Account for flow logs per requested Resource Group
 * Registers flow in Kentik platform per requested Resource Group
 
-All resources created in Azure are tagged with:  
-`app = "kentik_flow_log_exporter"`  
+All resources created in Azure are tagged, see variable "resource_tag" in [variables.tf](./variables.tf)
 
 Module assumes that NetworkWatcher resource exists in NetworkWatcherRG resource group in specified Azure location (see variable "location" in [variables.tf](./variables.tf)).  
 For example, in location "eastus" there should be "NetworkWatcher_eastus" in "NetworkWatcherRG" resource group.  
@@ -34,7 +33,6 @@ NetworkWatcher is automatically created by Azure when VirtualNetwork is created 
 | terraform | >= 1.0.0 |
 | python | >= 3.7.5 |
 | pip | >= 20.2.4 |
-| [requirements.txt](./requirements.txt) | (as specified) |
 
 ## Providers
 
@@ -48,7 +46,7 @@ NetworkWatcher is automatically created by Azure when VirtualNetwork is created 
 
 ## Python and dependencies
 
-This module uses Python to gather all Network Security Groups from specified Resource Groups and expose them to Terraform as external data source.  
+This module uses Python script to list all Network Security Groups in specified Resource Groups and exposes the list to Terraform as external data source.  
 To install Python and required packages:
 * [Install Python and PIP](https://docs.python.org/3/using/index.html)
 * Install packages - in module directory, execute:  
@@ -82,7 +80,7 @@ To install Python and required packages:
 | description | Cloudexport entry description in Kentik | `string` | `Created using Terraform` | no |
 | resource_tag | Azure Tag value to apply to created resources | `string` | `flow_log_exporter` | no |
 | flow_exporter_application_id | Kentik NSG Flow Exporter application ID | `string` | `a20ce222-63c0-46db-86d5-58551eeee89f` | no |
-| storage_account_names | Storage Account names to store the flow logs in. They must meet Azure Storage Account naming restrictions.<br>There should be either one Storage Account name per Resource Group name, or none (in that case, names will be generated) | `list of strings` | `[]` | no |
+| storage_account_names | Names of Storage Accounts for storing flow logs. Names must meet Azure Storage Account naming restrictions.<br>The list should either contain 1 Storage Account name for each Resource Group, or be empty, in which case names will be generated automatically. | `list of strings` | `[]` | no |
 
 
 ## Outputs
