@@ -160,12 +160,12 @@ def load_profiles_or_exit(file_path: str) -> List[AzureProfile]:
         print_log(f"File '{file_path}' doesn't exist", file=sys.stderr, level=logging.FATAL)
         sys.exit(EX_FAILED)
 
-    profiles = load_profiles(file_path)
-    if profiles is None:
-        print_log(f"Failed to read profiles file '{file_path}'", file=sys.stderr, level=logging.FATAL)
+    try:
+        return load_profiles(file_path)
+    except RuntimeError as err:
+        log.exception(err)
+        print(f"Failed to read profiles file '{file_path}'", file=sys.stderr)
         sys.exit(EX_FAILED)
-
-    return profiles
 
 
 def print_log(msg: str = "", level: int = logging.INFO, file=sys.stdout) -> None:

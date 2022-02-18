@@ -34,7 +34,7 @@ def az_cli(command: str, max_attempts: int = 1) -> Optional[Any]:
 def _az_cli(command: str) -> Optional[Any]:
     """
     Return type specific to the command on success
-    Empty result is respresented as empty dict (az wrapper feature)
+    Empty result is represented as empty dict (az wrapper feature)
     Return None on Azure CLI command execution error
     """
 
