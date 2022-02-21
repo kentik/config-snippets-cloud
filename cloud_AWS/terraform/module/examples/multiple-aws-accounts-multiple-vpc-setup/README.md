@@ -30,7 +30,7 @@ region = us-west-2 ; <-- region
 
 1. python >= 3.7.0
 1. virtualenv >= 20.4.0
-1. terraform >= 0.12.0
+1. terraform >= 1.0.0
 1. Configured AWS profiles. To configure profiles, run in shell: `pip install awscli && aws configure`
 1. Kentik API credentials present in execution environment:
   ```bash

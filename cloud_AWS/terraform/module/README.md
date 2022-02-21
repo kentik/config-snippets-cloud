@@ -40,7 +40,7 @@ module "kentik_aws_integration" {
 
 | Name | Version |
 |------|---------|
-| terraform | >=0.12.0 |
+| terraform | >=1.0.0 |
 | aws provider | >=4.0.0 |
 | kentik-cloudexport provider | >=0.4.0 |
 
