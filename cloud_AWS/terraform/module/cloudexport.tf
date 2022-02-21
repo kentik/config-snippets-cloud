@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     kentik-cloudexport = {
-      source  = "kentik/kentik-cloudexport"
+      source = "kentik/kentik-cloudexport"
     }
   }
 }

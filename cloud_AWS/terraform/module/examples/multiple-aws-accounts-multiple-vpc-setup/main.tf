@@ -37,6 +37,6 @@ module "kentik_aws_integration" {
 
   // The company ID passed here can be obtained in automated configuration of AWS cloudexport
   // (https://portal.kentik.com/v4/setup/clouds/aws).
-  external_id                = "74333"
-  plan_id                    = "11467"
+  external_id = "74333"
+  plan_id     = "11467"
 }
