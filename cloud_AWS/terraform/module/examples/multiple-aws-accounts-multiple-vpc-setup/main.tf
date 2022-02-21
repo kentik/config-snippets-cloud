@@ -2,7 +2,7 @@ terraform {
   required_version = ">= 0.12.0"
   required_providers {
     aws = {
-      version = ">= 2.28.1, < 4.0.0"
+      version = "~> 4.0"
     }
     kentik-cloudexport = {
       version = ">= 0.2.0"

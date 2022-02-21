@@ -41,15 +41,8 @@ module "kentik_aws_integration" {
 | Name | Version |
 |------|---------|
 | terraform | >=0.12.0 |
-| aws | >=2.28.1 |
-| kentik-cloudexport | >=0.2.0 |
-
-## Providers
-
-| Name | Version |
-|------|---------|
-| aws | >=2.28.1 |
-| kentik-cloudexport | >=0.2.0 |
+| aws provider | >=4.0.0 |
+| kentik-cloudexport provider | >=0.2.0 |
 
 ## Inputs
 

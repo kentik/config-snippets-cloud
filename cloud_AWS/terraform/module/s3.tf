@@ -1,8 +1,18 @@
 resource "aws_s3_bucket" "vpc_logs" {
   count  = (var.s3_use_one_bucket == false ? length(var.vpc_id_list) : 1)
   bucket = join("-", [var.s3_bucket_prefix, (var.s3_use_one_bucket == false ? var.vpc_id_list[count.index] : var.s3_base_name), "flow-logs", terraform.workspace]) # bucket name must be globally unique
-  acl    = "private"
   force_destroy = var.s3_delete_nonempty_buckets
+}
+
+resource "aws_s3_bucket_acl" "acl" {
+  count  = (var.s3_use_one_bucket == false ? length(var.vpc_id_list) : 1)
+  bucket = aws_s3_bucket.vpc_logs[count.index].id
+  acl    = "private"
+}
+
+resource "aws_s3_bucket_policy" "policy" {
+  count  = (var.s3_use_one_bucket == false ? length(var.vpc_id_list) : 1)
+  bucket = aws_s3_bucket.vpc_logs[count.index].id
   policy = templatefile(
     "${path.module}/templates/flowLogsS3Policy.json.tmpl",
     { bucket = join("-", [var.s3_bucket_prefix, (var.s3_use_one_bucket == false ? var.vpc_id_list[count.index] : var.s3_base_name), "flow-logs", terraform.workspace]) # bucket name must be globally unique
