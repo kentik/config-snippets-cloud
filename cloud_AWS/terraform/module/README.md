@@ -1,32 +1,15 @@
 # AWS Kentik integration Terraform module
 
-Terraform module facilitating creation of AWS resources required for automatic export of VPC flow logs to Kentik.
+Module supporting management of AWS and Kentik resources required for VPC flow logs export from AWS to Kentik.
 
-Module is creating:
+Module creates:
 * IAM role according to [Kentik documentation](https://kb.kentik.com/Fc14.htm#Fc14-Create_an_AWS_Role)
 * S3 bucket per region (reduces AWS costs)
 * ---- one unique sub-folder per VPC - according to [Kentik documentation](https://kb.kentik.com/Fc14.htm#Fc14-Create_an_S3_Bucket)
 * Flow log for VPC according to [Kentik documentation](https://kb.kentik.com/Fc14.htm#Fc14-Configure_Log_Publishing)
 * Registers VPC in Kentik platform according to [Kentik documentation](https://kb.kentik.com/v0/Bd06.htm#Bd06-Create_a_Cloud_in_Kentik).
 
-## Usage
-
-```hcl
-data "aws_vpcs" "all-vpc" {}
-
-module "kentik_aws_integration" {
-  source = "github.com/kentik/config-snippets-cloud/cloud_AWS/terraform/module"
-
-  rw_s3_access = true
-  vpc_id_list = data.aws_vpcs.all-vpc.ids
-  store_logs_more_frequently = true
-  name                       = "example-aws-terraform-name"
-  plan_id                    = "11467"
-  region                     = "us-east-2"
-}
-```
-
-## Examples
+## Usage examples
 
 * [Single VPC in single region, single AWS account](examples/single-vpc) - export flow logs from a single VPC in a single region in a single AWS account
 * [All VPCs in single region, single AWS account](examples/all-vpc-from-region) - export flow logs from all VPCs in a single region in a single AWS account
@@ -40,16 +23,14 @@ module "kentik_aws_integration" {
 
 | Name | Version |
 |------|---------|
-| terraform | >=0.12.0 |
-| aws | >=2.28.1 |
-| kentik-cloudexport | >=0.2.0 |
+| terraform | >= 1.0.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| aws | >=2.28.1 |
-| kentik-cloudexport | >=0.2.0 |
+| aws | >= 2.28.1 |
+| kentik-cloudexport | >= 0.4.1 |
 
 ## Inputs
 
