@@ -1,6 +1,6 @@
 ## Configure GCP provider for tests
 terraform {
-  required_version = ">= 0.12.0"
+  required_version = "~> 1.0"
   required_providers {
     google = {
       version = "~> 4.0"
