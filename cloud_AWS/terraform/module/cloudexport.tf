@@ -21,7 +21,7 @@ resource "kentik-cloudexport_item" "aws_export" {
       for bucketobject in aws_s3_bucket.vpc_logs :
       (var.s3_flowlogs_path == "" ? bucketobject.bucket : "${bucketobject.bucket}/${var.s3_flowlogs_path}")
     ])
-    iam_role_arn      = var.create_role ? aws_iam_role.kentik_role.*.arn[0] : ""
+    iam_role_arn      = var.create_role ? aws_iam_role.kentik_role[0].arn : ""
     region            = var.region
     delete_after_read = var.delete_after_read
     multiple_buckets  = var.multiple_buckets

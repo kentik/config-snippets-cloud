@@ -40,13 +40,13 @@ resource "aws_iam_policy" "kentik_s3_policy" {
 resource "aws_iam_policy_attachment" "kentik_s3_access" {
   count      = var.create_role ? 1 : 0
   name       = "${var.iam_role_prefix}-s3-access"
-  roles      = [aws_iam_role.kentik_role[count.index].name]
-  policy_arn = aws_iam_policy.kentik_s3_policy[count.index].arn
+  roles      = [aws_iam_role.kentik_role[0].name]
+  policy_arn = aws_iam_policy.kentik_s3_policy[0].arn
 }
 
 resource "aws_iam_policy_attachment" "kentik_ec2_access" {
   count      = var.create_role ? 1 : 0
   name       = "${var.iam_role_prefix}-ec2-access"
-  roles      = [aws_iam_role.kentik_role[count.index].name]
-  policy_arn = aws_iam_policy.kentik_ec2_access[count.index].arn
+  roles      = [aws_iam_role.kentik_role[0].name]
+  policy_arn = aws_iam_policy.kentik_ec2_access[0].arn
 }
