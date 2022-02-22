@@ -6,7 +6,7 @@ terraform {
       version = "~> 4.0"
     }
     kentik-cloudexport = {
-      version = ">= 0.2.0"
+      version = "~> 0.4"
       source = "kentik/kentik-cloudexport"
     }
   }
