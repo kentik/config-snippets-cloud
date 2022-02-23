@@ -1,6 +1,6 @@
 resource "aws_iam_role" "kentik_role" {
-  count                 = var.create_role ? 1 : 0
-  name                  = "${var.iam_role_prefix}TerraformIngestRole"
+  count = var.create_role ? 1 : 0
+  name  = "${var.iam_role_prefix}TerraformIngestRole"
 
   description           = "This role allows Kentik to ingest the VPC flow logs."
   force_detach_policies = true

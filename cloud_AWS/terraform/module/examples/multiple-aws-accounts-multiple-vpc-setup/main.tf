@@ -1,11 +1,11 @@
 terraform {
-  required_version = ">= 0.12.0"
+  required_version = "~> 1.0"
   required_providers {
     aws = {
-      version = ">= 2.28.1, < 4.0.0"
+      version = "~> 4.0"
     }
     kentik-cloudexport = {
-      version = ">= 0.2.0"
+      version = "~> 0.4"
       source  = "kentik/kentik-cloudexport"
     }
   }
@@ -37,6 +37,6 @@ module "kentik_aws_integration" {
 
   // The company ID passed here can be obtained in automated configuration of AWS cloudexport
   // (https://portal.kentik.com/v4/setup/clouds/aws).
-  external_id                = "74333"
-  plan_id                    = "11467"
+  external_id = "74333"
+  plan_id     = "11467"
 }
