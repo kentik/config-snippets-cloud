@@ -1,12 +1,12 @@
 ## Configure GCP provider for tests
 terraform {
-  required_version = ">= 0.12.0"
+  required_version = "~> 1.0"
   required_providers {
     google = {
-      version = ">= 3.41.0"
+      version = "~> 4.0"
     }
     kentik-cloudexport = {
-      version = ">= 0.2.0"
+      version = "~> 0.4"
       source = "kentik/kentik-cloudexport"
     }
   }
