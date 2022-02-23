@@ -1,19 +1,19 @@
 import argparse
 import configparser
-from dataclasses import dataclass
 import logging
+import math
 import os
 import shutil
 import sys
+from dataclasses import dataclass
 from datetime import datetime
-from itertools import islice
 from pathlib import Path
 from typing import Any, List, Optional
 
+from texttable import Texttable
+
 from azure_cli import az_cli
-
 from profiles import AzureProfile, load_profiles
-
 
 # redirect logs to file so they don't mess up user-program interaction
 log = logging.getLogger(__name__)
@@ -110,33 +110,46 @@ def cli_ask_profile_name() -> str:
         name = cli_ask("Enter name for a new profile: ")
         if name != "" and " " not in name and "\t" not in name:
             return name
-        print_log(f"Invalid profile name '{name}'. Name should not contain white space characters")
+
+        print_log("Name must not contain white space characters")
 
 
 def cli_ask_overwrite_profile(profile_name: str) -> bool:
     answer = cli_ask(f"Profile '{profile_name}' already exists. Overwrite? [y/n]: ")
-    return answer.lower() in ["true", "y", "yes"]
+    return answer.lower() == "y"
 
 
 def cli_ask_azure_location() -> str:
-    NUM_COLUMNS = 5
+    NUM_COLUMNS_FOR_LOCATIONS_PRINTOUT = 3
     locations = list_locations()
-    print_log("Select Azure Location. Available locations: ")
-    print_log_in_columns(locations, NUM_COLUMNS)
-    while True:
-        location = cli_ask("Select location: ")
-        if location in locations or locations == []:
-            break
-        cli_ask(f"Invalid location '{location}'. Please try again [ENTER]")
+    num_locations = len(locations)
+    if num_locations == 0:
+        print_log("No locations are available; skipping location selection", file=sys.stderr, level=logging.WARNING)
+        return ""
 
-    return location
+    print_log("Select Azure Location. Available locations: ")
+    print_log_numbered_items_in_columns(locations, NUM_COLUMNS_FOR_LOCATIONS_PRINTOUT)
+    selected_index = cli_ask_number_in_range(num_locations)
+    return locations[selected_index]
+
+
+def cli_ask_number_in_range(numbers_range: int) -> int:
+    while True:
+        s = cli_ask(f"Enter number in range [{0} - {numbers_range-1}]: ")
+        if not s.isdigit():
+            print_log("Please enter a valid number")
+            continue
+        number = int(s)
+        if number not in range(numbers_range):
+            print_log("Please enter a number in range")
+            continue
+        return number
 
 
 def cli_ask(prompt: str) -> str:
     """Ask user for information and return the answer"""
 
-    print(prompt, end="", flush=True)
-    answer = sys.stdin.readline().strip()
+    answer = input(prompt).strip()
     log.info(prompt + answer)
     return answer
 
@@ -233,6 +246,10 @@ def list_resource_groups(location: str) -> List[str]:
     Return Resource Groups available in "location" on success
     Return empty list on error
     """
+
+    if not location:
+        log.warning("Location not specified, returning empty Resource Group list")
+        return []
 
     COMMAND = f'''group list --query "[?location=='{location}'].name"'''  # returns a list
     output_list = az_cli(COMMAND)
@@ -400,13 +417,47 @@ def backup_file(file_path: str) -> bool:
     return True
 
 
-def print_log_in_columns(items: List[Any], num_columns: int) -> None:
-    it = iter(items)
-    groups = iter(lambda: tuple(islice(it, num_columns)), ())
+def print_log_numbered_items_in_columns(items: List[Any], num_columns: int) -> None:
+    num_items = len(items)
+    if num_items == 0:
+        print_log("[no items]")
+        return
 
-    format_str = "{: <20} " * num_columns
-    for row in groups:
-        print_log(format_str.format(*row))
+    # restrict num_columns to range [1..num_items]
+    num_columns = min(num_items, max(1, num_columns))
+
+    # prepare numbered items like: "11. norway"
+    numbered_items = [format_item(i, num_items, item) for i, item in enumerate(items)]
+
+    # prepare table rows
+    num_rows = math.ceil(num_items / num_columns)
+    rows: List[List[str]] = []
+    for i in range(num_rows):
+        row = numbered_items[i::num_rows]
+
+        # append remaining columns
+        while len(row) < num_columns:
+            row.append("")
+        rows.append(row)
+
+    table = Texttable()
+    table.set_deco(0)  # no table borders
+    table.add_rows(rows, header=False)
+    print_log(table.draw())
+
+
+def format_item(item_no: int, max_no: int, item: Any) -> str:
+    """
+    format numbered item nicely, eg.:
+    8.  Pear
+    9.  Apple
+    10. Banana
+    11. Pineapple
+    """
+
+    max_digits = int(math.log10(max_no)) + 1  # how many digits to represent the number in decimal system
+    justified_item_no = f"{item_no}.".ljust(max_digits + 1)
+    return f"{justified_item_no} {item}"
 
 
 def parse_cmd_line() -> str:

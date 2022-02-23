@@ -142,3 +142,7 @@ az ad app permission add --id <service principal id> --api-permissions 1bfefb4e-
 az ad app permission grant --id <service principal id> --api 00000003-0000-0000-c000-000000000000
 az ad app permission admin-consent --id <service principal id>
 ```
+
+## Profiles tool
+
+[TBD]
