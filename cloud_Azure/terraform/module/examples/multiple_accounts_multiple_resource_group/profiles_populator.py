@@ -8,7 +8,7 @@ import sys
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Tuple
 
 from texttable import Texttable
 
@@ -17,9 +17,7 @@ from profiles import AzureProfile, load_profiles
 
 # redirect logs to file so they don't mess up user-program interaction
 log = logging.getLogger(__name__)
-logging.basicConfig(
-    format="%(asctime)s [%(name)s] %(levelname)s: %(message)s", filename="populator.log", level=logging.INFO
-)
+
 
 EX_OK: int = 0  # exit code for successful command
 EX_FAILED: int = 1  # exit code for failed command
@@ -63,7 +61,7 @@ def add_new_profile(profiles_file_path: str) -> bool:
         print_log("Overwrite declined")
         return True  # it's ok to change mind
 
-    # Login to Azure acccount
+    # Login to Azure account
     cli_ask("Please login to target Azure account as a privileged user [ENTER]")
     account = azure_login_interactively()
     if account is None:
@@ -73,7 +71,11 @@ def add_new_profile(profiles_file_path: str) -> bool:
     # Get or create Service Principal
     principal = get_service_principal(SP_NAME, profiles) or setup_service_principal(account.subscription_id, SP_NAME)
     if principal is None:
-        print_log("Failed to get as well as to create Service Principal", file=sys.stderr, level=logging.ERROR)
+        print_log(
+            f"Failed to get as well as to create Service Principal in subscription '{account.subscription_id}'",
+            file=sys.stderr,
+            level=logging.ERROR,
+        )
         return False
 
     # Request Azure location and list Resource Groups in that location
@@ -204,24 +206,17 @@ def setup_service_principal(subscription_id: str, name: str) -> Optional[Service
 
     principal = new_service_principal(subscription_id, name)
     if principal is None:
-        log.error("Failed to create Service Principal '%s' in Subscription '%s'", name, subscription_id)
         return None
 
     if not add_read_write_all_permissions(principal.id):
-        log.error("Failed to add permissions for Service Principal '%s' in Subscription '%s'", name, subscription_id)
         return None
 
     if not grant_permissions(principal.id):
-        log.error("Failed to grant permissions for Service Principal '%s' in Subscription '%s'", name, subscription_id)
         return None
 
     if not consent_permissions(principal.id):
-        log.error(
-            "Failed to consent permissions for Service Principal '%s' in Subscription '%s'", name, subscription_id
-        )
         return None
 
-    log.info("Configured Service Principal '%s' with ID '%s' in Subscription '%s'", name, principal.id, subscription_id)
     return principal
 
 
@@ -375,9 +370,15 @@ def find_profile(profile_name: str, profiles: List[AzureProfile]) -> Optional[in
 
 def find_secret(principal_id: str, profiles: List[AzureProfile]) -> Optional[str]:
     for profile in profiles:
-        if profile.principal_id == principal_id and likely_valid_service_principal_secret(profile.principal_secret):
-            log.info("Secret for Service Principal ID '%s' found in profile '%s'", principal_id, profile.name)
-            return profile.principal_secret
+        if profile.principal_id == principal_id and profile.principal_secret != "":
+            if likely_valid_service_principal_secret(profile.principal_secret):
+                log.info("Secret for Service Principal ID '%s' found in profile '%s'", principal_id, profile.name)
+                return profile.principal_secret
+            log.warning(
+                "Secret for Service Principal ID '%s' in profile '%s', is set but has incorrect format",
+                principal_id,
+                profile.name,
+            )
     log.info("Secret for Service Principal ID '%s' not found", principal_id)
     return None
 
@@ -460,11 +461,12 @@ def format_item(item_no: int, max_no: int, item: Any) -> str:
     return f"{justified_item_no} {item}"
 
 
-def parse_cmd_line() -> str:
+def parse_cmd_line() -> Tuple[str, bool]:
     parser = argparse.ArgumentParser()
     parser.add_argument("--filename", default=DEFAULT_PROFILES_FILE_NAME, help="Profiles file name")
+    parser.add_argument("--verbose", default=False, action="store_true", help="Enable verbose logging")
     args = parser.parse_args()
-    return args.filename
+    return (args.filename, args.verbose)
 
 
 def print_log(msg: str = "", level: int = logging.INFO, file=sys.stdout) -> None:
@@ -472,8 +474,16 @@ def print_log(msg: str = "", level: int = logging.INFO, file=sys.stdout) -> None
     log.log(level=level, msg=msg)
 
 
+def setup_logging(verbose: bool) -> None:
+    level = logging.DEBUG if verbose else logging.INFO
+    logging.basicConfig(
+        format="%(asctime)s [%(name)s] %(levelname)s: %(message)s", filename="populator.log", level=level
+    )
+
+
 if __name__ == "__main__":
-    profiles_file_name = parse_cmd_line()
+    profiles_file_name, verbose_logging = parse_cmd_line()
+    setup_logging(verbose_logging)
     execution_successful = add_new_profile(profiles_file_name)
     exit_code = EX_OK if execution_successful else EX_FAILED
     sys.exit(exit_code)

@@ -145,4 +145,18 @@ az ad app permission admin-consent --id <service principal id>
 
 ## Profiles tool
 
-[TBD]
+A separate tool is provided to semi-automate adding profiles in `profiles.ini`. 
+```bash
+python profiles_populator.py --filename myprofiles.ini
+```
+It will:
+- ask for new profile name
+- load selected profiles file
+- login you to Azure Account
+- lookup required ServicePrincipal, or create one if it doesn't exist yet
+- ask for Azure location
+- list Resource Groups available in selected location
+- backup your profiles file
+- store new profile in selected file
+
+To add a single profile, run the tool from shell and follow instructions printed out in the console.
