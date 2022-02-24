@@ -55,27 +55,22 @@ def add_new_profile(profiles_file_path: str) -> bool:
     # Load profiles from file and handle possible profile name collision
     profiles = try_load_profiles(profiles_file_path)
     if profiles is None:
-        print_log(f"Failed to read profiles file '{profiles_file_path}'", file=sys.stderr, level=logging.ERROR)
+        log.error("Failed to read profiles file '%s'", profiles_file_path)
         return False
     if profile_exists(profile_name, profiles) and cli_ask_overwrite_profile(profile_name) is False:
-        print_log("Overwrite declined")
         return True  # it's ok to change mind
 
     # Login to Azure account
     cli_ask("Please login to target Azure account as a privileged user [ENTER]")
     account = azure_login_interactively()
     if account is None:
-        print_log("Failed to login into Azure account", file=sys.stderr, level=logging.ERROR)
+        log.error("Failed to login into Azure account")
         return False
 
     # Get or create Service Principal
     principal = get_service_principal(SP_NAME, profiles) or setup_service_principal(account.subscription_id, SP_NAME)
     if principal is None:
-        print_log(
-            f"Failed to get as well as to create Service Principal in subscription '{account.subscription_id}'",
-            file=sys.stderr,
-            level=logging.ERROR,
-        )
+        log.error("Failed to get as well as to create Service Principal in subscription '%s'", account.subscription_id)
         return False
 
     # Request Azure location and list Resource Groups in that location
@@ -97,13 +92,13 @@ def add_new_profile(profiles_file_path: str) -> bool:
 
     # Create backup and update profiles file
     if not backup_file(profiles_file_path):
-        print_log("Failed to create profiles backup", file=sys.stderr, level=logging.WARNING)
+        log.warning("Failed to create profiles backup")
 
     if not save_profiles(profiles_file_path, profiles):
-        print_log(f"Failed to save profile to '{profiles_file_path}'", file=sys.stderr, level=logging.ERROR)
+        log.error("Failed to save profile to '%s'", profiles_file_path)
         return False
 
-    print_log("Success")
+    print("Success")
     return True
 
 
@@ -113,7 +108,7 @@ def cli_ask_profile_name() -> str:
         if name != "" and " " not in name and "\t" not in name:
             return name
 
-        print_log("Name must not contain white space characters")
+        cli_tell("Name must not contain white space characters")
 
 
 def cli_ask_overwrite_profile(profile_name: str) -> bool:
@@ -126,11 +121,11 @@ def cli_ask_azure_location() -> str:
     locations = list_locations()
     num_locations = len(locations)
     if num_locations == 0:
-        print_log("No locations are available; skipping location selection", file=sys.stderr, level=logging.WARNING)
+        log.warning("No locations are available; skipping location selection")
         return ""
 
-    print_log("Select Azure Location. Available locations: ")
-    print_log_numbered_items_in_columns(locations, NUM_COLUMNS_FOR_LOCATIONS_PRINTOUT)
+    cli_tell("Select Azure Location. Available locations: ")
+    cli_tell(format_columns(locations, NUM_COLUMNS_FOR_LOCATIONS_PRINTOUT))
     selected_index = cli_ask_number_in_range(num_locations)
     return locations[selected_index]
 
@@ -139,11 +134,11 @@ def cli_ask_number_in_range(numbers_range: int) -> int:
     while True:
         s = cli_ask(f"Enter number in range [{0} - {numbers_range-1}]: ")
         if not s.isdigit():
-            print_log("Please enter a valid number")
+            cli_tell("Invalid number")
             continue
         number = int(s)
         if number not in range(numbers_range):
-            print_log("Please enter a number in range")
+            cli_tell("Number out of range")
             continue
         return number
 
@@ -152,8 +147,11 @@ def cli_ask(prompt: str) -> str:
     """Ask user for information and return the answer"""
 
     answer = input(prompt).strip()
-    log.info(prompt + answer)
     return answer
+
+
+def cli_tell(msg: str) -> None:
+    print(msg)
 
 
 def try_load_profiles(file_path: str) -> Optional[List[AzureProfile]]:
@@ -375,11 +373,11 @@ def find_secret(principal_id: str, profiles: List[AzureProfile]) -> Optional[str
                 log.info("Secret for Service Principal ID '%s' found in profile '%s'", principal_id, profile.name)
                 return profile.principal_secret
             log.warning(
-                "Secret for Service Principal ID '%s' in profile '%s', is set but has incorrect format",
+                "Secret for Service Principal ID '%s' in profile '%s' is set, but has incorrect format",
                 principal_id,
                 profile.name,
             )
-    log.info("Secret for Service Principal ID '%s' not found", principal_id)
+    log.warning("Secret for Service Principal ID '%s' not found", principal_id)
     return None
 
 
@@ -418,11 +416,10 @@ def backup_file(file_path: str) -> bool:
     return True
 
 
-def print_log_numbered_items_in_columns(items: List[Any], num_columns: int) -> None:
+def format_columns(items: List[Any], num_columns: int) -> str:
     num_items = len(items)
     if num_items == 0:
-        print_log("[no items]")
-        return
+        return "[no items]"
 
     # restrict num_columns to range [1..num_items]
     num_columns = min(num_items, max(1, num_columns))
@@ -444,7 +441,7 @@ def print_log_numbered_items_in_columns(items: List[Any], num_columns: int) -> N
     table = Texttable()
     table.set_deco(0)  # no table borders
     table.add_rows(rows, header=False)
-    print_log(table.draw())
+    return table.draw()
 
 
 def format_item(item_no: int, max_no: int, item: Any) -> str:
@@ -469,16 +466,9 @@ def parse_cmd_line() -> Tuple[str, bool]:
     return (args.filename, args.verbose)
 
 
-def print_log(msg: str = "", level: int = logging.INFO, file=sys.stdout) -> None:
-    print(msg, file=file)
-    log.log(level=level, msg=msg)
-
-
 def setup_logging(verbose: bool) -> None:
-    level = logging.DEBUG if verbose else logging.INFO
-    logging.basicConfig(
-        format="%(asctime)s [%(name)s] %(levelname)s: %(message)s", filename="populator.log", level=level
-    )
+    level = logging.DEBUG if verbose else logging.WARNING
+    logging.basicConfig(format="%(asctime)s [%(name)s] %(levelname)s: %(message)s", level=level)
 
 
 if __name__ == "__main__":
