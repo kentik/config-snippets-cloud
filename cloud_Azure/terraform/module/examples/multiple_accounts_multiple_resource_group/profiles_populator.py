@@ -4,18 +4,18 @@ import logging
 import math
 import os
 import shutil
+import signal
 import sys
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, List, Optional, Tuple
+from typing import Any, Iterable, Iterator, List, Optional, Tuple
 
 from texttable import Texttable
 
 from azure_cli import az_cli
 from profiles import AzureProfile, load_profiles
 
-# redirect logs to file so they don't mess up user-program interaction
 log = logging.getLogger(__name__)
 
 
@@ -43,20 +43,48 @@ class ServicePrincipal:
     secret: str
 
 
-def add_new_profile(profiles_file_path: str) -> bool:
+def add_new_profiles(file_path: str, names: Iterable[str]) -> bool:
     """
-    Create new profile and add it to specified file
+    Add new profiles for all provided names, in interactive manner
+    User can break the process at any point by sending keyboard interrupt
+    """
+
+    signal.signal(signal.SIGINT, signal.default_int_handler)  # type: ignore # https://github.com/python/mypy/issues/2955
+
+    profiles = try_load_profiles(file_path)
+    if profiles is None:
+        log.error("Failed to read profiles file '%s'", file_path)
+        return False
+
+    cli_tell("[CTRL + C] to finish")
+    all_successful = True
+    try:
+        for name in names:
+            all_successful = all_successful and add_new_profile(name, profiles)
+    except KeyboardInterrupt:
+        log.info("Operation interrupted")
+        cli_tell()
+
+    if not backup_file(file_path):
+        log.warning("Failed to create profiles backup")
+
+    if not save_profiles(file_path, profiles):
+        log.error("Failed to save profile to '%s'", file_path)
+        return False
+
+    cli_tell("Finished adding profiles")
+    return all_successful
+
+
+def add_new_profile(profile_name: str, profiles: List[AzureProfile]) -> bool:
+    """
+    Create new profile and add it to the list
     All interactions with user happen here and in cli_* functions
     """
 
-    # Request name for the new profile
-    profile_name = cli_ask_profile_name()
+    cli_tell(f"Profile name: {profile_name}")
 
-    # Load profiles from file and handle possible profile name collision
-    profiles = try_load_profiles(profiles_file_path)
-    if profiles is None:
-        log.error("Failed to read profiles file '%s'", profiles_file_path)
-        return False
+    # Handle possible profile name collision
     if profile_exists(profile_name, profiles) and cli_ask_overwrite_profile(profile_name) is False:
         return True  # it's ok to change mind
 
@@ -90,15 +118,7 @@ def add_new_profile(profiles_file_path: str) -> bool:
     )
     insert_or_overwrite_profile(profiles, profile)
 
-    # Create backup and update profiles file
-    if not backup_file(profiles_file_path):
-        log.warning("Failed to create profiles backup")
-
-    if not save_profiles(profiles_file_path, profiles):
-        log.error("Failed to save profile to '%s'", profiles_file_path)
-        return False
-
-    print("Success")
+    cli_tell(f"Profile '{profile_name}' ready")
     return True
 
 
@@ -150,7 +170,7 @@ def cli_ask(prompt: str) -> str:
     return answer
 
 
-def cli_tell(msg: str) -> None:
+def cli_tell(msg: str = "") -> None:
     print(msg)
 
 
@@ -458,12 +478,13 @@ def format_item(item_no: int, max_no: int, item: Any) -> str:
     return f"{justified_item_no} {item}"
 
 
-def parse_cmd_line() -> Tuple[str, bool]:
+def parse_cmd_line() -> Tuple[str, bool, List[str]]:
     parser = argparse.ArgumentParser()
     parser.add_argument("--filename", default=DEFAULT_PROFILES_FILE_NAME, help="Profiles file name")
+    parser.add_argument("--profiles", nargs="+", default=[], help="Names of profiles to create")
     parser.add_argument("--verbose", default=False, action="store_true", help="Enable verbose logging")
     args = parser.parse_args()
-    return (args.filename, args.verbose)
+    return (args.filename, args.verbose, args.profiles)
 
 
 def setup_logging(verbose: bool) -> None:
@@ -471,9 +492,14 @@ def setup_logging(verbose: bool) -> None:
     logging.basicConfig(format="%(asctime)s [%(name)s] %(levelname)s: %(message)s", level=level)
 
 
+def profile_name_source() -> Iterator[str]:
+    while True:
+        yield cli_ask_profile_name()
+
+
 if __name__ == "__main__":
-    profiles_file_name, verbose_logging = parse_cmd_line()
+    profiles_file_name, verbose_logging, profile_names = parse_cmd_line()
     setup_logging(verbose_logging)
-    execution_successful = add_new_profile(profiles_file_name)
+    execution_successful = add_new_profiles(profiles_file_name, profile_names or profile_name_source())
     exit_code = EX_OK if execution_successful else EX_FAILED
     sys.exit(exit_code)
