@@ -151,7 +151,8 @@ For every specified profile name, it will:
 - lookup required ServicePrincipal, or create one if it doesn't exist yet
 - ask for Azure location
 - get all Resource Groups available in selected location
-Finally, after all profiles have been added:
+
+Finally, after profiles have been added:
 - backup your profiles file
 - store new profile in selected file
 
