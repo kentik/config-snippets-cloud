@@ -421,7 +421,7 @@ def backup_file(file_path: str) -> bool:
         log.info("Source file '%s' doesn't exist. Skipping backup", file_path)
         return True  # nothing to backup -> OK
 
-    backup_time = datetime.today().strftime("%Y-%m-%d_%H:%M:%S")
+    backup_time = datetime.today().strftime("%Y-%m-%d_%H%M%S")
     backup_name = f"{file_path}.{backup_time}"
     backup_dir = Path(BACKUP_PROFILES_DIRECTORY)
     backup_path = backup_dir.joinpath(backup_name)

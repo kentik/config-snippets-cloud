@@ -1,11 +1,12 @@
 import logging
-import os
 import time
 from typing import Any, Optional
 
 from az.cli import az
 
 log = logging.getLogger(__name__)
+
+EX_OK: int = 0  # exit code for successful command
 
 
 def az_cli(command: str, max_attempts: int = 1) -> Optional[Any]:
@@ -44,7 +45,7 @@ def _az_cli(command: str) -> Optional[Any]:
         log.exception("Failed to execute Azure CLI command")
         return None
 
-    if return_code != os.EX_OK:
+    if return_code != EX_OK:
         log.error("Failed to execute Azure CLI command. Error message: '%s'. Error code: %d", logs.strip(), return_code)
         return None
 
