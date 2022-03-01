@@ -1,19 +1,19 @@
 ## Configure AWS provider to use LocalStack
 terraform {
-  required_version = ">= 0.12.0"
+  required_version = "~> 1.0"
   required_providers {
     aws = {
-      version = ">= 2.28.1, < 4.0.0"
+      version = "~> 4.0"
     }
     kentik-cloudexport = {
-      version = ">= 0.2.0"
+      version = "~> 0.4"
       source  = "kentik/kentik-cloudexport"
     }
   }
 }
 
 provider "aws" {
-  region  = "us-east-1"
+  region = "us-east-1"
 
   access_key = "dump-access-key"
   secret_key = "dump-secret-key"
@@ -22,7 +22,7 @@ provider "aws" {
   skip_requesting_account_id  = true
   skip_metadata_api_check     = true
 
-  s3_force_path_style = true
+  s3_use_path_style = true
 
   endpoints {
     iam = "http://localstack:4566"

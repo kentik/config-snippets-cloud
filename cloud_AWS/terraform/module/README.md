@@ -23,14 +23,10 @@ Module creates:
 
 | Name | Version |
 |------|---------|
-| terraform | >= 1.0.0 |
+| terraform | >=1.0.0 |
+| aws provider | >=4.0.0 |
+| kentik-cloudexport provider | >=0.4.0 |
 
-## Providers
-
-| Name | Version |
-|------|---------|
-| aws | >= 2.28.1 |
-| kentik-cloudexport | >= 0.4.1 |
 
 ## Inputs
 

@@ -64,18 +64,10 @@ module "kentik_gcp_integration" {
 
 | Name | Version |
 |------|---------|
-| terraform | >=0.12.0 |
-| google | >= 3.41.0 |
-| kentik-cloudexport | >= 0.1.0 |
-| null | >= 2.1.2 |
-
-## Providers
-
-| Name | Version |
-|------|---------|
-| google | >= 3.41.0 |
-| kentik-cloudexport | >= 0.1.0 |
-| null | >= 2.1.2 |
+| terraform | >= 1.0.0 |
+| google provider| >= 4.0.0 |
+| kentik-cloudexport provider| >= 0.4.0 |
+| null provider | >= 2.1.2 |
 
 ## Inputs
 
