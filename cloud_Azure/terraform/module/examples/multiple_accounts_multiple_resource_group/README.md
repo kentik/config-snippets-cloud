@@ -170,6 +170,10 @@ Finally, after profiles have been added:
     ```bash
     python profiles_populator.py --filename profiles.ini --verbose
     ```
+- Only fill missing profiles information in `profiles.ini` - ask user for data if needed:  
+    ```bash
+    python profiles_populator.py --filename profiles.ini --complete
+    ```
 - Help  
     ```bash
     python profiles_populator.py--help

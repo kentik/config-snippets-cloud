@@ -9,12 +9,18 @@ import sys
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Iterable, Iterator, List, Optional, Tuple
+from typing import Any, Callable, Iterable, Iterator, List, Optional, Tuple
 
 from texttable import Texttable
 
 from azure_cli import az_cli
-from profiles import AzureProfile, load_profiles
+from profiles import (
+    AzureProfile,
+    likely_valid_service_principal_secret,
+    list_missing_required_fields,
+    load_incomplete_profiles,
+    load_profiles,
+)
 
 log = logging.getLogger(__name__)
 
@@ -51,9 +57,8 @@ def add_new_profiles(file_path: str, names: Iterable[str]) -> bool:
 
     signal.signal(signal.SIGINT, signal.default_int_handler)  # type: ignore # https://github.com/python/mypy/issues/2955
 
-    profiles = try_load_profiles(file_path)
+    profiles = try_load_profiles(file_path, load_profiles)
     if profiles is None:
-        log.error("Failed to read profiles file '%s'", file_path)
         return False
 
     cli_tell("[CTRL + C] to finish")
@@ -69,7 +74,6 @@ def add_new_profiles(file_path: str, names: Iterable[str]) -> bool:
         log.warning("Failed to create profiles backup")
 
     if not save_profiles(file_path, profiles):
-        log.error("Failed to save profile to '%s'", file_path)
         return False
 
     cli_tell("Finished adding profiles")
@@ -122,6 +126,100 @@ def add_new_profile(profile_name: str, profiles: List[AzureProfile]) -> bool:
     return True
 
 
+def complete_existing_profiles(file_path: str) -> bool:
+    """
+    Complete missing information in profiles loaded from provided file_path
+    User can break the process at any point by sending keyboard interrupt
+    """
+
+    signal.signal(signal.SIGINT, signal.default_int_handler)  # type: ignore # https://github.com/python/mypy/issues/2955
+
+    profiles = try_load_profiles(file_path, load_incomplete_profiles)
+    if profiles is None:
+        return False
+
+    if profiles == []:
+        cli_tell("Nothing to complete")
+        return True
+
+    cli_tell("[CTRL + C] to finish")
+    all_successful = True
+    try:
+        for profile in profiles:
+            all_successful = all_successful and complete_profile(profile, profiles)
+    except KeyboardInterrupt:
+        log.info("Operation interrupted")
+        cli_tell()
+
+    if not backup_file(file_path):
+        log.warning("Failed to create profiles backup")
+
+    if not save_profiles(file_path, profiles):
+        return False
+
+    cli_tell("Finished completing profiles")
+    return all_successful
+
+
+def complete_profile(profile: AzureProfile, profiles: List[AzureProfile]) -> bool:
+    """
+    Complete the profile if any information is missing
+    All interactions with user happen here and in cli_* functions
+    """
+
+    cli_tell(f"Profile name: {profile.name}")
+    missing_fields = list_missing_required_fields(profile)
+
+    # check if anything is missing at all
+    if not missing_fields:
+        cli_tell("Nothing to complete")
+        return True
+
+    # avoid logging into Azure if only principal_secret is missing - it can't be retrieved from the account anyway
+    if missing_fields == ["principal_secret"]:
+        profile.principal_secret = find_secret(profile.principal_id, profiles) or cli_ask_secret()
+        cli_tell(f"Profile '{profile.name}' information completed: {missing_fields}")
+        return True
+
+    # filling any information other than just principal_secret requires logging into Azure Account
+    account = cli_azure_login_interactively(profile.subscription_id, profile.tenant_id)
+    if account is None:
+        log.error("Failed to login into Azure account")
+        return False
+
+    # fill account information
+    profile.subscription_id = account.subscription_id
+    profile.tenant_id = account.tenant_id
+
+    # fill service principal information
+    if profile.principal_id == "":
+        principal = get_service_principal(SP_NAME, profiles) or setup_service_principal(
+            account.subscription_id, SP_NAME
+        )
+        if principal is None:
+            log.error(
+                "Failed to get as well as to create Service Principal in subscription '%s'", account.subscription_id
+            )
+            return False
+        profile.principal_id = principal.id
+        profile.principal_secret = principal.secret
+    elif profile.principal_secret == "":
+        profile.principal_secret = find_secret(profile.principal_id, profiles) or cli_ask_secret()
+
+    # fill azure location information
+    if profile.location == "":
+        profile.location = cli_ask_azure_location()
+
+    # fill resource groups information
+    if profile.resource_group_names == []:
+        profile.resource_group_names = list_resource_groups(profile.location)
+    if profile.resource_group_names == []:
+        log.warning("No Resource Groups found in Location '%s'", profile.location)
+
+    cli_tell(f"Profile '{profile.name}' information completed: {missing_fields}")
+    return True
+
+
 def cli_ask_profile_name() -> str:
     while True:
         name = cli_ask("Enter name for a new profile: ")
@@ -163,6 +261,48 @@ def cli_ask_number_in_range(numbers_range: int) -> int:
         return number
 
 
+def cli_ask_secret() -> str:
+    while True:
+        s = cli_ask("Enter Service Principal secret (34 letters)[empty to skip]: ")
+        if likely_valid_service_principal_secret(s):
+            return s
+        if s == "":
+            return ""
+        cli_tell("Invalid format")
+
+
+def cli_azure_login_interactively(subscription_id, tenant_id: str) -> Optional[AzureAccountLoginInfo]:
+    """
+    Login to Azure Account
+    Target account subscription and tenant must match subscription_id and tenant_id (if provided)
+    """
+
+    required_subscription = subscription_id or "<arbitrary>"
+    required_tenant = tenant_id or "<arbitrary>"
+
+    while True:
+        cli_ask(
+            f"Please login to Azure Account. Target Subscription ID: {required_subscription}, Tenant ID: {required_tenant} [ENTER]"
+        )
+        account = azure_login_interactively()
+        if account is None:
+            return None
+
+        if subscription_id and subscription_id != account.subscription_id:
+            cli_tell(
+                f"Selected Azure Account has different Subscription ID than specified. Expected: {subscription_id}, got: {account.subscription_id}"
+            )
+            continue
+
+        if tenant_id and tenant_id != account.tenant_id:
+            cli_tell(
+                f"Selected Azure Account has different Tenant ID than specified. Expected: {tenant_id}, got: {account.tenant_id}"
+            )
+            continue
+
+        return account
+
+
 def cli_ask(prompt: str) -> str:
     """Ask user for information and return the answer"""
 
@@ -174,7 +314,7 @@ def cli_tell(msg: str = "") -> None:
     print(msg)
 
 
-def try_load_profiles(file_path: str) -> Optional[List[AzureProfile]]:
+def try_load_profiles(file_path: str, loader: Callable) -> Optional[List[AzureProfile]]:
     """
     Return profile list on success
     Return empty list if file_path doesn't exist or file contains no profiles
@@ -186,9 +326,9 @@ def try_load_profiles(file_path: str) -> Optional[List[AzureProfile]]:
         return []
 
     try:
-        return load_profiles(file_path)
-    except RuntimeError as err:
-        log.exception(err)
+        return loader(file_path)
+    except (RuntimeError, ValueError):
+        log.exception("Failed to load profiles file '%s'", file_path)
         return None
 
 
@@ -401,11 +541,6 @@ def find_secret(principal_id: str, profiles: List[AzureProfile]) -> Optional[str
     return None
 
 
-def likely_valid_service_principal_secret(secret: str) -> bool:
-    SERVICE_PRINCIPAL_SECRET_LENGTH = 34
-    return len(secret) == SERVICE_PRINCIPAL_SECRET_LENGTH
-
-
 def insert_or_overwrite_profile(profiles: List[AzureProfile], profile: AzureProfile) -> None:
     index = find_profile(profile.name, profiles)
     if index is not None:
@@ -478,13 +613,16 @@ def format_item(item_no: int, max_no: int, item: Any) -> str:
     return f"{justified_item_no} {item}"
 
 
-def parse_cmd_line() -> Tuple[str, bool, List[str]]:
+def parse_cmd_line() -> Tuple[str, bool, bool, List[str]]:
     parser = argparse.ArgumentParser()
     parser.add_argument("--filename", default=DEFAULT_PROFILES_FILE_NAME, help="Profiles file name")
     parser.add_argument("--profiles", nargs="+", default=[], help="Names of profiles to create")
     parser.add_argument("--verbose", default=False, action="store_true", help="Enable verbose logging")
+    parser.add_argument(
+        "--complete", default=False, action="store_true", help="Only complete information in existing profiles"
+    )
     args = parser.parse_args()
-    return (args.filename, args.verbose, args.profiles)
+    return (args.filename, args.verbose, args.complete, args.profiles)
 
 
 def setup_logging(verbose: bool) -> None:
@@ -498,8 +636,11 @@ def profile_name_source() -> Iterator[str]:
 
 
 if __name__ == "__main__":
-    profiles_file_name, verbose_logging, profile_names = parse_cmd_line()
+    profiles_file_name, verbose_logging, complete_only, profile_names = parse_cmd_line()
     setup_logging(verbose_logging)
-    execution_successful = add_new_profiles(profiles_file_name, profile_names or profile_name_source())
+    if complete_only:
+        execution_successful = complete_existing_profiles(profiles_file_name)
+    else:
+        execution_successful = add_new_profiles(profiles_file_name, profile_names or profile_name_source())
     exit_code = EX_OK if execution_successful else EX_FAILED
     sys.exit(exit_code)

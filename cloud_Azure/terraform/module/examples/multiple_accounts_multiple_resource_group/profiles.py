@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Tuple
 
 log = logging.getLogger(__name__)
 
+
 # pylint: disable=too-many-instance-attributes
 @dataclass
 class AzureProfile:
@@ -19,8 +20,39 @@ class AzureProfile:
     storage_account_names: List[str]
 
 
-def load_profiles(file_path: str) -> List[AzureProfile]:
+REQUIRED_AZURE_PROFILE_FIELDS: List[str] = [
+    "name",
+    "subscription_id",
+    "tenant_id",
+    "principal_id",
+    "principal_secret",
+    "location",
+    "resource_group_names"
+    # storage_account_names is optional - names can be auto generated
+]
+
+
+def print_profile(profile: AzureProfile) -> None:
+    """Print the profile in a formatted manner"""
+
+    for field in profile.__dataclass_fields__:
+        value = getattr(profile, field)
+        row = f"{field: >22} = {str(value)}"
+        print(row)
+
+
+def list_missing_required_fields(profile: AzureProfile) -> List[str]:
+    """Return list of required fields that are not set in input profile"""
+
+    def field_not_set(field: str) -> bool:
+        return getattr(profile, field) in ("", [])
+
+    return list(filter(field_not_set, REQUIRED_AZURE_PROFILE_FIELDS))
+
+
+def load_incomplete_profiles(file_path: str) -> List[AzureProfile]:
     """
+    Read profiles from file; the profiles are allowed to have missing fields
     Return profile list on success
     Return empty list if file_path doesn't exist or file contains no profiles
     Raise RuntimeError on reading error/parsing error
@@ -38,24 +70,48 @@ def load_profiles(file_path: str) -> List[AzureProfile]:
     available_profiles: List[str] = [p for p in config.keys() if p != "DEFAULT"]  # skip ini file "DEFAULT" section
     for profile_name in available_profiles:
         profile = config[profile_name]
-        try:
-            resource_groups, storage_accounts = get_resource_groups_and_storage_accounts(profile_name, dict(profile))
-            azure_profile = AzureProfile(
-                name=profile_name,
-                subscription_id=profile["subscription_id"],
-                tenant_id=profile["tenant_id"],
-                location=profile["location"],
-                resource_group_names=resource_groups,
-                storage_account_names=storage_accounts,
-                principal_id=profile["principal_id"],
-                principal_secret=profile["principal_secret"],
-            )
-        except KeyError as err:
-            raise RuntimeError(f"Failed to read profile '{profile_name}' from file '{file_path}'") from err
+        resource_groups, storage_accounts = get_resource_groups_and_storage_accounts(profile_name, dict(profile))
+        azure_profile = AzureProfile(
+            name=profile_name,
+            subscription_id=profile.get("subscription_id", ""),
+            tenant_id=profile.get("tenant_id", ""),
+            location=profile.get("location", ""),
+            resource_group_names=resource_groups,
+            storage_account_names=storage_accounts,
+            principal_id=profile.get("principal_id", ""),
+            principal_secret=profile.get("principal_secret", ""),
+        )
         output_profiles.append(azure_profile)
 
     log.info("Loaded %d profile(s) from '%s'", len(output_profiles), file_path)
     return output_profiles
+
+
+def load_profiles(file_path: str) -> List[AzureProfile]:
+    """
+    Read profiles from file; the profiles must have all the required fields set
+    Return profile list on success
+    Return empty list if file_path doesn't exist or file contains no profiles
+    Raise RuntimeError on reading error/parsing error
+    Raise ValueError for incomplete profiles
+    """
+
+    # load
+    profiles = load_incomplete_profiles(file_path)
+
+    # validate
+    for profile in profiles:
+        # check for missing required data
+        missing_fields = list_missing_required_fields(profile)
+        if missing_fields:
+            missing_str = ", ".join(missing_fields)
+            raise ValueError(f"Profile '{profile.name}' is missing value for following fields: {missing_str}")
+
+        # check for invalid data
+        if not likely_valid_service_principal_secret(profile.principal_secret):
+            raise ValueError(f"Profile '{profile.name}' has 'principal_secret' field set, but format is incorrect")
+
+    return profiles
 
 
 def get_resource_groups_and_storage_accounts(name: str, profile: Dict[str, Any]) -> Tuple[List[str], List[str]]:
@@ -63,8 +119,8 @@ def get_resource_groups_and_storage_accounts(name: str, profile: Dict[str, Any])
         return [name.strip() for name in names.split(",")] if names else []
 
     # get resource groups and storage accounts
-    resource_groups = split_names(profile["resource_group_names"])  # required
-    storage_accounts = split_names(profile.get("storage_account_names", ""))  # optional
+    resource_groups = split_names(profile.get("resource_group_names", ""))
+    storage_accounts = split_names(profile.get("storage_account_names", ""))
 
     if storage_accounts == []:
         return (resource_groups, [])
@@ -97,6 +153,11 @@ def get_resource_groups_and_storage_accounts(name: str, profile: Dict[str, Any])
 
 def is_valid_azure_storage_account_name(name: str) -> bool:
     return 3 <= len(name) <= 24 and name.isalnum() and name.islower()
+
+
+def likely_valid_service_principal_secret(secret: str) -> bool:
+    SERVICE_PRINCIPAL_SECRET_LENGTH = 34
+    return len(secret) == SERVICE_PRINCIPAL_SECRET_LENGTH
 
 
 def print_log(msg: str = "", level: int = logging.INFO, file=sys.stdout) -> None:
