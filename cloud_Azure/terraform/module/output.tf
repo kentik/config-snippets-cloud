@@ -19,6 +19,6 @@ output "storage_accounts" {
 }
 
 output "principal_id" {
-  value       = azuread_service_principal.kentik_nsg_flow_exporter.object_id
+  value       = local.kentik_nsg_flow_exporter_id
   description = "Service Principal ID created for Kentik NSG Flow Exporter application"
 }
