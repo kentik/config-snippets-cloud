@@ -7,6 +7,7 @@ import signal
 import sys
 from dataclasses import dataclass
 from datetime import datetime
+from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Iterable, Iterator, List, Optional, Tuple
 
@@ -28,6 +29,14 @@ AZURE_GRAPH_API = "00000003-0000-0000-c000-000000000000"
 AZURE_READ_WRITE_ALL_PERMISSION = "1bfefb4e-e0b5-418b-a88f-73c46d2cc8e9=Role"
 
 SERVICE_PRINCIPAL_NAME: str = "KentikTerraformOnboarder"  # service principal to be created
+
+
+class Action(str, Enum):
+    """Action for the tool to perform"""
+
+    ADD = "add"
+    COMPLETE = "complete"
+    VALIDATE = "validate"
 
 
 @dataclass
@@ -138,6 +147,7 @@ def complete_existing_profiles(file_path: str) -> bool:
     try:
         for profile in profiles:
             all_successful = all_successful and complete_profile(profile, profiles)
+            cli_tell()
     except (EOFError, KeyboardInterrupt):
         log.info("Operation interrupted")
         cli_tell()
@@ -203,6 +213,76 @@ def complete_profile(profile: AzureProfile, profiles: List[AzureProfile]) -> boo
 
     cli_tell(f"Profile '{profile.name}' information completed: {missing_fields_str}")
     return True
+
+
+def validate_profiles(file_path: str) -> bool:
+    """
+    Validate profiles by checking information against Azure API
+    """
+
+    profiles = try_load_profiles(file_path, load_incomplete_profiles)
+    if profiles is None:
+        return False
+
+    all_valid = True
+    for profile in profiles:
+        valid = validate_profile(profile)
+        all_valid = all_valid and valid
+        cli_tell()
+
+    status = "All profiles are valid" if all_valid else "Invalid profiles found"
+    cli_tell(f"Finished validating profiles. {status}")
+
+    return all_valid
+
+
+def validate_profile(profile: AzureProfile) -> bool:
+    """
+    Check the information in profile against Azure
+    """
+
+    is_valid = True
+    cli_tell(f"Profile name: {profile.name}")
+
+    # check if all required information is provided
+    missing_fields = list_missing_required_fields(profile)
+    if missing_fields:
+        missing_fields_str = ", ".join(missing_fields)
+        cli_tell(f"The profile is missing following fields: {missing_fields_str}")
+        is_valid = False
+
+    # check if provided credentials allow to login to Azure
+    if azure_login(profile):
+        # check if location is valid
+        if profile.location:
+            available_locations = list_locations()
+            if available_locations and profile.location not in available_locations:
+                cli_tell(f"The location is invalid in Azure: '{profile.location}'")
+                is_valid = False
+
+            # check if resource groups exist in location
+            if profile.resource_group_names:
+                available_resource_groups = list_resource_groups(profile.location)
+                invalid_groups = set(profile.resource_group_names) - set(available_resource_groups)
+                if invalid_groups:
+                    invalid_groups_str = ", ".join(invalid_groups)
+                    cli_tell(
+                        f"Following Resource Groups do not exist in Location '{profile.location}': '{invalid_groups_str}'"
+                    )
+                    is_valid = False
+    else:
+        cli_tell("The profile credentials failed to authenticate in Azure")
+        is_valid = False
+
+    cli_tell("Profile is valid" if is_valid else "Profile is invalid")
+    return is_valid
+
+
+def azure_login(profile: AzureProfile) -> bool:
+    """Login using Service Principal"""
+    COMMAND = f"login --service-principal -u {profile.principal_id} -p {profile.principal_secret} --tenant {profile.tenant_id}"  # returns a list
+    output_list = az_cli(COMMAND)
+    return isinstance(output_list, list)
 
 
 def cli_get_or_create_service_principal(
@@ -592,16 +672,14 @@ def format_item(item_no: int, max_no: int, item: Any) -> str:
     return f"{justified_item_no} {item}"
 
 
-def parse_cmd_line() -> Tuple[str, bool, bool, List[str]]:
+def parse_cmd_line() -> Tuple[str, bool, Action, List[str]]:
     parser = argparse.ArgumentParser()
     parser.add_argument("--filename", default=DEFAULT_PROFILES_FILE_NAME, help="Profiles file name")
     parser.add_argument("--profiles", nargs="+", default=[], help="Names of profiles to create")
     parser.add_argument("--verbose", default=False, action="store_true", help="Enable verbose logging")
-    parser.add_argument(
-        "--complete", default=False, action="store_true", help="Only complete information in existing profiles"
-    )
+    parser.add_argument("action", choices=[Action.ADD.value, Action.COMPLETE.value, Action.VALIDATE.value])
     args = parser.parse_args()
-    return (args.filename, args.verbose, args.complete, args.profiles)
+    return (args.filename, args.verbose, Action(args.action), args.profiles)
 
 
 def setup_logging(verbose: bool) -> None:
@@ -615,11 +693,17 @@ def profile_name_source() -> Iterator[str]:
 
 
 if __name__ == "__main__":
-    profiles_file_name, verbose_logging, complete_only, profile_names = parse_cmd_line()
+    profiles_file_name, verbose_logging, action, profile_names = parse_cmd_line()
     setup_logging(verbose_logging)
-    if complete_only:
-        execution_successful = complete_existing_profiles(profiles_file_name)
-    else:
+    if action == Action.ADD:
         execution_successful = add_new_profiles(profiles_file_name, profile_names or profile_name_source())
+    elif action == Action.COMPLETE:
+        execution_successful = complete_existing_profiles(profiles_file_name)
+    elif action == Action.VALIDATE:
+        execution_successful = validate_profiles(profiles_file_name)
+    else:
+        log.fatal("Unknown action: %s", action)
+        execution_successful = False
+
     exit_code = EX_OK if execution_successful else EX_FAILED
     sys.exit(exit_code)

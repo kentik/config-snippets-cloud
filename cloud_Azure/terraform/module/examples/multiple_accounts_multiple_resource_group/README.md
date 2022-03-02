@@ -160,19 +160,27 @@ Finally, after profiles have been added:
 
 - Add multiple profiles to `profiles.ini` - interactively ask user for profile names:  
     ```bash
-    python profiles_populator.py --filename profiles.ini
+    python profiles_populator.py add 
     ```
 - Add multiple profiles to `profiles.ini` - profile names specified on command line:  
     ```bash
-    python profiles_populator.py --filename profiles.ini --profiles dev test prod
+    python profiles_populator.py add --profiles dev test prod
     ```
 - Add multiple profiles to `profiles.ini` - verbose logging:  
     ```bash
-    python profiles_populator.py --filename profiles.ini --verbose
+    python profiles_populator.py add --verbose
+    ```
+- Add multiple profiles to custom file:  
+    ```bash
+    python profiles_populator.py add --filename custom_profiles.ini
     ```
 - Only fill missing profiles information in `profiles.ini` - ask user for data if needed:  
     ```bash
-    python profiles_populator.py --filename profiles.ini --complete
+    python profiles_populator.py complete
+    ```
+- Validate profiles information in `profiles.ini`:  
+    ```bash
+    python profiles_populator.py validate
     ```
 - Help  
     ```bash
