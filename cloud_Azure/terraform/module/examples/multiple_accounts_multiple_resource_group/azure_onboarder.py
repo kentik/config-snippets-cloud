@@ -7,7 +7,7 @@ from typing import Any, Callable, Dict, List, Tuple
 from python_terraform import IsFlagged, IsNotFlagged, Terraform
 
 from azure_cli import az_cli
-from profiles import AzureProfile, load_profiles
+from profiles import AzureProfile, load_complete_profiles
 
 log = logging.getLogger(__name__)
 logging.basicConfig(
@@ -161,7 +161,7 @@ def load_profiles_or_exit(file_path: str) -> List[AzureProfile]:
         sys.exit(EX_FAILED)
 
     try:
-        return load_profiles(file_path)
+        return load_complete_profiles(file_path)
     except RuntimeError as err:
         log.exception(err)
         print(f"Failed to read profiles file '{file_path}'", file=sys.stderr)

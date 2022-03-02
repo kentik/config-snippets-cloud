@@ -1,7 +1,7 @@
 import configparser
 import logging
-from dataclasses import dataclass
 import sys
+from dataclasses import dataclass
 from typing import Any, Dict, List, Tuple
 
 log = logging.getLogger(__name__)
@@ -20,34 +20,47 @@ class AzureProfile:
     storage_account_names: List[str]
 
 
-REQUIRED_AZURE_PROFILE_FIELDS: List[str] = [
-    "name",
-    "subscription_id",
-    "tenant_id",
-    "principal_id",
-    "principal_secret",
-    "location",
-    "resource_group_names"
-    # storage_account_names is optional - names can be auto generated
-]
-
-
-def print_profile(profile: AzureProfile) -> None:
-    """Print the profile in a formatted manner"""
-
-    for field in profile.__dataclass_fields__:
-        value = getattr(profile, field)
-        row = f"{field: >22} = {str(value)}"
-        print(row)
-
-
 def list_missing_required_fields(profile: AzureProfile) -> List[str]:
     """Return list of required fields that are not set in input profile"""
+
+    REQUIRED_AZURE_PROFILE_FIELDS: List[str] = [
+        "name",
+        "subscription_id",
+        "tenant_id",
+        "principal_id",
+        "principal_secret",
+        "location",
+        "resource_group_names"
+        # storage_account_names is optional - names can be auto generated
+    ]
 
     def field_not_set(field: str) -> bool:
         return getattr(profile, field) in ("", [])
 
     return list(filter(field_not_set, REQUIRED_AZURE_PROFILE_FIELDS))
+
+
+def save_profiles(file_path: str, profiles: List[AzureProfile]) -> bool:
+    config = configparser.ConfigParser()
+    for profile in profiles:
+        section = profile.name
+        config.add_section(section)
+        config[section]["subscription_id"] = profile.subscription_id
+        config[section]["tenant_id"] = profile.tenant_id
+        config[section]["principal_id"] = profile.principal_id
+        config[section]["principal_secret"] = profile.principal_secret
+        config[section]["location"] = profile.location
+        config[section]["resource_group_names"] = ",".join(profile.resource_group_names)
+        config[section]["storage_account_names"] = ""
+
+    try:
+        with open(file_path, "w", encoding="utf-8") as configfile:
+            config.write(configfile)
+        log.info("Saved profiles to '%s'", file_path)
+        return True
+    except OSError:
+        log.exception("Failed to save profiles to '%s'", file_path)
+        return False
 
 
 def load_incomplete_profiles(file_path: str) -> List[AzureProfile]:
@@ -87,7 +100,7 @@ def load_incomplete_profiles(file_path: str) -> List[AzureProfile]:
     return output_profiles
 
 
-def load_profiles(file_path: str) -> List[AzureProfile]:
+def load_complete_profiles(file_path: str) -> List[AzureProfile]:
     """
     Read profiles from file; the profiles must have all the required fields set
     Return profile list on success
@@ -104,8 +117,8 @@ def load_profiles(file_path: str) -> List[AzureProfile]:
         # check for missing required data
         missing_fields = list_missing_required_fields(profile)
         if missing_fields:
-            missing_str = ", ".join(missing_fields)
-            raise ValueError(f"Profile '{profile.name}' is missing value for following fields: {missing_str}")
+            missing_fields_str = ", ".join(missing_fields)
+            raise ValueError(f"Profile '{profile.name}' is missing value for following fields: {missing_fields_str}")
 
         # check for invalid data
         if not likely_valid_service_principal_secret(profile.principal_secret):
@@ -163,3 +176,12 @@ def likely_valid_service_principal_secret(secret: str) -> bool:
 def print_log(msg: str = "", level: int = logging.INFO, file=sys.stdout) -> None:
     print(msg, file=file)
     log.log(level=level, msg=msg)
+
+
+def print_profile(profile: AzureProfile) -> None:
+    """Print the profile in a formatted manner"""
+
+    for field in profile.__dataclass_fields__:
+        value = getattr(profile, field)
+        row = f"{field: >22} = {str(value)}"
+        print(row)
