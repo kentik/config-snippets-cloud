@@ -176,5 +176,5 @@ Finally, after profiles have been added:
     ```
 - Help  
     ```bash
-    python profiles_populator.py--help
+    python profiles_populator.py --help
     ```

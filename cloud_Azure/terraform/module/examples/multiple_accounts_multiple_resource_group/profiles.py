@@ -120,10 +120,6 @@ def load_complete_profiles(file_path: str) -> List[AzureProfile]:
             missing_fields_str = ", ".join(missing_fields)
             raise ValueError(f"Profile '{profile.name}' is missing value for following fields: {missing_fields_str}")
 
-        # check for invalid data
-        if not likely_valid_service_principal_secret(profile.principal_secret):
-            raise ValueError(f"Profile '{profile.name}' has 'principal_secret' field set, but format is incorrect")
-
     return profiles
 
 
@@ -166,11 +162,6 @@ def get_resource_groups_and_storage_accounts(name: str, profile: Dict[str, Any])
 
 def is_valid_azure_storage_account_name(name: str) -> bool:
     return 3 <= len(name) <= 24 and name.isalnum() and name.islower()
-
-
-def likely_valid_service_principal_secret(secret: str) -> bool:
-    SERVICE_PRINCIPAL_SECRET_LENGTH = 34
-    return len(secret) == SERVICE_PRINCIPAL_SECRET_LENGTH
 
 
 def print_log(msg: str = "", level: int = logging.INFO, file=sys.stdout) -> None:

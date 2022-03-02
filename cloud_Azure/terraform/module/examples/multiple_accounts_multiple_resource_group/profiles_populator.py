@@ -13,13 +13,7 @@ from typing import Any, Callable, Iterable, Iterator, List, Optional, Tuple
 from texttable import Texttable
 
 from azure_cli import az_cli
-from profiles import (
-    AzureProfile,
-    likely_valid_service_principal_secret,
-    list_missing_required_fields,
-    load_incomplete_profiles,
-    save_profiles,
-)
+from profiles import AzureProfile, list_missing_required_fields, load_incomplete_profiles, save_profiles
 
 log = logging.getLogger(__name__)
 
@@ -28,7 +22,7 @@ EX_OK: int = 0  # exit code for successful command
 EX_FAILED: int = 1  # exit code for failed command
 
 BACKUP_PROFILES_DIRECTORY = "backup_profiles"
-DEFAULT_PROFILES_FILE_NAME: str = "profiles_populator.ini"
+DEFAULT_PROFILES_FILE_NAME: str = "profiles.ini"
 
 AZURE_GRAPH_API = "00000003-0000-0000-c000-000000000000"
 AZURE_READ_WRITE_ALL_PERMISSION = "1bfefb4e-e0b5-418b-a88f-73c46d2cc8e9=Role"
@@ -60,13 +54,13 @@ def add_new_profiles(file_path: str, names: Iterable[str]) -> bool:
     if profiles is None:
         return False
 
-    cli_tell("[CTRL + C] to finish")
+    cli_tell("[CTRL + D or CTRL + C] to finish")
     all_successful = True
     try:
         for name in names:
             all_successful = all_successful and add_profile(name, profiles)
             cli_tell()
-    except KeyboardInterrupt:
+    except (EOFError, KeyboardInterrupt):
         log.info("Operation interrupted")
         cli_tell()
 
@@ -139,12 +133,12 @@ def complete_existing_profiles(file_path: str) -> bool:
         cli_tell(f"No profiles were loaded from '{file_path}'")
         return True
 
-    cli_tell("[CTRL + C] to finish")
+    cli_tell("[CTRL + D or CTRL + C] to finish")
     all_successful = True
     try:
         for profile in profiles:
             all_successful = all_successful and complete_profile(profile, profiles)
-    except KeyboardInterrupt:
+    except (EOFError, KeyboardInterrupt):
         log.info("Operation interrupted")
         cli_tell()
 
@@ -227,7 +221,7 @@ def cli_get_or_create_service_principal(
 
 def cli_ask_profile_name() -> str:
     while True:
-        name = cli_ask("Enter name for a new profile: ")
+        name = cli_ask("Enter new profile name: ")
         if name != "" and " " not in name and "\t" not in name:
             return name
 
@@ -267,13 +261,7 @@ def cli_ask_number_in_range(numbers_range: int) -> int:
 
 
 def cli_ask_secret() -> str:
-    while True:
-        s = cli_ask("Enter Service Principal secret (34 letters) [empty to skip]: ")
-        if likely_valid_service_principal_secret(s):
-            return s
-        if s == "":
-            return ""
-        cli_tell("Invalid format")
+    return cli_ask("Enter Service Principal secret [empty to skip]: ")
 
 
 def cli_azure_login_interactively(subscription_id="", tenant_id: str = "") -> Optional[AzureAccountLoginInfo]:
@@ -339,7 +327,7 @@ def try_load_profiles(file_path: str, loader: Callable) -> Optional[List[AzurePr
     """
 
     if not os.path.exists(file_path):
-        log.info("File '%s' doesn't exist. Returning empty profile list", file_path)
+        log.debug("File '%s' doesn't exist. Returning empty profile list", file_path)
         return []
 
     try:
@@ -526,14 +514,8 @@ def find_profile(profile_name: str, profiles: List[AzureProfile]) -> Optional[in
 def find_secret(principal_id: str, profiles: List[AzureProfile]) -> Optional[str]:
     for profile in profiles:
         if profile.principal_id == principal_id and profile.principal_secret != "":
-            if likely_valid_service_principal_secret(profile.principal_secret):
-                log.info("Secret for Service Principal ID '%s' found in profile '%s'", principal_id, profile.name)
-                return profile.principal_secret
-            log.warning(
-                "Secret for Service Principal ID '%s' in profile '%s' is set, but has incorrect format",
-                principal_id,
-                profile.name,
-            )
+            log.info("Secret for Service Principal ID '%s' found in profile '%s'", principal_id, profile.name)
+            return profile.principal_secret
     log.warning("Secret for Service Principal ID '%s' not found", principal_id)
     return None
 
