@@ -17,7 +17,6 @@ from profiles import (
     AzureProfile,
     likely_valid_service_principal_secret,
     list_missing_required_fields,
-    load_complete_profiles,
     load_incomplete_profiles,
     save_profiles,
 )
@@ -57,7 +56,7 @@ def add_new_profiles(file_path: str, names: Iterable[str]) -> bool:
 
     signal.signal(signal.SIGINT, signal.default_int_handler)  # type: ignore # https://github.com/python/mypy/issues/2955
 
-    profiles = try_load_profiles(file_path, load_complete_profiles)
+    profiles = try_load_profiles(file_path, load_incomplete_profiles)
     if profiles is None:
         return False
 
@@ -173,10 +172,12 @@ def complete_profile(profile: AzureProfile, profiles: List[AzureProfile]) -> boo
         cli_tell("Profile is complete")
         return True
 
+    missing_fields_str = ", ".join(missing_fields)
+    cli_tell(f"The profile is missing following fields: {missing_fields_str}")
     # avoid logging into Azure if only principal_secret is missing - it can't be retrieved from the account anyway
     if missing_fields == ["principal_secret"]:
         profile.principal_secret = find_secret(profile.principal_id, profiles) or cli_ask_secret()
-        cli_tell(f"Profile '{profile.name}' information completed: {', '.join(missing_fields)}")
+        cli_tell(f"Profile '{profile.name}' information completed: {missing_fields_str}")
         return True
 
     # filling any information other than just principal_secret requires logging into Azure Account
@@ -206,7 +207,7 @@ def complete_profile(profile: AzureProfile, profiles: List[AzureProfile]) -> boo
     if not profile.resource_group_names:
         profile.resource_group_names = cli_list_resource_groups(profile.location)
 
-    cli_tell(f"Profile '{profile.name}' information completed: {', '.join(missing_fields)}")
+    cli_tell(f"Profile '{profile.name}' information completed: {missing_fields_str}")
     return True
 
 
