@@ -13,11 +13,10 @@ def az_cli(command: str, max_attempts: int = 1) -> Optional[Any]:
     """
     Azure CLI commands issued in a quick succession may fail,
     eg. when trying to configure a resource that is still being created
-    So, allow optional retry with linear backoff
+    So, allow optional retry with exponential backoff
     """
-    WAIT_TIME_INCREMENT_SECONDS = 1
 
-    wait_sec = 0
+    wait_sec = 1
     while max_attempts:
         data = _az_cli(command)
         if data is not None:
@@ -25,9 +24,9 @@ def az_cli(command: str, max_attempts: int = 1) -> Optional[Any]:
         max_attempts -= 1
         if max_attempts == 0:
             break
-        wait_sec += WAIT_TIME_INCREMENT_SECONDS
         log.debug("Retrying Azure CLI command in %d second(s)... (remaining attempts: %d)", wait_sec, max_attempts)
         time.sleep(wait_sec)
+        wait_sec = wait_sec * 2
 
     return None  # all attempts failed
 
