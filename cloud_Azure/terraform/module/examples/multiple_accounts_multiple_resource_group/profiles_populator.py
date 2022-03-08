@@ -3,18 +3,27 @@ import logging
 import math
 import os
 import shutil
-import signal
 import sys
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
+from getpass import getpass
 from pathlib import Path
 from typing import Any, Callable, Iterable, Iterator, List, Optional, Tuple
 
 from texttable import Texttable
-
 from azure_cli import az_cli
-from profiles import AzureProfile, list_missing_required_fields, load_incomplete_profiles, save_profiles
+from profiles import (
+    AzureProfile,
+    ProfilesIncompleteError,
+    ProfilesInvalidError,
+    has_complete_authentication_data,
+    list_missing_required_fields,
+    load_incomplete_profiles,
+    save_profiles,
+    raise_on_missing_fields,
+    raise_on_invalid_storage,
+)
 
 log = logging.getLogger(__name__)
 
@@ -56,8 +65,6 @@ def add_new_profiles(file_path: str, names: Iterable[str]) -> bool:
     Add new profiles for all provided names, in interactive manner
     User can break the process at any point by sending keyboard interrupt
     """
-
-    signal.signal(signal.SIGINT, signal.default_int_handler)  # type: ignore # https://github.com/python/mypy/issues/2955
 
     profiles = try_load_profiles(file_path, load_incomplete_profiles)
     if profiles is None:
@@ -107,7 +114,7 @@ def add_profile(profile_name: str, profiles: List[AzureProfile]) -> bool:
 
     # request Azure location and list Resource Groups in that location
     location = cli_ask_azure_location()
-    resource_group_names = cli_list_resource_groups(location)
+    resource_group_names = cli_ask_resource_groups(location)
 
     # update profile list with a new item
     profile = AzureProfile(
@@ -132,13 +139,11 @@ def complete_existing_profiles(file_path: str) -> bool:
     User can break the process at any point by sending keyboard interrupt
     """
 
-    signal.signal(signal.SIGINT, signal.default_int_handler)  # type: ignore # https://github.com/python/mypy/issues/2955
-
     profiles = try_load_profiles(file_path, load_incomplete_profiles)
     if profiles is None:
         return False
 
-    if profiles == []:
+    if not profiles:
         cli_tell(f"No profiles were loaded from '{file_path}'")
         return True
 
@@ -178,6 +183,7 @@ def complete_profile(profile: AzureProfile, profiles: List[AzureProfile]) -> boo
 
     missing_fields_str = ", ".join(missing_fields)
     cli_tell(f"The profile is missing following fields: {missing_fields_str}")
+
     # avoid logging into Azure if only principal_secret is missing - it can't be retrieved from the account anyway
     if missing_fields == ["principal_secret"]:
         profile.principal_secret = find_secret(profile.principal_id, profiles) or cli_ask_secret()
@@ -185,11 +191,13 @@ def complete_profile(profile: AzureProfile, profiles: List[AzureProfile]) -> boo
         return True
 
     # filling any information other than just principal_secret requires logging into Azure Account
-    account = cli_azure_login_interactively(profile.subscription_id, profile.tenant_id)
+    account: Optional[AzureAccountLoginInfo] = None
+    if has_complete_authentication_data(profile):
+        account = azure_login(profile)
+    if account is None:
+        account = cli_azure_login_interactively(profile.subscription_id, profile.tenant_id)
     if account is None:
         return False
-
-    # fill account information
     profile.subscription_id = account.subscription_id
     profile.tenant_id = account.tenant_id
 
@@ -206,10 +214,12 @@ def complete_profile(profile: AzureProfile, profiles: List[AzureProfile]) -> boo
     # fill azure location information
     if profile.location == "":
         profile.location = cli_ask_azure_location()
+        if list_invalid_resource_groups(profile):
+            profile.resource_group_names = []
 
     # fill resource groups information
     if not profile.resource_group_names:
-        profile.resource_group_names = cli_list_resource_groups(profile.location)
+        profile.resource_group_names = cli_ask_resource_groups(profile.location)
 
     cli_tell(f"Profile '{profile.name}' information completed: {missing_fields_str}")
     return True
@@ -220,10 +230,8 @@ def validate_profiles(file_path: str) -> bool:
     Validate profiles by checking information against Azure API
     """
 
+    cli_tell(f"Validating '{file_path}'")
     profiles = try_load_profiles(file_path, load_incomplete_profiles)
-    if profiles is None:
-        return False
-
     all_valid = True
     for profile in profiles:
         valid = validate_profile(profile)
@@ -244,15 +252,16 @@ def validate_profile(profile: AzureProfile) -> bool:
     is_valid = True
     cli_tell(f"Profile name: {profile.name}")
 
-    # check if all required information is provided
-    missing_fields = list_missing_required_fields(profile)
-    if missing_fields:
-        missing_fields_str = ", ".join(missing_fields)
-        cli_tell(f"The profile is missing following fields: {missing_fields_str}")
+    # check invariants
+    try:
+        raise_on_missing_fields(profile)
+        raise_on_invalid_storage(profile)
+    except (ProfilesInvalidError, ProfilesIncompleteError) as err:
+        cli_tell(str(err))
         is_valid = False
 
     # check if provided credentials allow to login to Azure
-    if azure_login(profile):
+    if has_complete_authentication_data(profile) and azure_login(profile):
         # check if location is valid
         if profile.location:
             available_locations = list_locations()
@@ -261,15 +270,13 @@ def validate_profile(profile: AzureProfile) -> bool:
                 is_valid = False
 
             # check if resource groups exist in location
-            if profile.resource_group_names:
-                available_resource_groups = list_resource_groups(profile.location)
-                invalid_groups = set(profile.resource_group_names) - set(available_resource_groups)
-                if invalid_groups:
-                    invalid_groups_str = ", ".join(invalid_groups)
-                    cli_tell(
-                        f"Following Resource Groups do not exist in Location '{profile.location}': '{invalid_groups_str}'"
-                    )
-                    is_valid = False
+            invalid_groups = list_invalid_resource_groups(profile)
+            if invalid_groups:
+                invalid_groups_str = ", ".join(invalid_groups)
+                cli_tell(
+                    f"Following Resource Groups do not exist in Location '{profile.location}': '{invalid_groups_str}'"
+                )
+                is_valid = False
     else:
         cli_tell("The profile credentials failed to authenticate in Azure")
         is_valid = False
@@ -278,11 +285,28 @@ def validate_profile(profile: AzureProfile) -> bool:
     return is_valid
 
 
-def azure_login(profile: AzureProfile) -> bool:
+def list_invalid_resource_groups(p: AzureProfile) -> List[str]:
+    if not p.resource_group_names:
+        return []
+    available_resource_groups = list_resource_groups(p.location)
+    return list(set(p.resource_group_names) - set(available_resource_groups))
+
+
+def azure_login(p: AzureProfile) -> Optional[AzureAccountLoginInfo]:
     """Login using Service Principal"""
-    COMMAND = f"login --service-principal -u {profile.principal_id} -p {profile.principal_secret} --tenant {profile.tenant_id}"  # returns a list
-    output_list = az_cli(COMMAND)
-    return isinstance(output_list, list)
+
+    COMMAND = f"login --service-principal -u {p.principal_id} -p {p.principal_secret} --tenant {p.tenant_id} --query '[0]'"  # returns a dict
+    output_dict = az_cli(COMMAND)
+    if not isinstance(output_dict, dict):
+        return None
+
+    try:
+        subscription_id, tenant_id = output_dict["id"], output_dict["tenantId"]
+        log.info("Logged into Azure account with subscription_id '%s', tenant_id '%s'", subscription_id, tenant_id)
+        return AzureAccountLoginInfo(subscription_id=subscription_id, tenant_id=tenant_id)
+    except KeyError:
+        log.exception("Failed to retrieve Azure account subscription_id and tenant_id")
+        return None
 
 
 def cli_get_or_create_service_principal(
@@ -330,18 +354,34 @@ def cli_ask_azure_location() -> str:
 def cli_ask_number_in_range(numbers_range: int) -> int:
     while True:
         s = cli_ask(f"Enter number in range [{0} - {numbers_range-1}]: ")
-        if not s.isdigit():
-            cli_tell("Invalid number")
-            continue
-        number = int(s)
-        if number not in range(numbers_range):
-            cli_tell("Number out of range")
-            continue
-        return number
+        if valid_number(s, numbers_range):
+            return int(s)
+
+
+def cli_ask_numbers_in_range(numbers_range: int) -> List[int]:
+    def valid(s: str) -> bool:
+        return valid_number(s, numbers_range)
+
+    while True:
+        s = cli_ask(f"Enter comma-separated numbers in range [{0} - {numbers_range-1}]: ")
+        numbers = [n.strip() for n in s.split(",")] if s else []
+        if all(map(valid, numbers)):
+            return list(map(int, numbers))
+
+
+def valid_number(s: str, numbers_range: int) -> bool:
+    if not s.isdigit():
+        cli_tell(f"Invalid number '{s}'")
+        return False
+    number = int(s)
+    if number not in range(numbers_range):
+        cli_tell(f"Number '{number}' out of range")
+        return False
+    return True
 
 
 def cli_ask_secret() -> str:
-    return cli_ask("Enter Service Principal secret [empty to skip]: ")
+    return getpass("Enter Service Principal secret [empty to skip]: ")
 
 
 def cli_azure_login_interactively(subscription_id="", tenant_id: str = "") -> Optional[AzureAccountLoginInfo]:
@@ -381,11 +421,18 @@ def cli_azure_login_interactively(subscription_id="", tenant_id: str = "") -> Op
         return account
 
 
-def cli_list_resource_groups(location: str) -> List[str]:
+def cli_ask_resource_groups(location: str) -> List[str]:
+    NUM_COLUMNS = 3
     groups = list_resource_groups(location)
-    if groups == []:
-        log.warning("No Resource Groups found in Location '%s'", location)
-    return groups
+    num_groups = len(groups)
+    if num_groups == 0:
+        log.warning("No Resource Groups found in Location '%s', skipping resource groups selection", location)
+        return []
+
+    cli_tell("Select Resource Groups. Available: ")
+    cli_tell(format_columns(groups, NUM_COLUMNS))
+    selected_indexes = cli_ask_numbers_in_range(num_groups)
+    return [groups[i] for i in selected_indexes]
 
 
 def cli_ask(prompt: str) -> str:
@@ -399,25 +446,17 @@ def cli_tell(msg: str = "") -> None:
     print(msg)
 
 
-def try_load_profiles(file_path: str, loader: Callable) -> Optional[List[AzureProfile]]:
+def try_load_profiles(file_path: str, loader: Callable) -> List[AzureProfile]:
     """
     Return profile list on success
     Return empty list if file_path doesn't exist or file contains no profiles
-    Return None on file reading error/parsing error
     """
 
     if not os.path.exists(file_path):
         log.debug("File '%s' doesn't exist. Returning empty profile list", file_path)
         return []
 
-    try:
-        return loader(file_path)
-    except RuntimeError:
-        log.exception("Failed to load profiles file '%s'", file_path)
-        return None
-    except ValueError:
-        log.exception("Missing fields in profiles. Please run again with '--complete' option")
-        return None
+    return loader(file_path)
 
 
 def azure_login_interactively() -> Optional[AzureAccountLoginInfo]:

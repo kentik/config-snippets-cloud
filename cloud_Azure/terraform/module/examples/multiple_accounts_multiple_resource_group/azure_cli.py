@@ -24,7 +24,7 @@ def az_cli(command: str, max_attempts: int = 1) -> Optional[Any]:
         max_attempts -= 1
         if max_attempts == 0:
             break
-        log.debug("Retrying Azure CLI command in %d second(s)... (remaining attempts: %d)", wait_sec, max_attempts)
+        print(f"Retrying Azure CLI command in {wait_sec} second(s)... (remaining attempts: {max_attempts})")
         time.sleep(wait_sec)
         wait_sec = wait_sec * 2
 

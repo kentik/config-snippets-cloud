@@ -152,10 +152,7 @@ For every specified profile name, it will:
 - ask for Azure location
 - get all Resource Groups available in selected location
 
-Finally, after profiles have been added:
-- backup your profiles file
-- store new profile in selected file
-
+On every execution the tool creates backup copy of the profiles file in directory `backup_profiles` (the directory is created if it does not exist) and stores new/updated set of profiles.
 ### Usage (PowerShell or Bash)
 
 - Add multiple profiles to `profiles.ini` - interactively ask user for profile names:  
