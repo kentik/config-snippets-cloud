@@ -142,3 +142,44 @@ az ad app permission add --id <service principal id> --api-permissions 1bfefb4e-
 az ad app permission grant --id <service principal id> --api 00000003-0000-0000-c000-000000000000
 az ad app permission admin-consent --id <service principal id>
 ```
+
+## Profiles tool
+
+A separate tool is provided to semi-automate adding profiles in `profiles.ini`.  
+For every specified profile name, it will:
+- login you to Azure Account
+- lookup required ServicePrincipal, or create one if it doesn't exist yet
+- ask for Azure location
+- get all Resource Groups available in selected location
+
+On every execution the tool creates backup copy of the profiles file in directory `backup_profiles` (the directory is created if it does not exist) and stores new/updated set of profiles.
+### Usage (PowerShell or Bash)
+
+- Add multiple profiles to `profiles.ini` - interactively ask user for profile names:  
+    ```bash
+    python profiles_populator.py add 
+    ```
+- Add multiple profiles to `profiles.ini` - profile names specified on command line:  
+    ```bash
+    python profiles_populator.py add --profiles dev test prod
+    ```
+- Add multiple profiles to `profiles.ini` - verbose logging:  
+    ```bash
+    python profiles_populator.py add --verbose
+    ```
+- Add multiple profiles to custom file:  
+    ```bash
+    python profiles_populator.py add --filename custom_profiles.ini
+    ```
+- Only fill missing profiles information in `profiles.ini` - ask user for data if needed:  
+    ```bash
+    python profiles_populator.py complete
+    ```
+- Validate profiles information in `profiles.ini`:  
+    ```bash
+    python profiles_populator.py validate
+    ```
+- Help  
+    ```bash
+    python profiles_populator.py --help
+    ```
