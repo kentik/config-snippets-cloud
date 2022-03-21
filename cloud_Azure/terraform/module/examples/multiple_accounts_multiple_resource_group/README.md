@@ -145,7 +145,7 @@ az ad app permission admin-consent --id <service principal id>
 
 ## Profiles tool
 
-A separate tool is provided to semi-automate adding profiles in `profiles.ini`.  
+The profiles_populator.py tool allows semi-automatic addition of profiles to the profiles.ini file.  
 For every specified profile name, it will:
 - login you to Azure Account
 - lookup required ServicePrincipal, or create one if it doesn't exist yet
