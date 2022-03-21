@@ -4,7 +4,6 @@ import math
 import os
 import shutil
 import sys
-from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from getpass import getpass
@@ -12,21 +11,19 @@ from pathlib import Path
 from typing import Any, Callable, Iterable, Iterator, List, Optional, Tuple
 
 from texttable import Texttable
-from azure_cli import az_cli
+
+from azure_client import AzureClient, AzureClientError, LoginCredentials, ServicePrincipal
 from profiles import (
     AzureProfile,
-    ProfilesIncompleteError,
-    ProfilesInvalidError,
+    ProfileConfigurationError,
     has_complete_authentication_data,
     list_missing_required_fields,
     load_incomplete_profiles,
     save_profiles,
-    raise_on_missing_fields,
-    raise_on_invalid_storage,
+    validate_profile_configuration,
 )
 
 log = logging.getLogger(__name__)
-
 
 EX_OK: int = 0  # exit code for successful command
 EX_FAILED: int = 1  # exit code for failed command
@@ -34,10 +31,7 @@ EX_FAILED: int = 1  # exit code for failed command
 BACKUP_PROFILES_DIRECTORY = "backup_profiles"
 DEFAULT_PROFILES_FILE_NAME: str = "profiles.ini"
 
-AZURE_GRAPH_API = "00000003-0000-0000-c000-000000000000"
-AZURE_READ_WRITE_ALL_PERMISSION = "1bfefb4e-e0b5-418b-a88f-73c46d2cc8e9=Role"
-
-SERVICE_PRINCIPAL_NAME: str = "KentikTerraformOnboarder"  # service principal to be created
+APP_REGISTRATION_NAME: str = "KentikTerraformOnboarder"  # AppRegistration to be created
 
 
 class Action(str, Enum):
@@ -46,18 +40,6 @@ class Action(str, Enum):
     ADD = "add"
     COMPLETE = "complete"
     VALIDATE = "validate"
-
-
-@dataclass
-class AzureAccountLoginInfo:
-    subscription_id: str
-    tenant_id: str
-
-
-@dataclass
-class ServicePrincipal:
-    id: str
-    secret: str
 
 
 def add_new_profiles(file_path: str, names: Iterable[str]) -> bool:
@@ -74,7 +56,8 @@ def add_new_profiles(file_path: str, names: Iterable[str]) -> bool:
     all_successful = True
     try:
         for name in names:
-            all_successful = all_successful and add_profile(name, profiles)
+            successful = add_profile(name, profiles)
+            all_successful = all_successful and successful
             cli_tell()
     except (EOFError, KeyboardInterrupt):
         log.info("Operation interrupted")
@@ -102,35 +85,37 @@ def add_profile(profile_name: str, profiles: List[AzureProfile]) -> bool:
     if profile_exists(profile_name, profiles) and cli_ask_overwrite_profile(profile_name) is False:
         return True  # it's ok to change mind
 
-    # login to Azure account
-    account = cli_azure_login_interactively()
-    if account is None:
+    try:
+        # login to Azure account
+        client = AzureClient.login_user(cli_ask_tenant_id(), cli_ask_subscription_id())
+
+        # find existing or create new Service Principal
+        principal = cli_get_or_create_service_principal(client, profiles)
+        if principal is None:
+            return False
+
+        # request Azure location and list Resource Groups in that location
+        location = cli_ask_azure_location(client)
+        resource_group_names = cli_ask_resource_groups(client, location)
+
+        # update profile list with a new item
+        profile = AzureProfile(
+            name=profile_name,
+            subscription_id=client.subscription_id,
+            tenant_id=client.tenant_id,
+            principal_id=principal.app_id,
+            principal_secret=principal.secret,
+            location=location,
+            resource_group_names=resource_group_names,
+            storage_account_names=[],
+        )
+        insert_or_overwrite_profile(profiles, profile)
+
+        cli_tell(f"Profile '{profile_name}' ready")
+        return True
+    except AzureClientError:
+        log.exception("Failed to add profile '%s'", profile_name)
         return False
-
-    # find existing or create new Service Principal
-    principal = cli_get_or_create_service_principal(profiles, account.subscription_id)
-    if principal is None:
-        return False
-
-    # request Azure location and list Resource Groups in that location
-    location = cli_ask_azure_location()
-    resource_group_names = cli_ask_resource_groups(location)
-
-    # update profile list with a new item
-    profile = AzureProfile(
-        name=profile_name,
-        subscription_id=account.subscription_id,
-        tenant_id=account.tenant_id,
-        principal_id=principal.id,
-        principal_secret=principal.secret,
-        location=location,
-        resource_group_names=resource_group_names,
-        storage_account_names=[],
-    )
-    insert_or_overwrite_profile(profiles, profile)
-
-    cli_tell(f"Profile '{profile_name}' ready")
-    return True
 
 
 def complete_existing_profiles(file_path: str) -> bool:
@@ -151,7 +136,8 @@ def complete_existing_profiles(file_path: str) -> bool:
     all_successful = True
     try:
         for profile in profiles:
-            all_successful = all_successful and complete_profile(profile, profiles)
+            successful = complete_profile(profile, profiles)
+            all_successful = all_successful and successful
             cli_tell()
     except (EOFError, KeyboardInterrupt):
         log.info("Operation interrupted")
@@ -190,39 +176,45 @@ def complete_profile(profile: AzureProfile, profiles: List[AzureProfile]) -> boo
         cli_tell(f"Profile '{profile.name}' information completed: {missing_fields_str}")
         return True
 
-    # filling any information other than just principal_secret requires logging into Azure Account
-    account: Optional[AzureAccountLoginInfo] = None
-    if has_complete_authentication_data(profile):
-        account = azure_login(profile)
-    if account is None:
-        account = cli_azure_login_interactively(profile.subscription_id, profile.tenant_id)
-    if account is None:
+    try:
+        # filling any information other than just principal_secret requires logging into Azure Account
+        # login to Azure account
+        if has_complete_authentication_data(profile):
+            cred = profile_to_credentials(profile)
+            client = AzureClient.login_application(cred)
+        else:
+            tenant_id = profile.tenant_id or cli_ask_tenant_id()
+            subscription_id = profile.subscription_id or cli_ask_subscription_id()
+            client = AzureClient.login_user(tenant_id, subscription_id)
+
+        profile.tenant_id = client.tenant_id
+        profile.subscription_id = client.subscription_id
+
+        # fill service principal information
+        if profile.principal_id == "":
+            principal = cli_get_or_create_service_principal(client, profiles)
+            if principal is None:
+                return False
+            profile.principal_id = principal.app_id
+            profile.principal_secret = principal.secret
+        elif profile.principal_secret == "":
+            profile.principal_secret = find_secret(profile.principal_id, profiles) or cli_ask_secret()
+
+        # fill azure location information
+        if profile.location == "":
+            profile.location = cli_ask_azure_location(client)
+            if list_invalid_resource_groups(client, profile):
+                profile.resource_group_names = []
+
+        # fill resource groups information
+        if not profile.resource_group_names:
+            profile.resource_group_names = cli_ask_resource_groups(client, profile.location)
+
+        cli_tell(f"Profile '{profile.name}' information completed: {missing_fields_str}")
+        return True
+    except AzureClientError:
+        log.exception("Failed to complete profile '%s'", profile.name)
         return False
-    profile.subscription_id = account.subscription_id
-    profile.tenant_id = account.tenant_id
-
-    # fill service principal information
-    if profile.principal_id == "":
-        principal = cli_get_or_create_service_principal(profiles, account.subscription_id)
-        if principal is None:
-            return False
-        profile.principal_id = principal.id
-        profile.principal_secret = principal.secret
-    elif profile.principal_secret == "":
-        profile.principal_secret = find_secret(profile.principal_id, profiles) or cli_ask_secret()
-
-    # fill azure location information
-    if profile.location == "":
-        profile.location = cli_ask_azure_location()
-        if list_invalid_resource_groups(profile):
-            profile.resource_group_names = []
-
-    # fill resource groups information
-    if not profile.resource_group_names:
-        profile.resource_group_names = cli_ask_resource_groups(profile.location)
-
-    cli_tell(f"Profile '{profile.name}' information completed: {missing_fields_str}")
-    return True
 
 
 def validate_profiles(file_path: str) -> bool:
@@ -252,75 +244,68 @@ def validate_profile(profile: AzureProfile) -> bool:
     is_valid = True
     cli_tell(f"Profile name: {profile.name}")
 
-    # check invariants
     try:
-        raise_on_missing_fields(profile)
-        raise_on_invalid_storage(profile)
-    except (ProfilesInvalidError, ProfilesIncompleteError) as err:
-        cli_tell(str(err))
-        is_valid = False
+        # check invariants
+        validate_profile_configuration(profile)
 
-    # check if provided credentials allow to login to Azure
-    if has_complete_authentication_data(profile) and azure_login(profile):
+        # check if provided credentials allow to login to Azure
+        cred = profile_to_credentials(profile)
+        client = AzureClient.login_application(cred)
+
         # check if location is valid
-        if profile.location:
-            available_locations = list_locations()
-            if available_locations and profile.location not in available_locations:
-                cli_tell(f"The location is invalid in Azure: '{profile.location}'")
-                is_valid = False
-
+        available_locations = client.list_locations()
+        if available_locations and profile.location not in available_locations:
+            cli_tell(f"The location is invalid in Azure: '{profile.location}'")
+            is_valid = False
+        else:
             # check if resource groups exist in location
-            invalid_groups = list_invalid_resource_groups(profile)
+            invalid_groups = list_invalid_resource_groups(client, profile)
             if invalid_groups:
                 invalid_groups_str = ", ".join(invalid_groups)
-                cli_tell(
-                    f"Following Resource Groups do not exist in Location '{profile.location}': '{invalid_groups_str}'"
-                )
+                cli_tell(f"Resource Groups do not exist in Location '{profile.location}': '{invalid_groups_str}'")
                 is_valid = False
-    else:
-        cli_tell("The profile credentials failed to authenticate in Azure")
+
+    except (ProfileConfigurationError, AzureClientError) as err:
+        cli_tell("Validation failed: " + str(err))
         is_valid = False
 
     cli_tell("Profile is valid" if is_valid else "Profile is invalid")
     return is_valid
 
 
-def list_invalid_resource_groups(p: AzureProfile) -> List[str]:
+def profile_to_credentials(profile: AzureProfile) -> LoginCredentials:
+    return LoginCredentials(
+        tenant_id=profile.tenant_id,
+        subscription_id=profile.subscription_id,
+        principal=ServicePrincipal(app_id=profile.principal_id, secret=profile.principal_secret),
+    )
+
+
+def list_invalid_resource_groups(client: AzureClient, p: AzureProfile) -> List[str]:
     if not p.resource_group_names:
         return []
-    available_resource_groups = list_resource_groups(p.location)
+    available_resource_groups = list_resource_groups(client, p.location)
     return list(set(p.resource_group_names) - set(available_resource_groups))
 
 
-def azure_login(p: AzureProfile) -> Optional[AzureAccountLoginInfo]:
-    """Login using Service Principal"""
-
-    COMMAND = f"login --service-principal -u {p.principal_id} -p {p.principal_secret} --tenant {p.tenant_id} --query '[0]'"  # returns a dict
-    output_dict = az_cli(COMMAND)
-    if not isinstance(output_dict, dict):
-        return None
-
-    try:
-        subscription_id, tenant_id = output_dict["id"], output_dict["tenantId"]
-        log.info("Logged into Azure account with subscription_id '%s', tenant_id '%s'", subscription_id, tenant_id)
-        return AzureAccountLoginInfo(subscription_id=subscription_id, tenant_id=tenant_id)
-    except KeyError:
-        log.exception("Failed to retrieve Azure account subscription_id and tenant_id")
-        return None
-
-
 def cli_get_or_create_service_principal(
-    profiles: List[AzureProfile], subscription_id: str
+    client: AzureClient, profiles: List[AzureProfile]
 ) -> Optional[ServicePrincipal]:
-    principal = get_service_principal(SERVICE_PRINCIPAL_NAME, profiles)
-    if principal is None:
-        principal = setup_service_principal(subscription_id, SERVICE_PRINCIPAL_NAME)
-    if principal is None:
-        log.error("Failed to get as well as to create Service Principal in subscription '%s'", subscription_id)
+
+    # try get existing AppRegistration
+    app_ids = client.find_app_registrations(APP_REGISTRATION_NAME)
+    app_count = len(app_ids)
+    if app_count > 1:
+        log.error("There are %d AppRegistrations named '%s'. 1 is allowed", app_count, APP_REGISTRATION_NAME)
         return None
-    if principal.secret == "":
-        principal.secret = cli_ask_secret()
-    return principal
+    if app_count == 1:
+        app_id = app_ids[0]
+        log.debug("Found AppRegistration ID '%s' for '%s'", app_id, APP_REGISTRATION_NAME)
+        principal_secret = find_secret(app_id, profiles) or cli_ask_secret()
+        return ServicePrincipal(app_id=app_id, secret=principal_secret)
+
+    # try create new AppRegistration
+    return client.create_app_registration(APP_REGISTRATION_NAME).principal
 
 
 def cli_ask_profile_name() -> str:
@@ -332,14 +317,30 @@ def cli_ask_profile_name() -> str:
         cli_tell("Name must not contain white space characters")
 
 
+def cli_ask_tenant_id() -> str:
+    while True:
+        tenant_id = cli_ask("Enter Azure Tenant ID: ")
+        if tenant_id != "" and " " not in tenant_id and "\t" not in tenant_id:
+            return tenant_id
+        cli_tell("ID must not contain white space characters")
+
+
+def cli_ask_subscription_id() -> str:
+    while True:
+        subscription_id = cli_ask("Enter Azure Subscription ID [leave empty for auto-select]: ")
+        if " " not in subscription_id and "\t" not in subscription_id:
+            return subscription_id
+        cli_tell("ID must not contain white space characters")
+
+
 def cli_ask_overwrite_profile(profile_name: str) -> bool:
     answer = cli_ask(f"Profile '{profile_name}' already exists. Overwrite? [y/n]: ")
     return answer.lower() == "y"
 
 
-def cli_ask_azure_location() -> str:
+def cli_ask_azure_location(client: AzureClient) -> str:
     NUM_COLUMNS_FOR_LOCATIONS_PRINTOUT = 3
-    locations = list_locations()
+    locations = client.list_locations()
     num_locations = len(locations)
     if num_locations == 0:
         log.warning("No locations are available; skipping location selection")
@@ -384,46 +385,9 @@ def cli_ask_secret() -> str:
     return getpass("Enter Service Principal secret [empty to skip]: ")
 
 
-def cli_azure_login_interactively(subscription_id="", tenant_id: str = "") -> Optional[AzureAccountLoginInfo]:
-    """
-    Login to Azure Account
-    Target account subscription and tenant must match subscription_id and tenant_id (if provided)
-    """
-
-    if subscription_id and tenant_id:
-        prompt = f". Target Subscription ID: {subscription_id}, Tenant ID: {tenant_id} [ENTER]"
-    elif subscription_id:
-        prompt = f". Target Subscription ID: {subscription_id} [ENTER]"
-    elif tenant_id:
-        prompt = f". Target Tenant ID: {tenant_id} [ENTER]"
-    else:
-        prompt = " [ENTER]"
-
-    while True:
-        cli_ask(f"Please login to Azure Account{prompt}")
-        account = azure_login_interactively()
-        if account is None:
-            log.error("Failed to login into Azure account")
-            return None
-
-        if subscription_id and subscription_id != account.subscription_id:
-            cli_tell(
-                f"Selected Azure Account has different Subscription ID than specified. Expected: {subscription_id}, got: {account.subscription_id}"
-            )
-            continue
-
-        if tenant_id and tenant_id != account.tenant_id:
-            cli_tell(
-                f"Selected Azure Account has different Tenant ID than specified. Expected: {tenant_id}, got: {account.tenant_id}"
-            )
-            continue
-
-        return account
-
-
-def cli_ask_resource_groups(location: str) -> List[str]:
+def cli_ask_resource_groups(client: AzureClient, location: str) -> List[str]:
     NUM_COLUMNS = 3
-    groups = list_resource_groups(location)
+    groups = list_resource_groups(client, location)
     num_groups = len(groups)
     if num_groups == 0:
         log.warning("No Resource Groups found in Location '%s', skipping resource groups selection", location)
@@ -459,164 +423,15 @@ def try_load_profiles(file_path: str, loader: Callable) -> List[AzureProfile]:
     return loader(file_path)
 
 
-def azure_login_interactively() -> Optional[AzureAccountLoginInfo]:
-    """
-    Return login information on login success
-    Return None on login error
-    """
-
-    COMMAND = "login --query '[0]'"  # returns a dict
-    output_dict = az_cli(COMMAND)
-    if not isinstance(output_dict, dict):
-        return None
-
-    try:
-        subscription_id, tenant_id = output_dict["id"], output_dict["tenantId"]
-        log.info("Logged into Azure account with subscription_id '%s', tenant_id '%s'", subscription_id, tenant_id)
-        return AzureAccountLoginInfo(subscription_id=subscription_id, tenant_id=tenant_id)
-    except KeyError:
-        log.exception("Failed to retrieve Azure account subscription_id and tenant_id")
-        return None
-
-
-def azure_logout() -> None:
-    az_cli("logout")
-
-
-def setup_service_principal(subscription_id: str, name: str) -> Optional[ServicePrincipal]:
-    """
-    Return ServicePrincipal on success
-    Return None on error
-    """
-
-    principal = new_service_principal(subscription_id, name)
-    if principal is None:
-        return None
-
-    if not add_read_write_all_permissions(principal.id):
-        return None
-
-    if not grant_permissions(principal.id):
-        return None
-
-    if not consent_permissions(principal.id):
-        return None
-
-    return principal
-
-
-def list_locations() -> List[str]:
-    """
-    Return currently available Azure locations on success
-    Return empty list on error
-    """
-
-    COMMAND = "account list-locations --query '[].name'"  # returns a list
-    output_list = az_cli(COMMAND)
-    if not isinstance(output_list, list):
-        log.error("Failed to list Azure Locations")
-        return []
-
-    log.info("Retrieved %d Azure Locations", len(output_list))
-    return sorted(output_list)
-
-
-def list_resource_groups(location: str) -> List[str]:
+def list_resource_groups(client: AzureClient, location: str) -> List[str]:
     """
     Return Resource Groups available in "location" on success
     Return empty list on error
     """
 
-    if not location:
-        log.warning("Location not specified, returning empty Resource Group list")
-        return []
-
-    COMMAND = f'''group list --query "[?location=='{location}'].name"'''  # returns a list
-    output_list = az_cli(COMMAND)
-    if not isinstance(output_list, list):
-        log.error("Failed to list Resource Groups in location '%s'", location)
-        return []
-
-    log.info("Found %d Resource Group(s) in location '%s'", len(output_list), location)
-    return output_list
-
-
-def get_service_principal(name: str, profiles: List[AzureProfile]) -> Optional[ServicePrincipal]:
-    principal_id = find_service_principal(name)
-    if not principal_id:
-        return None
-    principal_secret = find_secret(principal_id, profiles)
-    return ServicePrincipal(id=principal_id, secret=principal_secret or "")
-
-
-def find_service_principal(name: str) -> Optional[str]:
-    """
-    Return principal_id on success
-    Return empty string if principal not found
-    Return None on lookup error
-    """
-
-    COMMAND = f"""ad app list --query "[?displayName == '{name}'].appId" """  # returns a list
-    output_list = az_cli(COMMAND)
-    if not isinstance(output_list, list):
-        log.error("Failed to lookup Service Principal '%s'", name)
-        return None
-    if output_list == []:
-        log.info("Service Principal '%s' not found", name)
-        return ""
-
-    principal_id = output_list[0]
-    log.info("Service Principal '%s' found with ID '%s'", name, principal_id)
-    return principal_id
-
-
-def new_service_principal(subscription_id: str, name: str) -> Optional[ServicePrincipal]:
-    """
-    Return ServicePrincipal on success
-    Return None on error
-    """
-
-    COMMAND = f"""ad sp create-for-rbac --role="Owner" --scopes="/subscriptions/{subscription_id}" --name {name}"""  # returns a dict
-    output_dict = az_cli(COMMAND)
-    if not isinstance(output_dict, dict):
-        log.error("Failed to create Service Principal '%s' in Subscription '%s'", name, subscription_id)
-        return None
-
-    try:
-        return ServicePrincipal(id=output_dict["appId"], secret=output_dict["password"])
-    except KeyError:
-        log.exception("Error parsing returned Service Principal")
-        return None
-
-
-def add_read_write_all_permissions(principal_id: str) -> bool:
-    COMMAND = f"ad app permission add --id {principal_id} --api-permissions {AZURE_READ_WRITE_ALL_PERMISSION} --api {AZURE_GRAPH_API}"  # returns a dict
-    ATTEMPT_COUNT = 5
-    output_dict = az_cli(COMMAND, ATTEMPT_COUNT)
-    if not isinstance(output_dict, dict):
-        log.error("Failed to give read-write-all permissions to Service Principal")
-        return False
-    return True
-
-
-def grant_permissions(principal_id: str) -> bool:
-    COMMAND_GRANT = f"ad app permission grant --id {principal_id} --api {AZURE_GRAPH_API}"  # returns a dict
-    ATTEMPT_COUNT = 5
-    output_dict = az_cli(COMMAND_GRANT, ATTEMPT_COUNT)
-    if not isinstance(output_dict, dict):
-        log.error("Failed to grant permissions to Service Principal")
-        return False
-    return True
-
-
-def consent_permissions(principal_id: str) -> bool:
-    COMMAND = f"ad app permission admin-consent --id {principal_id}"  # returns a dict
-    ATTEMPT_COUNT = 5
-    output_dict = az_cli(COMMAND, ATTEMPT_COUNT)
-    if not isinstance(output_dict, dict):
-        log.error("Failed to consent permissions to Service Principal")
-        return False
-    return True
+    groups = client.list_resource_groups(location)
+    log.info("Found %d Resource Group(s) in location '%s'", len(groups), location)
+    return groups
 
 
 def profile_exists(profile_name: str, profiles: List[AzureProfile]) -> bool:
@@ -630,12 +445,12 @@ def find_profile(profile_name: str, profiles: List[AzureProfile]) -> Optional[in
     return None
 
 
-def find_secret(principal_id: str, profiles: List[AzureProfile]) -> Optional[str]:
+def find_secret(app_id: str, profiles: List[AzureProfile]) -> Optional[str]:
     for profile in profiles:
-        if profile.principal_id == principal_id and profile.principal_secret != "":
-            log.info("Secret for Service Principal ID '%s' found in profile '%s'", principal_id, profile.name)
+        if profile.principal_id == app_id and profile.principal_secret != "":
+            log.info("Secret for AppRegistration ID '%s' found in profile '%s'", app_id, profile.name)
             return profile.principal_secret
-    log.warning("Secret for Service Principal ID '%s' not found", principal_id)
+    log.warning("Secret for AppRegistration ID '%s' not found", app_id)
     return None
 
 

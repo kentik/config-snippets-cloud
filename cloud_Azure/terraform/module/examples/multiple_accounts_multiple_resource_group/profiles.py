@@ -6,11 +6,15 @@ from typing import Any, Dict, List, Tuple, Type, TypeVar
 log = logging.getLogger(__name__)
 
 
-class ProfilesInvalidError(Exception):
+class ProfileConfigurationError(Exception):
     pass
 
 
-class ProfilesIncompleteError(Exception):
+class ProfilesInvalidError(ProfileConfigurationError):
+    pass
+
+
+class ProfilesIncompleteError(ProfileConfigurationError):
     pass
 
 
@@ -108,10 +112,14 @@ def load_complete_profiles(file_path: str) -> List[AzureProfile]:
     profiles = load_incomplete_profiles(file_path)
 
     for profile in profiles:
-        raise_on_missing_fields(profile)
-        raise_on_invalid_storage(profile)
+        validate_profile_configuration(profile)
 
     return profiles
+
+
+def validate_profile_configuration(profile: AzureProfile) -> None:
+    raise_on_missing_fields(profile)
+    raise_on_invalid_storage(profile)
 
 
 def raise_on_missing_fields(profile: AzureProfile) -> None:
