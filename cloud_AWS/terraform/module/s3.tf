@@ -34,7 +34,7 @@ resource "aws_flow_log" "vpc_logs" {
     (var.s3_flowlogs_path == "" ? "${aws_s3_bucket.vpc_logs[count.index].arn}/" : "${aws_s3_bucket.vpc_logs[count.index].arn}/${var.s3_flowlogs_path}/") :
   (var.s3_flowlogs_path == "" ? "${aws_s3_bucket.vpc_logs[0].arn}/${var.vpc_id_list[count.index]}/" : "${aws_s3_bucket.vpc_logs[0].arn}/${var.s3_flowlogs_path}/${var.vpc_id_list[count.index]}/"))
   log_destination_type     = "s3"
-  log_format               = "$${version} $${account-id} $${interface-id} $${srcaddr} $${dstaddr} $${srcport} $${dstport} $${protocol} $${packets} $${bytes} $${start} $${end} $${action} $${log-status}"
+  log_format               = "$${version} $${account-id} $${interface-id} $${srcaddr} $${dstaddr} $${srcport} $${dstport} $${protocol} $${packets} $${bytes} $${start} $${end} $${action} $${log-status} $${vpc-id} $${subnet-id} $${instance-id} $${tcp-flags} $${type} $${pkt-srcaddr} $${pkt-dstaddr} $${region} $${az-id} $${sublocation-type} $${sublocation-id} $${pkt-src-aws-service} $${pkt-dst-aws-service} $${flow-direction} $${traffic-path}"
   traffic_type             = "ALL"
   max_aggregation_interval = (var.store_logs_more_frequently == false ? 600 : 60)
   vpc_id                   = var.vpc_id_list[count.index]
