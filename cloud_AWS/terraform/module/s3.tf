@@ -1,17 +1,17 @@
 resource "aws_s3_bucket" "vpc_logs" {
-  count         = (var.s3_use_one_bucket == false ? length(var.vpc_id_list) : 1)
+  count         = var.create_bucket ? (var.s3_use_one_bucket == false ? length(var.vpc_id_list) : 1) : 0
   bucket        = join("-", [var.s3_bucket_prefix, (var.s3_use_one_bucket == false ? var.vpc_id_list[count.index] : var.s3_base_name), "flow-logs", terraform.workspace]) # bucket name must be globally unique
   force_destroy = var.s3_delete_nonempty_buckets
 }
 
 resource "aws_s3_bucket_acl" "acl" {
-  count  = (var.s3_use_one_bucket == false ? length(var.vpc_id_list) : 1)
+  count  = var.create_bucket ? (var.s3_use_one_bucket == false ? length(var.vpc_id_list) : 1) : 0
   bucket = aws_s3_bucket.vpc_logs[count.index].id
   acl    = "private"
 }
 
 resource "aws_s3_bucket_policy" "policy" {
-  count  = (var.s3_use_one_bucket == false ? length(var.vpc_id_list) : 1)
+  count  = var.create_bucket ? (var.s3_use_one_bucket == false ? length(var.vpc_id_list) : 1) : 0
   bucket = aws_s3_bucket.vpc_logs[count.index].id
   policy = templatefile(
     "${path.module}/templates/flowLogsS3Policy.json.tmpl",
@@ -20,7 +20,7 @@ resource "aws_s3_bucket_policy" "policy" {
 }
 
 resource "aws_s3_bucket_public_access_block" "vpc_logs" {
-  count                   = (var.s3_use_one_bucket == false ? length(var.vpc_id_list) : 1)
+  count                   = var.create_bucket ? (var.s3_use_one_bucket == false ? length(var.vpc_id_list) : 1) : 0
   bucket                  = aws_s3_bucket.vpc_logs[count.index].id
   block_public_acls       = true
   block_public_policy     = true
@@ -29,7 +29,7 @@ resource "aws_s3_bucket_public_access_block" "vpc_logs" {
 }
 
 resource "aws_flow_log" "vpc_logs" {
-  count = length(var.vpc_id_list)
+  count = var.create_bucket ? length(var.vpc_id_list): 0
   log_destination = (var.s3_use_one_bucket == false ?
     (var.s3_flowlogs_path == "" ? "${aws_s3_bucket.vpc_logs[count.index].arn}/" : "${aws_s3_bucket.vpc_logs[count.index].arn}/${var.s3_flowlogs_path}/") :
   (var.s3_flowlogs_path == "" ? "${aws_s3_bucket.vpc_logs[0].arn}/${var.vpc_id_list[count.index]}/" : "${aws_s3_bucket.vpc_logs[0].arn}/${var.s3_flowlogs_path}/${var.vpc_id_list[count.index]}/"))

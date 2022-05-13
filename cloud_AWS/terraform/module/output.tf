@@ -8,3 +8,11 @@ output "bucket_name_list" {
     (var.s3_flowlogs_path == "" ? bucketobject.bucket : "${bucketobject.bucket}/${var.s3_flowlogs_path}")
   ]
 }
+
+output "bucket_arn_list" {
+  value = aws_s3_bucket.vpc_logs.*.arn
+}
+
+output "regions" {
+  value = [var.region]
+}

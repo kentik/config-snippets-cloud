@@ -101,3 +101,23 @@ variable "external_id" {
   type        = string
   default     = ""
 }
+
+variable bucket_arn_list {
+  type        = list(string)
+  default     = null
+}
+
+variable "create_bucket" {
+  type    = bool
+  default = true
+}
+
+variable "bucket_name_list" {
+  type        = list(string)
+  default     = null
+}
+
+variable "regions" {
+  type        = list(string)
+  default     = null
+}

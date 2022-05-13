@@ -31,7 +31,7 @@ resource "aws_iam_policy" "kentik_s3_policy" {
     "${path.module}/templates/kentikS3Policy.json.tmpl",
     {
       actions_list = (var.rw_s3_access == false ? ["s3:Get*", "s3:List*", "s3:HeadBucket"] : ["s3:*"]),
-      buckets_list = [for bucketobject in aws_s3_bucket.vpc_logs : bucketobject.arn],
+      buckets_list = var.bucket_arn_list != null ? var.bucket_arn_list : [for bucketobject in aws_s3_bucket.vpc_logs : bucketobject.arn],
       sub_path     = (var.s3_flowlogs_path == "" ? "*" : "${var.s3_flowlogs_path}/*")
     }
   )
