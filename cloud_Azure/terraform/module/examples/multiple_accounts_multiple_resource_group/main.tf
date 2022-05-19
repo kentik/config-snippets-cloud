@@ -1,17 +1,17 @@
 terraform {
-  required_version = ">= 1.0.0"
+  required_version = "~> 1.0"
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = ">= 2.85.0"
+      version = "~> 2.85"
     }
     azuread = {
       source  = "hashicorp/azuread"
-      version = ">= 2.14.0"
+      version = "~> 2.14"
     }
     kentik-cloudexport = {
       source  = "kentik/kentik-cloudexport"
-      version = ">= 0.4.1"
+      version = "~> 0.4"
     }
   }
 }
