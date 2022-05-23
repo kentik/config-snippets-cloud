@@ -51,11 +51,9 @@ jobs:
           architecture: 'x64'
 
       - name: (HELPER) Install Python Libs
-        # install jinja2<v3.1.0 to prevent error "cannot import name 'environmentfilter' from 'jinja2'"
         run: |
           python3 -m pip install --upgrade pip
-          pip3 install ansible==2.9.13
-          pip3 install jinja2==3.0.0 
+          pip3 install ansible==2.12.0
           pip3 install botocore==1.17.58
           pip3 install boto3==1.14.58
 
