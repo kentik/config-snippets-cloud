@@ -145,41 +145,41 @@ az ad app permission admin-consent --id <service principal id>
 
 ## Profiles tool
 
-The profiles_populator.py tool allows semi-automatic addition of profiles to the profiles.ini file.  
+The profiles_tool.py tool allows semi-automatic addition of profiles to the profiles.ini file.  
 For every specified profile name, it will:
 - login you to Azure Account
 - lookup required ServicePrincipal, or create one if it doesn't exist yet
 - ask for Azure location
-- get all Resource Groups available in selected location
+- ask to select Resource Groups from the list
 
 On every execution the tool creates backup copy of the profiles file in directory `backup_profiles` (the directory is created if it does not exist) and stores new/updated set of profiles.
 ### Usage (PowerShell or Bash)
 
 - Add multiple profiles to `profiles.ini` - interactively ask user for profile names:  
     ```bash
-    python profiles_populator.py add 
+    python profiles_tool.py add 
     ```
 - Add multiple profiles to `profiles.ini` - profile names specified on command line:  
     ```bash
-    python profiles_populator.py add --profiles dev test prod
+    python profiles_tool.py add --profiles dev test prod
     ```
 - Add multiple profiles to `profiles.ini` - verbose logging:  
     ```bash
-    python profiles_populator.py add --verbose
+    python profiles_tool.py add --verbose
     ```
 - Add multiple profiles to custom file:  
     ```bash
-    python profiles_populator.py add --filename custom_profiles.ini
+    python profiles_tool.py add --filename custom_profiles.ini
     ```
 - Only fill missing profiles information in `profiles.ini` - ask user for data if needed:  
     ```bash
-    python profiles_populator.py complete
+    python profiles_tool.py complete
     ```
 - Validate profiles information in `profiles.ini`:  
     ```bash
-    python profiles_populator.py validate
+    python profiles_tool.py validate
     ```
 - Help  
     ```bash
-    python profiles_populator.py --help
+    python profiles_tool.py --help
     ```

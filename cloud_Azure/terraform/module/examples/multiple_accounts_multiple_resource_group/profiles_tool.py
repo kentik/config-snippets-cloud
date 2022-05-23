@@ -254,7 +254,7 @@ def validate_profile(profile: AzureProfile) -> bool:
 
         # check if location is valid
         available_locations = client.list_locations()
-        if available_locations and profile.location not in available_locations:
+        if profile.location not in available_locations:
             cli_tell(f"The location is invalid in Azure: '{profile.location}'")
             is_valid = False
         else:
@@ -284,7 +284,7 @@ def profile_to_credentials(profile: AzureProfile) -> LoginCredentials:
 def list_invalid_resource_groups(client: AzureClient, p: AzureProfile) -> List[str]:
     if not p.resource_group_names:
         return []
-    available_resource_groups = list_resource_groups(client, p.location)
+    available_resource_groups = client.list_resource_groups(p.location)
     return list(set(p.resource_group_names) - set(available_resource_groups))
 
 
@@ -387,7 +387,7 @@ def cli_ask_secret() -> str:
 
 def cli_ask_resource_groups(client: AzureClient, location: str) -> List[str]:
     NUM_COLUMNS = 3
-    groups = list_resource_groups(client, location)
+    groups = client.list_resource_groups(location)
     num_groups = len(groups)
     if num_groups == 0:
         log.warning("No Resource Groups found in Location '%s', skipping resource groups selection", location)
@@ -421,17 +421,6 @@ def try_load_profiles(file_path: str, loader: Callable) -> List[AzureProfile]:
         return []
 
     return loader(file_path)
-
-
-def list_resource_groups(client: AzureClient, location: str) -> List[str]:
-    """
-    Return Resource Groups available in "location" on success
-    Return empty list on error
-    """
-
-    groups = client.list_resource_groups(location)
-    log.info("Found %d Resource Group(s) in location '%s'", len(groups), location)
-    return groups
 
 
 def profile_exists(profile_name: str, profiles: List[AzureProfile]) -> bool:

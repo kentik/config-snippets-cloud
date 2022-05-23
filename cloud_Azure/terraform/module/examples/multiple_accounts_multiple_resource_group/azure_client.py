@@ -1,15 +1,16 @@
 import logging
 import uuid
 from dataclasses import dataclass
-from typing import List
+from typing import List, Type, TypeVar
 
 from azure.core.exceptions import AzureError
 from azure.core.pipeline import PipelineContext, PipelineRequest
 from azure.core.pipeline.policies import BearerTokenCredentialPolicy
 from azure.core.pipeline.transport import HttpRequest
 from azure.identity import ClientSecretCredential, DefaultAzureCredential, InteractiveBrowserCredential
-from azure.mgmt.authorization.v2020_04_01_preview import AuthorizationManagementClient
-from azure.mgmt.authorization.v2020_04_01_preview.models import RoleAssignmentCreateParameters
+from azure.identity._internal.msal_credentials import MsalCredential
+from azure.mgmt.authorization import AuthorizationManagementClient
+from azure.mgmt.authorization.models import RoleAssignmentCreateParameters
 from azure.mgmt.resource import ResourceManagementClient, SubscriptionClient
 from msgraph.core import GraphClient
 from msrest.authentication import BasicTokenAuthentication
@@ -70,9 +71,12 @@ class LoginCredentials:
     principal: ServicePrincipal = ServicePrincipal()
 
 
+AzureClientType = TypeVar("AzureClientType", bound="AzureClient")
+
+
 class AzureClient:
     @classmethod
-    def login_user(cls, tenant_id: str, subscription_id: str = ""):
+    def login_user(cls: Type[AzureClientType], tenant_id: str, subscription_id: str = "") -> AzureClientType:
         """Interactive (browser-based) login"""
 
         if tenant_id == "":
@@ -82,7 +86,7 @@ class AzureClient:
         return cls(cred, tenant_id, subscription_id)
 
     @classmethod
-    def login_application(cls, lc: LoginCredentials):
+    def login_application(cls: Type[AzureClientType], lc: LoginCredentials) -> AzureClientType:
         """Programmatic login"""
 
         if lc.tenant_id == "" or lc.principal.app_id == "" or lc.principal.secret == "":
@@ -95,7 +99,7 @@ class AzureClient:
         )
         return cls(cred, lc.tenant_id, lc.subscription_id)
 
-    def __init__(self, credentials, tenant_id: str, subscription_id: str = "") -> None:
+    def __init__(self, credentials: MsalCredential, tenant_id: str, subscription_id: str = "") -> None:
         """
         If no subscription_id is provided, then auto-select is attempted
         """
@@ -136,6 +140,10 @@ class AzureClient:
     @wrap_sdk_api_exceptions("Failed to list locations")
     def list_locations(self) -> List[str]:
         locations = self._subscription_client.subscriptions.list_locations(self.subscription_id)
+        if not locations:
+            log.warning("No locations are available for SubscriptionID '%s'", self.subscription_id)
+            return []
+
         names = [l.name for l in locations]
         return sorted(names)
 
@@ -207,14 +215,15 @@ class AzureClient:
 
         # create Owner RoleAssignment
         scope = f"/subscriptions/{self.subscription_id}/"
-        guid = str(uuid.uuid4())
         role_id = f"/subscriptions/{self.subscription_id}/providers/Microsoft.Authorization/roleDefinitions/{AZURE_OWNER_ROLE}"
         parameters = RoleAssignmentCreateParameters(
             role_definition_id=role_id,
             principal_id=principal_id,
             principal_type="ServicePrincipal",  # no retries needed in following requests thanks to this param
         )
-        self._auth_client.role_assignments.create(scope=scope, role_assignment_name=guid, parameters=parameters)
+        self._auth_client.role_assignments.create(
+            scope=scope, role_assignment_name=str(uuid.uuid4()), parameters=parameters, properties=None
+        )
 
         return AppRegistration(obj_id=app_object_id, principal=ServicePrincipal(app_id=app_id, secret=principal_secret))
 
