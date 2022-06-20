@@ -27,7 +27,7 @@ EOF
 resource "aws_iam_role_policy" "get_secrets_policy" {
   for_each = var.vm_names
   name = "ksynth_secret_policy_${each.value}"
-  role = "${aws_iam_role.get_secrets_role[each.key].id}"
+  role = aws_iam_role.get_secrets_role[each.key].id
 
   policy = <<EOF
 {
@@ -50,5 +50,5 @@ EOF
 resource "aws_iam_instance_profile" "get_secrets_profile" {
   for_each = var.vm_names
   name = "get_secrets_profile_${each.value}"
-  role = "${aws_iam_role.get_secrets_role[each.key].name}"
+  role = aws_iam_role.get_secrets_role[each.key].name
 }

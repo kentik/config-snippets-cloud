@@ -1,0 +1,12 @@
+{
+  "threshold": 0,
+  "reporters": [
+    "consoleFull"
+  ],
+  "ignore": [
+    "**/__snapshots__/**",
+    "**/cloud_Azure/terraform/module/examples/multiple_accounts_multiple_resource_group/**",
+    "**/cloud_AWS/terraform/module/examples/sock-shop-eks/k8s_1.16/1-sock-shop-install/**"
+  ],
+  "absolute": true
+}

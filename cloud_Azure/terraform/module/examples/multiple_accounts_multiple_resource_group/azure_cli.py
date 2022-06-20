@@ -24,7 +24,9 @@ def az_cli(command: str, max_attempts: int = 1) -> Optional[Any]:
         max_attempts -= 1
         if max_attempts == 0:
             break
-        print(f"Retrying Azure CLI command in {wait_sec} second(s)... (remaining attempts: {max_attempts})")
+        print(
+            f"Retrying Azure CLI command in {wait_sec} second(s)... (remaining attempts: {max_attempts})"
+        )
         time.sleep(wait_sec)
         wait_sec = wait_sec * 2
 
@@ -45,7 +47,11 @@ def _az_cli(command: str) -> Optional[Any]:
         return None
 
     if return_code != EX_OK:
-        log.error("Failed to execute Azure CLI command. Error message: '%s'. Error code: %d", logs.strip(), return_code)
+        log.error(
+            "Failed to execute Azure CLI command. Error message: '%s'. Error code: %d",
+            logs.strip(),
+            return_code,
+        )
         return None
 
     return data

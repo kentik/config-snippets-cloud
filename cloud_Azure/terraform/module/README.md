@@ -85,10 +85,10 @@ To install Python and required packages:
 
 ## Outputs
 
-| Name | Description |
-|------|-------------|
-| network_security_groups | Id's of the Network Security Groups which flow logs will be collected |
-| subscription_id | Azure subscription ID |
-| resource_group_names | Names of Resource Groups from which to collect flow logs |
-| storage_accounts | Storage Account names where flow logs will be collected |
+| Name | Description                                                           |
+|------|-----------------------------------------------------------------------|
+| network_security_groups | IDs of the Network Security Groups which flow logs will be collected  |
+| subscription_id | Azure subscription ID                                                 |
+| resource_group_names | Names of Resource Groups from which to collect flow logs              |
+| storage_accounts | Storage Account names where flow logs will be collected               |
 | principal_id | Service Principal ID created for Kentik NSG Flow Exporter application |

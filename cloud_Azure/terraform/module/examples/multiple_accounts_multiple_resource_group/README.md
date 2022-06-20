@@ -123,8 +123,8 @@ Profiles are stored in [profiles.ini](./profiles.ini) file.
 
 ## Azure Service Principal
 
-Terraform requires Service Principal with "Owner" role and "Application.ReadWrite.All" permission to assign roles and create resources in the Azure Account.   
-Terraform will use the principal_id and principal_secret credentials loaded from [profiles.ini](./profiles.ini) to authenticate into Azure Account. 
+Terraform requires Service Principal with "Owner" role and "Application.ReadWrite.All" permission to assign roles and create resources in the Azure Account.
+Terraform will use the principal_id and principal_secret credentials loaded from [profiles.ini](./profiles.ini) to authenticate into Azure Account.
 
 ### Create Service Principal using Azure CLI (`az`)
 

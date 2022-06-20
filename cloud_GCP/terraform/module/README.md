@@ -7,7 +7,7 @@ Module enables:
 
 Module creates:
 * Sinks to gather logs acording to [Kentik documentation](https://kb.kentik.com/Fc12.htm#Fc12-Create_a_New_Topic)
-* IAM binding of publisher role to each sink 
+* IAM binding of publisher role to each sink
 * Pub/Sub topics for logs acording to [Kentik documentation](https://kb.kentik.com/Fc12.htm#Fc12-Create_a_New_Topic)
 * Pub/Sub Pull subscription for Kentik’s flow log collection application acording to [Kentik documentation](https://kb.kentik.com/Fc12.htm#Fc12-Create_a_Pull_Subscription)
 * Permission for Kentik to access it from the Google Cloud account on which flow logs are collected [Kentik documentation](https://kb.kentik.com/Fc12.htm#Fc12-Set_Permissions)

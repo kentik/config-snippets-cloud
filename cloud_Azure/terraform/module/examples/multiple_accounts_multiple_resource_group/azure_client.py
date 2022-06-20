@@ -7,7 +7,11 @@ from azure.core.exceptions import AzureError
 from azure.core.pipeline import PipelineContext, PipelineRequest
 from azure.core.pipeline.policies import BearerTokenCredentialPolicy
 from azure.core.pipeline.transport import HttpRequest
-from azure.identity import ClientSecretCredential, DefaultAzureCredential, InteractiveBrowserCredential
+from azure.identity import (
+    ClientSecretCredential,
+    DefaultAzureCredential,
+    InteractiveBrowserCredential,
+)
 from azure.identity._internal.msal_credentials import MsalCredential
 from azure.mgmt.authorization import AuthorizationManagementClient
 from azure.mgmt.authorization.models import RoleAssignmentCreateParameters
@@ -76,21 +80,29 @@ AzureClientType = TypeVar("AzureClientType", bound="AzureClient")
 
 class AzureClient:
     @classmethod
-    def login_user(cls: Type[AzureClientType], tenant_id: str, subscription_id: str = "") -> AzureClientType:
+    def login_user(
+        cls: Type[AzureClientType], tenant_id: str, subscription_id: str = ""
+    ) -> AzureClientType:
         """Interactive (browser-based) login"""
 
         if tenant_id == "":
-            raise AzureClientError("Failed to initialize client - tenant_id is required")
+            raise AzureClientError(
+                "Failed to initialize client - tenant_id is required"
+            )
 
         cred = InteractiveBrowserCredential(tenant_id=tenant_id)
         return cls(cred, tenant_id, subscription_id)
 
     @classmethod
-    def login_application(cls: Type[AzureClientType], lc: LoginCredentials) -> AzureClientType:
+    def login_application(
+        cls: Type[AzureClientType], lc: LoginCredentials
+    ) -> AzureClientType:
         """Programmatic login"""
 
         if lc.tenant_id == "" or lc.principal.app_id == "" or lc.principal.secret == "":
-            raise AzureClientError("Failed to initialize client - tenant_id and principal are required")
+            raise AzureClientError(
+                "Failed to initialize client - tenant_id and principal are required"
+            )
 
         cred = ClientSecretCredential(
             tenant_id=lc.tenant_id,
@@ -99,7 +111,9 @@ class AzureClient:
         )
         return cls(cred, lc.tenant_id, lc.subscription_id)
 
-    def __init__(self, credentials: MsalCredential, tenant_id: str, subscription_id: str = "") -> None:
+    def __init__(
+        self, credentials: MsalCredential, tenant_id: str, subscription_id: str = ""
+    ) -> None:
         """
         If no subscription_id is provided, then auto-select is attempted
         """
@@ -107,17 +121,29 @@ class AzureClient:
         self._graph_client = GraphClient(credential=credentials)
         self._subscription_client = SubscriptionClient(credentials)
         self._tenant_id = tenant_id
-        self._subscription_id = subscription_id or AzureClient._select_subscription_id(self._subscription_client)
-        self._resource_client = ResourceManagementClient(credentials, self._subscription_id)
-        self._auth_client = AuthorizationManagementClient(CredentialWrapper(credentials), self._subscription_id)
+        self._subscription_id = subscription_id or AzureClient._select_subscription_id(
+            self._subscription_client
+        )
+        self._resource_client = ResourceManagementClient(
+            credentials, self._subscription_id
+        )
+        self._auth_client = AuthorizationManagementClient(
+            CredentialWrapper(credentials), self._subscription_id
+        )
         self._check_credentials_working()
-        log.debug("Initialized client with SubscriptionID '%s', TenantID '%s'", self._subscription_id, self._tenant_id)
+        log.debug(
+            "Initialized client with SubscriptionID '%s', TenantID '%s'",
+            self._subscription_id,
+            self._tenant_id,
+        )
 
     @staticmethod
     def _select_subscription_id(client: SubscriptionClient) -> str:
         subscription = next(client.subscriptions.list(), None)
         if subscription is None:
-            raise AzureClientError("Failed to select SubscriptionID - no subscriptions available")
+            raise AzureClientError(
+                "Failed to select SubscriptionID - no subscriptions available"
+            )
 
         subscription_id = subscription.subscription_id
         log.debug("Automatically selected Subscription ID: '%s'", subscription_id)
@@ -125,7 +151,12 @@ class AzureClient:
 
     def _check_credentials_working(self) -> None:
         try:
-            next(self._subscription_client.subscriptions.list_locations(self.subscription_id), None)
+            next(
+                self._subscription_client.subscriptions.list_locations(
+                    self.subscription_id
+                ),
+                None,
+            )
         except AzureError as err:
             raise AzureClientError("Provided credentials are invalid") from err
 
@@ -139,9 +170,14 @@ class AzureClient:
 
     @wrap_sdk_api_exceptions("Failed to list locations")
     def list_locations(self) -> List[str]:
-        locations = self._subscription_client.subscriptions.list_locations(self.subscription_id)
+        locations = self._subscription_client.subscriptions.list_locations(
+            self.subscription_id
+        )
         if not locations:
-            log.warning("No locations are available for SubscriptionID '%s'", self.subscription_id)
+            log.warning(
+                "No locations are available for SubscriptionID '%s'",
+                self.subscription_id,
+            )
             return []
 
         names = [l.name for l in locations]
@@ -157,7 +193,9 @@ class AzureClient:
     def list_network_security_groups(self, resource_group: str) -> List[str]:
         FILTER = "resourceType eq 'Microsoft.Network/networkSecurityGroups'"
 
-        groups = self._resource_client.resources.list_by_resource_group(resource_group, FILTER)
+        groups = self._resource_client.resources.list_by_resource_group(
+            resource_group, FILTER
+        )
         names = [nsg.name for nsg in groups]
         return sorted(names)
 
@@ -181,7 +219,9 @@ class AzureClient:
         required_access = [
             {
                 "resourceAppId": MICROSOFT_GRAPH_API,
-                "resourceAccess": [{"id": AZURE_READ_WRITE_ALL_PERMISSION, "type": "Role"}],
+                "resourceAccess": [
+                    {"id": AZURE_READ_WRITE_ALL_PERMISSION, "type": "Role"}
+                ],
             }
         ]
         body = {
@@ -196,12 +236,16 @@ class AzureClient:
 
         # create ServicePrincipal
         body = {"appId": app_id}
-        result = self._graph_client.post("/servicePrincipals", json=body, headers=HEADERS)
+        result = self._graph_client.post(
+            "/servicePrincipals", json=body, headers=HEADERS
+        )
         result.raise_for_status()
         principal_id = result.json()["id"]
 
         # create ServicePrincipal secret
-        result = self._graph_client.post(f"/servicePrincipals/{principal_id}/addPassword", headers=HEADERS)
+        result = self._graph_client.post(
+            f"/servicePrincipals/{principal_id}/addPassword", headers=HEADERS
+        )
         result.raise_for_status()
         principal_secret = result.json()["secretText"]
 
@@ -211,21 +255,34 @@ class AzureClient:
             "resourceId": ms_graph_id,
             "appRoleId": AZURE_READ_WRITE_ALL_PERMISSION,
         }
-        self._graph_client.post(f"/servicePrincipals/{ms_graph_id}/appRoleAssignedTo", json=body, headers=HEADERS)
+        self._graph_client.post(
+            f"/servicePrincipals/{ms_graph_id}/appRoleAssignedTo",
+            json=body,
+            headers=HEADERS,
+        )
 
         # create Owner RoleAssignment
         scope = f"/subscriptions/{self.subscription_id}/"
-        role_id = f"/subscriptions/{self.subscription_id}/providers/Microsoft.Authorization/roleDefinitions/{AZURE_OWNER_ROLE}"
+        role_id = (
+            f"/subscriptions/{self.subscription_id}/providers/Microsoft.Authorization/roleDefinitions"
+            f"/{AZURE_OWNER_ROLE}"
+        )
         parameters = RoleAssignmentCreateParameters(
             role_definition_id=role_id,
             principal_id=principal_id,
             principal_type="ServicePrincipal",  # no retries needed in following requests thanks to this param
         )
         self._auth_client.role_assignments.create(
-            scope=scope, role_assignment_name=str(uuid.uuid4()), parameters=parameters, properties=None
+            scope=scope,
+            role_assignment_name=str(uuid.uuid4()),
+            parameters=parameters,
+            properties=None,
         )
 
-        return AppRegistration(obj_id=app_object_id, principal=ServicePrincipal(app_id=app_id, secret=principal_secret))
+        return AppRegistration(
+            obj_id=app_object_id,
+            principal=ServicePrincipal(app_id=app_id, secret=principal_secret),
+        )
 
     @wrap_sdk_api_exceptions("Failed to delete app registration")
     def delete_app_registration(self, app: AppRegistration) -> None:
@@ -242,7 +299,12 @@ class AzureClient:
 
 # Note: below helper class is copied from https://gist.github.com/lmazuel/cc683d82ea1d7b40208de7c9fc8de59d
 class CredentialWrapper(BasicTokenAuthentication):
-    def __init__(self, credential=None, resource_id="https://management.azure.com/.default", **kwargs):
+    def __init__(
+        self,
+        credential=None,
+        resource_id="https://management.azure.com/.default",
+        **kwargs,
+    ):
         """
         Wrap any azure-identity credential to work with SDK that needs azure.common.credentials/msrestazure.
         Default resource is ARM (syntax of endpoint v2)
@@ -256,7 +318,9 @@ class CredentialWrapper(BasicTokenAuthentication):
 
     @staticmethod
     def _make_request():
-        return PipelineRequest(HttpRequest("CredentialWrapper", "https://fakeurl"), PipelineContext(None))
+        return PipelineRequest(
+            HttpRequest("CredentialWrapper", "https://fakeurl"), PipelineContext(None)
+        )
 
     def set_token(self):
         """Ask the azure-core BearerTokenCredentialPolicy policy to get a token.

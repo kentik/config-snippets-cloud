@@ -19,9 +19,9 @@ resource "aws_instance" "synth_agent_test" {
 
   ami           = data.aws_ami.ubuntu.id
   instance_type = "t3.micro"
-  user_data_base64 = "${data.template_cloudinit_config.ksynth_cloudconfig[each.key].rendered}"
+  user_data_base64 = data.template_cloudinit_config.ksynth_cloudconfig[each.key].rendered
   key_name = var.key_pair_name
-  iam_instance_profile = "${aws_iam_instance_profile.get_secrets_profile[each.key].name}"
+  iam_instance_profile = aws_iam_instance_profile.get_secrets_profile[each.key].name
   tags = {
     Name = each.key
   }

@@ -10,9 +10,12 @@ from getpass import getpass
 from pathlib import Path
 from typing import Any, Callable, Iterable, Iterator, List, Optional, Tuple
 
-from texttable import Texttable
-
-from azure_client import AzureClient, AzureClientError, LoginCredentials, ServicePrincipal
+from azure_client import (
+    AzureClient,
+    AzureClientError,
+    LoginCredentials,
+    ServicePrincipal,
+)
 from profiles import (
     AzureProfile,
     ProfileConfigurationError,
@@ -22,6 +25,7 @@ from profiles import (
     save_profiles,
     validate_profile_configuration,
 )
+from texttable import Texttable
 
 log = logging.getLogger(__name__)
 
@@ -82,7 +86,10 @@ def add_profile(profile_name: str, profiles: List[AzureProfile]) -> bool:
     cli_tell(f"Profile name: {profile_name}")
 
     # handle possible profile name collision
-    if profile_exists(profile_name, profiles) and cli_ask_overwrite_profile(profile_name) is False:
+    if (
+        profile_exists(profile_name, profiles)
+        and cli_ask_overwrite_profile(profile_name) is False
+    ):
         return True  # it's ok to change mind
 
     try:
@@ -172,8 +179,12 @@ def complete_profile(profile: AzureProfile, profiles: List[AzureProfile]) -> boo
 
     # avoid logging into Azure if only principal_secret is missing - it can't be retrieved from the account anyway
     if missing_fields == ["principal_secret"]:
-        profile.principal_secret = find_secret(profile.principal_id, profiles) or cli_ask_secret()
-        cli_tell(f"Profile '{profile.name}' information completed: {missing_fields_str}")
+        profile.principal_secret = (
+            find_secret(profile.principal_id, profiles) or cli_ask_secret()
+        )
+        cli_tell(
+            f"Profile '{profile.name}' information completed: {missing_fields_str}"
+        )
         return True
 
     try:
@@ -198,7 +209,9 @@ def complete_profile(profile: AzureProfile, profiles: List[AzureProfile]) -> boo
             profile.principal_id = principal.app_id
             profile.principal_secret = principal.secret
         elif profile.principal_secret == "":
-            profile.principal_secret = find_secret(profile.principal_id, profiles) or cli_ask_secret()
+            profile.principal_secret = (
+                find_secret(profile.principal_id, profiles) or cli_ask_secret()
+            )
 
         # fill azure location information
         if profile.location == "":
@@ -208,9 +221,13 @@ def complete_profile(profile: AzureProfile, profiles: List[AzureProfile]) -> boo
 
         # fill resource groups information
         if not profile.resource_group_names:
-            profile.resource_group_names = cli_ask_resource_groups(client, profile.location)
+            profile.resource_group_names = cli_ask_resource_groups(
+                client, profile.location
+            )
 
-        cli_tell(f"Profile '{profile.name}' information completed: {missing_fields_str}")
+        cli_tell(
+            f"Profile '{profile.name}' information completed: {missing_fields_str}"
+        )
         return True
     except AzureClientError:
         log.exception("Failed to complete profile '%s'", profile.name)
@@ -262,7 +279,9 @@ def validate_profile(profile: AzureProfile) -> bool:
             invalid_groups = list_invalid_resource_groups(client, profile)
             if invalid_groups:
                 invalid_groups_str = ", ".join(invalid_groups)
-                cli_tell(f"Resource Groups do not exist in Location '{profile.location}': '{invalid_groups_str}'")
+                cli_tell(
+                    f"Resource Groups do not exist in Location '{profile.location}': '{invalid_groups_str}'"
+                )
                 is_valid = False
 
     except (ProfileConfigurationError, AzureClientError) as err:
@@ -277,7 +296,9 @@ def profile_to_credentials(profile: AzureProfile) -> LoginCredentials:
     return LoginCredentials(
         tenant_id=profile.tenant_id,
         subscription_id=profile.subscription_id,
-        principal=ServicePrincipal(app_id=profile.principal_id, secret=profile.principal_secret),
+        principal=ServicePrincipal(
+            app_id=profile.principal_id, secret=profile.principal_secret
+        ),
     )
 
 
@@ -296,11 +317,17 @@ def cli_get_or_create_service_principal(
     app_ids = client.find_app_registrations(APP_REGISTRATION_NAME)
     app_count = len(app_ids)
     if app_count > 1:
-        log.error("There are %d AppRegistrations named '%s'. 1 is allowed", app_count, APP_REGISTRATION_NAME)
+        log.error(
+            "There are %d AppRegistrations named '%s'. 1 is allowed",
+            app_count,
+            APP_REGISTRATION_NAME,
+        )
         return None
     if app_count == 1:
         app_id = app_ids[0]
-        log.debug("Found AppRegistration ID '%s' for '%s'", app_id, APP_REGISTRATION_NAME)
+        log.debug(
+            "Found AppRegistration ID '%s' for '%s'", app_id, APP_REGISTRATION_NAME
+        )
         principal_secret = find_secret(app_id, profiles) or cli_ask_secret()
         return ServicePrincipal(app_id=app_id, secret=principal_secret)
 
@@ -327,7 +354,9 @@ def cli_ask_tenant_id() -> str:
 
 def cli_ask_subscription_id() -> str:
     while True:
-        subscription_id = cli_ask("Enter Azure Subscription ID [leave empty for auto-select]: ")
+        subscription_id = cli_ask(
+            "Enter Azure Subscription ID [leave empty for auto-select]: "
+        )
         if " " not in subscription_id and "\t" not in subscription_id:
             return subscription_id
         cli_tell("ID must not contain white space characters")
@@ -364,7 +393,9 @@ def cli_ask_numbers_in_range(numbers_range: int) -> List[int]:
         return valid_number(s, numbers_range)
 
     while True:
-        s = cli_ask(f"Enter comma-separated numbers in range [{0} - {numbers_range-1}]: ")
+        s = cli_ask(
+            f"Enter comma-separated numbers in range [{0} - {numbers_range-1}]: "
+        )
         numbers = [n.strip() for n in s.split(",")] if s else []
         if all(map(valid, numbers)):
             return list(map(int, numbers))
@@ -390,7 +421,10 @@ def cli_ask_resource_groups(client: AzureClient, location: str) -> List[str]:
     groups = client.list_resource_groups(location)
     num_groups = len(groups)
     if num_groups == 0:
-        log.warning("No Resource Groups found in Location '%s', skipping resource groups selection", location)
+        log.warning(
+            "No Resource Groups found in Location '%s', skipping resource groups selection",
+            location,
+        )
         return []
 
     cli_tell("Select Resource Groups. Available: ")
@@ -402,7 +436,9 @@ def cli_ask_resource_groups(client: AzureClient, location: str) -> List[str]:
 def cli_ask(prompt: str) -> str:
     """Ask user for information and return the answer"""
 
-    answer = input(prompt).strip()  # strip to remove possible whitespace characters inputted by user by mistake
+    answer = input(
+        prompt
+    ).strip()  # strip to remove possible whitespace characters inputted by user by mistake
     return answer
 
 
@@ -437,13 +473,19 @@ def find_profile(profile_name: str, profiles: List[AzureProfile]) -> Optional[in
 def find_secret(app_id: str, profiles: List[AzureProfile]) -> Optional[str]:
     for profile in profiles:
         if profile.principal_id == app_id and profile.principal_secret != "":
-            log.info("Secret for AppRegistration ID '%s' found in profile '%s'", app_id, profile.name)
+            log.info(
+                "Secret for AppRegistration ID '%s' found in profile '%s'",
+                app_id,
+                profile.name,
+            )
             return profile.principal_secret
     log.warning("Secret for AppRegistration ID '%s' not found", app_id)
     return None
 
 
-def insert_or_overwrite_profile(profiles: List[AzureProfile], profile: AzureProfile) -> None:
+def insert_or_overwrite_profile(
+    profiles: List[AzureProfile], profile: AzureProfile
+) -> None:
     index = find_profile(profile.name, profiles)
     if index is not None:
         profiles[index] = profile
@@ -510,24 +552,37 @@ def format_item(item_no: int, max_no: int, item: Any) -> str:
     11. Pineapple
     """
 
-    max_digits = int(math.log10(max_no)) + 1  # how many digits to represent the number in decimal system
+    max_digits = (
+        int(math.log10(max_no)) + 1
+    )  # how many digits to represent the number in decimal system
     justified_item_no = f"{item_no}.".ljust(max_digits + 1)
     return f"{justified_item_no} {item}"
 
 
 def parse_cmd_line() -> Tuple[str, bool, Action, List[str]]:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--filename", default=DEFAULT_PROFILES_FILE_NAME, help="Profiles file name")
-    parser.add_argument("--profiles", nargs="+", default=[], help="Names of profiles to create")
-    parser.add_argument("--verbose", default=False, action="store_true", help="Enable verbose logging")
-    parser.add_argument("action", choices=[Action.ADD.value, Action.COMPLETE.value, Action.VALIDATE.value])
+    parser.add_argument(
+        "--filename", default=DEFAULT_PROFILES_FILE_NAME, help="Profiles file name"
+    )
+    parser.add_argument(
+        "--profiles", nargs="+", default=[], help="Names of profiles to create"
+    )
+    parser.add_argument(
+        "--verbose", default=False, action="store_true", help="Enable verbose logging"
+    )
+    parser.add_argument(
+        "action",
+        choices=[Action.ADD.value, Action.COMPLETE.value, Action.VALIDATE.value],
+    )
     args = parser.parse_args()
     return (args.filename, args.verbose, Action(args.action), args.profiles)
 
 
 def setup_logging(verbose: bool) -> None:
     level = logging.DEBUG if verbose else logging.WARNING
-    logging.basicConfig(format="%(asctime)s [%(name)s] %(levelname)s: %(message)s", level=level)
+    logging.basicConfig(
+        format="%(asctime)s [%(name)s] %(levelname)s: %(message)s", level=level
+    )
 
 
 def profile_name_source() -> Iterator[str]:
@@ -539,7 +594,9 @@ if __name__ == "__main__":
     profiles_file_name, verbose_logging, action, profile_names = parse_cmd_line()
     setup_logging(verbose_logging)
     if action == Action.ADD:
-        execution_successful = add_new_profiles(profiles_file_name, profile_names or profile_name_source())
+        execution_successful = add_new_profiles(
+            profiles_file_name, profile_names or profile_name_source()
+        )
     elif action == Action.COMPLETE:
         execution_successful = complete_existing_profiles(profiles_file_name)
     elif action == Action.VALIDATE:

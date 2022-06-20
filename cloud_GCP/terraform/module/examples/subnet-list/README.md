@@ -5,10 +5,10 @@ Configuration in this directory creates configuration for subnet list.
 ## Usage
 
 To run this example you need to execute:
-```
-$ terraform init
-$ terraform plan
-$ terraform apply
+```bash
+terraform init
+terraform plan
+terraform apply
 ```
 
 ## Requirements

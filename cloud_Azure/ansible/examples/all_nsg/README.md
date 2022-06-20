@@ -7,13 +7,13 @@ Configuration in this directory creates configuration for all Network Security G
 To run this example you need to:
 * Authorize access to Azure for Kentik. You can do this on ["Add cloud" dialog](https://portal.kentik.com/v4/settings/clouds)
 * execute:
-```
-$ ansible-playbook main.yml
+```bash
+ansible-playbook main.yml
 ```
 
 ## Requirements
 
-* Example requires location, resource group name and subscription id
+* Example requires location, resource group name and subscription ID
 * Installed and logged az-cli [Installation](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) [Logging](https://docs.microsoft.com/en-us/cli/azure/authenticate-azure-cli)
 
 ## Inputs
@@ -22,13 +22,13 @@ $ ansible-playbook main.yml
 |------|-------------|------|---------|:--------:|
 | location | Azure location of the resources to gather logs | `string` | `` | yes |
 | kentik\_az\_resourcegroupname | Name of the resource group to gather logs from | `string` | `` | yes |
-| kentik\_az\_principal\_id | Id of the Service Principal Id for kentik app connection | `string` | `` | yes |
+| kentik\_az\_principal\_id | ID of the Service Principal ID for kentik app connection | `string` | `` | yes |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| Subscription ID | Subscription Id |
+| Subscription ID | Subscription ID |
 | Resource Group | Resource group name |
 | Location | Name of used location |
 | Storage Account Name | Storage account name where logs will be gathered |

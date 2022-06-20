@@ -43,16 +43,16 @@ Role creates:
 
 ## Inputs
 
-| Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| location | Azure location of the resources to gather logs | `string` | `` | yes |
-| kentik\_az\_sub | Id of the subscription in which resource are located | `string` | `` | yes |
-| kentik\_az\_resourcegroupname | Name of the resource group to gather logs from | `string` | `` | yes |
-| kentik\_az\_principal\_id | Id of the Service Principal Id for kentik app connection | `string` | `` | yes |
-| kentik\_az\_storageaccount | Storage account name to create for logs | `string` | `export2kentik` | no |
-| kentik\_az\_app\_id | Kentik Application ID | `string` | `a20ce222-63c0-46db-86d5-58551eeee89f` | no |
-| kentik\_az\_installdeps | Should Ansible install dependencies using pip or not | `bool` | true | no |
-| kentik\_az\_nsg\_store\_interval | Interval in minutes for logs storage | `int` | 60 | no |
+| Name | Description                                              | Type | Default | Required |
+|------|----------------------------------------------------------|------|---------|:--------:|
+| location | Azure location of the resources to gather logs           | `string` | `` | yes |
+| kentik\_az\_sub | ID of the subscription in which resource are located     | `string` | `` | yes |
+| kentik\_az\_resourcegroupname | Name of the resource group to gather logs from           | `string` | `` | yes |
+| kentik\_az\_principal\_id | ID of the Service Principal ID for kentik app connection | `string` | `` | yes |
+| kentik\_az\_storageaccount | Storage account name to create for logs                  | `string` | `export2kentik` | no |
+| kentik\_az\_app\_id | Kentik Application ID                                    | `string` | `a20ce222-63c0-46db-86d5-58551eeee89f` | no |
+| kentik\_az\_installdeps | Should Ansible install dependencies using pip or not     | `bool` | true | no |
+| kentik\_az\_nsg\_store\_interval | Interval in minutes for logs storage                     | `int` | 60 | no |
 
 
 
@@ -61,7 +61,7 @@ Role creates:
 
 | Name | Description |
 |------|-------------|
-| Subscription ID | Subscription Id |
+| Subscription ID | Subscription ID |
 | Resource Group | Resource group name |
 | Location | Name of used location |
 | Storage Account Name | Storage account name where logs will be gathered |

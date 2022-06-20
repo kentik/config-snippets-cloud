@@ -37,7 +37,8 @@ kentik_gcp_integration_subnets:
 kentik_gcp_integration_service_account_file: 
 ```
 
-### Google Cloud Platform Credentials
+Google Cloud Platform Credentials
+--------------
 Role uses gcp_ ansible modules which need to be authorized in order to work.
 Following variables are used
 

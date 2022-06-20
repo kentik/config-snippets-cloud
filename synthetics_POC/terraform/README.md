@@ -1,4 +1,4 @@
-## Preserving ksynth instance identity across VM rebuild
+# Preserving ksynth instance identity across VM rebuild
 
 
 The `ksynth.id` file contains unique identity for a `ksynth` instance. It needs to be preserved across VM upgrade in order to keep the instance associated with the tracking data in Kentik.
@@ -12,7 +12,7 @@ Note that you have to use unique `ksynth_instance_name` for each unique `ksynth`
 ## Run terraform
 
 - create tfvars file
-    ```
+    ```hcl
     vm_names     = {
         "<instance_name_1>" = "<secret_name_1>"
         "<instance_name_n>" = "<secret_name_n>"

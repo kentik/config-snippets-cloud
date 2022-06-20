@@ -26,7 +26,7 @@ Add module with source parameter. Fortunately we can use modules directly from G
 
 ![](.assets/gifs/addModule.gif)
 
-The most important thing is to provide id of VPC we want to configure. This module is able to configure many VPCs at once so parameter is list of strings. Now we are going to provide one VPC id as one element list of strings.
+The most important thing is to provide ID of VPC we want to configure. This module is able to configure many VPCs at once so parameter is list of strings. Now we are going to provide one VPC ID as one element list of strings.
 
 ![](.assets/gifs/provideVPCId.gif)
 
@@ -42,18 +42,18 @@ Now when we have code ready, we can execute it!
 
 First we need to test terraform code using.
 
-```
-$ terraform init
-$ terraform validate
-$ terraform plan
+```bash
+terraform init
+terraform validate
+terraform plan
 ```
 
 ![](.assets/gifs/terraformPlan.gif)
 
 Plan output should always be revised carefully. If everything is OK (and it should be) then it's time for apply!
 
-```
-$ terraform apply
+```bash
+terraform apply
 ```
 
 ![](.assets/gifs/terraformApply.gif)

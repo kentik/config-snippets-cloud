@@ -4,14 +4,20 @@ import os
 import sys
 from typing import Any, Callable, Dict, List, Tuple
 
-from python_terraform import IsFlagged, IsNotFlagged, Terraform
-
 from azure_cli import az_cli
-from profiles import AzureProfile, ProfilesIncompleteError, ProfilesInvalidError, load_complete_profiles
+from profiles import (
+    AzureProfile,
+    ProfilesIncompleteError,
+    ProfilesInvalidError,
+    load_complete_profiles,
+)
+from python_terraform import IsFlagged, IsNotFlagged, Terraform
 
 log = logging.getLogger(__name__)
 logging.basicConfig(
-    format="%(asctime)s [%(name)s] %(levelname)s: %(message)s", level=logging.INFO, filename="onboarder.log"
+    format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
+    level=logging.INFO,
+    filename="onboarder.log",
 )
 
 EX_OK: int = 0  # exit code for successful command
@@ -21,7 +27,9 @@ DEFAULT_PROFILES_FILE_NAME: str = "profiles.ini"
 
 
 TerraformVars = Dict[str, Any]  # variables passed in terraform plan/apply/destroy call
-TerraformAction = Callable[[Terraform, TerraformVars], bool]  # terraform plan/apply/destroy
+TerraformAction = Callable[
+    [Terraform, TerraformVars], bool
+]  # terraform plan/apply/destroy
 
 
 def execute_action(action: TerraformAction, profiles: List[AzureProfile]) -> bool:
@@ -42,19 +50,29 @@ def execute_action(action: TerraformAction, profiles: List[AzureProfile]) -> boo
             "storage_account_names": profile.storage_account_names,
         }
 
-        if azure_login(profile) and prepare_workspace(t, profile.name) and action(t, tf_vars):
+        if (
+            azure_login(profile)
+            and prepare_workspace(t, profile.name)
+            and action(t, tf_vars)
+        ):
             successful_count += 1
 
     azure_logout()
 
-    print_log(f"Terraform action successfully executed for {successful_count}/{len(profiles)} Azure profile(s).")
+    print_log(
+        f"Terraform action successfully executed for {successful_count}/{len(profiles)} Azure profile(s)."
+    )
     return successful_count == len(profiles)
 
 
 def azure_login(profile: AzureProfile) -> bool:
-    """az login is required prior to calling terraform: "get_nsg.py" uses Azure CLI to gather Network Security Group names"""
+    """az login is required prior to calling terraform: "get_nsg.py" uses Azure CLI
+    to gather Network Security Group names"""
 
-    command = f"login --service-principal -u {profile.principal_id} -p {profile.principal_secret} --tenant {profile.tenant_id}"  # returns a list
+    command = (
+        f"login --service-principal -u {profile.principal_id} -p {profile.principal_secret} "
+        f"--tenant {profile.tenant_id}"
+    )  # returns a list
     output_list = az_cli(command)
     if not isinstance(output_list, list):
         print_log(
@@ -107,7 +125,9 @@ def action_apply(t: Terraform, tf_vars: TerraformVars) -> bool:
     """TerraformAction"""
 
     print_log("Terraform apply...")
-    code, stdout, stderr = t.apply(skip_plan=True, var=tf_vars)  # skip_plan means auto-approve
+    code, stdout, stderr = t.apply(
+        skip_plan=True, var=tf_vars
+    )  # skip_plan means auto-approve
     report_tf_output(code, stdout, stderr)
     return code != EX_FAILED
 
@@ -116,7 +136,9 @@ def action_destroy(t: Terraform, tf_vars: TerraformVars) -> bool:
     """TerraformAction"""
 
     print_log("Terraform destroy...")
-    code, stdout, stderr = t.apply(destroy=IsFlagged, skip_plan=True, var=tf_vars)  # auto-approve
+    code, stdout, stderr = t.apply(
+        destroy=IsFlagged, skip_plan=True, var=tf_vars
+    )  # auto-approve
     report_tf_output(code, stdout, stderr)
     return code != EX_FAILED
 
@@ -144,8 +166,12 @@ def report_tf_output(return_code: int, stdout: str, stderr: str) -> None:
 def parse_cmd_line() -> Tuple[TerraformAction, str]:
     ACTIONS = {"plan": action_plan, "apply": action_apply, "destroy": action_destroy}
     parser = argparse.ArgumentParser()
-    parser.add_argument("action", choices=["plan", "apply", "destroy"], help="Terraform step to execute")
-    parser.add_argument("--filename", default=DEFAULT_PROFILES_FILE_NAME, help="Profiles file name")
+    parser.add_argument(
+        "action", choices=["plan", "apply", "destroy"], help="Terraform step to execute"
+    )
+    parser.add_argument(
+        "--filename", default=DEFAULT_PROFILES_FILE_NAME, help="Profiles file name"
+    )
     args = parser.parse_args()
     return (ACTIONS[args.action], args.filename)
 
@@ -157,7 +183,9 @@ def load_profiles_or_exit(file_path: str) -> List[AzureProfile]:
     """
 
     if not os.path.exists(file_path):
-        print_log(f"File '{file_path}' doesn't exist", file=sys.stderr, level=logging.FATAL)
+        print_log(
+            f"File '{file_path}' doesn't exist", file=sys.stderr, level=logging.FATAL
+        )
         sys.exit(EX_FAILED)
 
     try:

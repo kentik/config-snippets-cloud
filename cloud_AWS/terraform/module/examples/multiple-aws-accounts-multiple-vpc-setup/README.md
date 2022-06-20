@@ -21,7 +21,7 @@ region = us-west-2 ; <-- region
 ## The process
 
 1. Information on available AWS profiles is read from configuration files under `~/.aws/`
-1. Information on desired profiles to export flow logs for is read from command line
+1. Information on desired profiles to export flow logs for is read from command-line
 1. Iterate over desired profiles:
     1. Derive Terraform workspace name by hashing the AWS profile name (so only lower case alphanumeric characters are used)
     1. Create Terraform workspace and activate it

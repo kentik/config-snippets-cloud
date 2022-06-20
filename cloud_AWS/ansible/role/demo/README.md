@@ -56,7 +56,7 @@ Remember to always check the [Variables section](https://github.com/kentik/confi
 
 ![](.gifs/checkVariables.gif)
 
-Ok, so we have to populate the *vpc_id_list* variable with VPC IDs we wish to create the flow logs for. 
+Ok, so we have to populate the *vpc_id_list* variable with VPC IDs we wish to create the flow logs for.
 
 ![](.gifs/populateVariables.gif)
 
@@ -81,11 +81,12 @@ The S3 bucket for our logs is there as well, although it is still empty.
 
 ![](.gifs/checkS3Again.gif)
 
-As the last thing we will check the CloudFormation. You may be surprised to see them, however it's not without a good reason. The Ansible lacks modules for both - the S3 bucket public access and more importantly the VPC Flow Logs. So we could choose to either execute the AWS CLI inside the role or to find out some other way to provide the needed resources. To avoid using any external commands and thus to make our role the first-class citizen of Ansible, we decided to use supoorted CloudFormation module.
+As the last thing we will check the CloudFormation. You may be surprised to see them, however it's not without a good reason. The Ansible lacks modules for both - the S3 bucket public access and more importantly the VPC Flow Logs.
+So we could choose to either execute the AWS CLI inside the role or to find out some other way to provide the needed resources. To avoid using any external commands and thus to make our role the first-class citizen of Ansible, we decided to use supoorted CloudFormation module.
 
-![](.gifs/checkCloudFormationAgain.gif) 
+![](.gifs/checkCloudFormationAgain.gif)
 
-Everything seem to be in place, so let's move to the last stage and onboard the cloud to Kentik. Remember the playbook's output? We will use it now. 
+Everything seem to be in place, so let's move to the last stage and onboard the cloud to Kentik. Remember the playbook's output? We will use it now.
 
 ![](.gifs/onboardKentik.gif)
 

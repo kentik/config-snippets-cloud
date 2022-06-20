@@ -9,8 +9,8 @@
 #### Single VPC, Single Region
 * [single-vpc](https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/terraform/module/examples/single-vpc)
 #### All VPC, Single Region
-* [all-vpc-from-region](https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/terraform/module/examples/all-vpc-from-region) 
-#### Deploy Sock Shop as an example micro-service architecture
+* [all-vpc-from-region](https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/terraform/module/examples/all-vpc-from-region)
+#### Deploy Sock Shop as an example microservice architecture
 * [sock-shop-eks](https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/terraform/module/examples/sock-shop-eks)
 
 ## Ansible

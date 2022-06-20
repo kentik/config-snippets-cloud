@@ -48,6 +48,7 @@ module "kentik_integration" {
   store_logs_more_frequently = true
 }
 
+# tflint-ignore: terraform_module_version
 module "eks" {
   source           = "terraform-aws-modules/eks/aws"
   cluster_name     = var.cluster_name

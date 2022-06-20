@@ -6,7 +6,7 @@ Configuration in this directory enables integration for a single VPC.
 
 To run this example you need to execute:
 ```bash
-$ ansible-playbook main.yml -i inventory.yml
+ansible-playbook main.yml -i inventory.yml
 ```
 
 ## Requirements

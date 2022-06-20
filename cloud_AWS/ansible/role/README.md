@@ -11,9 +11,9 @@ This role creates:
 
 First, clone the snippets repository and copy the `cloud_AWS/ansibe/role` contents into your Ansible roles directory structure, for example:
 ```bash
-$ git clone https://github.com/kentik/config-snippets-cloud /tmp/
-$ mkdir /my_ansible_working_dir/roles/kentik_aws_integration
-$ cp -ar /tmp/cloud_AWS/ansible/role/* /my_ansible_working_dir/roles/kentik_aws_integration
+git clone https://github.com/kentik/config-snippets-cloud /tmp/
+mkdir /my_ansible_working_dir/roles/kentik_aws_integration
+cp -ar /tmp/cloud_AWS/ansible/role/* /my_ansible_working_dir/roles/kentik_aws_integration
 ```
 
 Next, add the role into your playbook accordingly, for example:
@@ -66,12 +66,12 @@ Note however, instead of copying the role into your Ansible directory structure,
 
 ## Variables
 
-| Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| vpc\_id\_list | List of VPC ids for which Kentik should gather logs | `list(string)` | `[]` | yes |
-| rw\_s3\_access | If set to true, Kentik platform will be able to delete old logs from s3 buckets | `bool` | `false` | no |
-| s3\_bucket\_prefix | Prefix to use with s3 bucket name | `string` | `kentik` | no |
-| s3\_flowlogs\_bucket | An existing S3 bucket for saving logs | `string` | `` | no |
-| s3\_flowlogs\_path | Path on the S3 bucket for saving logs | `string` | `` | no |
-| iam\_role\_prefix | Prefix to use with IAM roles | `string` | `Kentik` | no |
+| Name | Description                                                                                                       | Type | Default | Required |
+|------|-------------------------------------------------------------------------------------------------------------------|------|---------|:--------:|
+| vpc\_id\_list | List of VPC IDs for which Kentik should gather logs                                                               | `list(string)` | `[]` | yes |
+| rw\_s3\_access | If set to true, Kentik platform will be able to delete old logs from s3 buckets                                   | `bool` | `false` | no |
+| s3\_bucket\_prefix | Prefix to use with s3 bucket name                                                                                 | `string` | `kentik` | no |
+| s3\_flowlogs\_bucket | An existing S3 bucket for saving logs                                                                             | `string` | `` | no |
+| s3\_flowlogs\_path | Path on the S3 bucket for saving logs                                                                             | `string` | `` | no |
+| iam\_role\_prefix | Prefix to use with IAM roles                                                                                      | `string` | `Kentik` | no |
 | store\_logs\_more\_frequently | Allows to choose how often save logs to s3. Default is once per 10 minutes. When enabled it saves once per minute | `bool` | `false` | no |
