@@ -3,11 +3,11 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 2.85"
+      version = "~> 3.10"
     }
     azuread = {
       source  = "hashicorp/azuread"
-      version = "~> 2.14"
+      version = "~> 2.24"
     }
     kentik-cloudexport = {
       source  = "kentik/kentik-cloudexport"
