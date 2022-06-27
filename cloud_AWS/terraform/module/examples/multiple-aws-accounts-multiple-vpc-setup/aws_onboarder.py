@@ -23,12 +23,8 @@ class AwsProfile:
     secret_key: str
 
 
-TerraformAction = Callable[
-    [Terraform, str], bool
-]  # terraform plan/apply/destroy for specified region
-RequestedProfileNames = Optional[
-    List[str]
-]  # list of profile names matching profiles in ~/.aws/credentials
+TerraformAction = Callable[[Terraform, str], bool]  # terraform plan/apply/destroy for specified region
+RequestedProfileNames = Optional[List[str]]  # list of profile names matching profiles in ~/.aws/credentials
 
 
 # execute an action for every profile
@@ -40,16 +36,12 @@ def execute_action(action: TerraformAction, profiles: List[AwsProfile]) -> bool:
 
         os.environ["AWS_ACCESS_KEY_ID"] = profile.access_key
         os.environ["AWS_SECRET_ACCESS_KEY"] = profile.secret_key
-        workspace = prepare_workspace_name(
-            profile.name
-        )  # AWS profiles are mapped to Terraform workspaces
+        workspace = prepare_workspace_name(profile.name)  # AWS profiles are mapped to Terraform workspaces
 
         if prepare_workspace(t, workspace) and action(t, profile.region):
             successful_count += 1
 
-    print(
-        f"Terraform action successfully executed for {successful_count}/{len(profiles)} AWS profile(s)."
-    )
+    print(f"Terraform action successfully executed for {successful_count}/{len(profiles)} AWS profile(s).")
     return successful_count == len(profiles)
 
 
@@ -76,34 +68,26 @@ def prepare_workspace(t: Terraform, workspace: str) -> bool:
 
 # TerraformAction
 def action_plan(t: Terraform, region: str) -> bool:
-    code, stdout, stderr = t.plan(
-        detailed_exitcode=IsNotFlagged, var=f"region={region}"
-    )
+    code, stdout, stderr = t.plan(detailed_exitcode=IsNotFlagged, var=f"region={region}")
     report_tf_output(code, stdout, stderr)
     return code != EX_FAILED
 
 
 # TerraformAction
 def action_apply(t: Terraform, region: str) -> bool:
-    code, stdout, stderr = t.apply(
-        skip_plan=True, var=f"region={region}"
-    )  # skip_plan means auto-approve
+    code, stdout, stderr = t.apply(skip_plan=True, var=f"region={region}")  # skip_plan means auto-approve
     report_tf_output(code, stdout, stderr)
     return code != EX_FAILED
 
 
 # TerraformAction
 def action_destroy(t: Terraform, region: str) -> bool:
-    code, stdout, stderr = t.apply(
-        destroy=IsFlagged, skip_plan=True, var=f"region={region}"
-    )  # auto-approve
+    code, stdout, stderr = t.apply(destroy=IsFlagged, skip_plan=True, var=f"region={region}")  # auto-approve
     report_tf_output(code, stdout, stderr)
     return code != EX_FAILED
 
 
-def prepare_workspace_name(
-    name: str, workspace_names={}
-) -> str:  # pylint: disable=dangerous-default-value
+def prepare_workspace_name(name: str, workspace_names={}) -> str:  # pylint: disable=dangerous-default-value
     # workspace name is used as a suffix to certain AWS and Kentik resource names to make them unique;
     # only lower case alphanumeric characters and hyphens are allowed - S3 bucket name limitation
 
@@ -113,10 +97,7 @@ def prepare_workspace_name(
     # ensure name uniqueness
     while ws_name in workspace_names:
         log.debug(
-            "Workspace name collision for '%s'. '%s' already used for '%s'",
-            name,
-            ws_name,
-            workspace_names[ws_name],
+            "Workspace name collision for '%s'. '%s' already used for '%s'", name, ws_name, workspace_names[ws_name]
         )
         ws_name += "-"
         log.debug("Changing to %s", ws_name)
@@ -136,9 +117,7 @@ def report_tf_output(return_code: int, stdout: str, stderr: str) -> None:
     elif return_code == EX_FAILED:
         print("FAILED", file=sys.stderr)
     else:
-        print(
-            "Return code: ", return_code
-        )  # Terraform uses codes > 1 for reporting detailed status
+        print("Return code: ", return_code)  # Terraform uses codes > 1 for reporting detailed status
 
     print()
 
@@ -152,42 +131,30 @@ def check_kentik_credentials() -> None:
 
 def get_aws_profiles(requested: RequestedProfileNames) -> List[AwsProfile]:
     profiles: List[AwsProfile] = []
-    available_profiles = (
-        aws.Session().available_profiles
-    )  # loaded from ~/.aws/credentials and ~/.aws/config
-    filtered_profiles = [
-        p for p in available_profiles if not requested or p in requested
-    ]
+    available_profiles = aws.Session().available_profiles  # loaded from ~/.aws/credentials and ~/.aws/config
+    filtered_profiles = [p for p in available_profiles if not requested or p in requested]
     for profile in filtered_profiles:
         session = aws.Session(profile_name=profile)
         try:
             cred = session.get_credentials()
         except BotoCoreError as e:
-            print(
-                f'Failed to obtain credentials for profile "{profile}". Profile skipped. Error message: {e}'
-            )
+            print(f'Failed to obtain credentials for profile "{profile}". Profile skipped. Error message: {e}')
             continue
 
         if not cred:
-            print(
-                f'No credentials configured for profile "{profile}". Profile skipped.'
-            )
+            print(f'No credentials configured for profile "{profile}". Profile skipped.')
             continue
 
         if not session.region_name:
             print(f'No region name configured for profile "{profile}". Profile skipped')
             continue
 
-        profiles.append(
-            AwsProfile(profile, session.region_name, cred.access_key, cred.secret_key)
-        )
+        profiles.append(AwsProfile(profile, session.region_name, cred.access_key, cred.secret_key))
 
     if requested:
         missing_profiles = list(set(requested) - set(available_profiles))
         if missing_profiles:
-            print(
-                "Missing config for profiles:", missing_profiles, ". Profiles skipped"
-            )
+            print("Missing config for profiles:", missing_profiles, ". Profiles skipped")
     return profiles
 
 
@@ -195,20 +162,15 @@ def parse_cmd_line() -> Tuple[TerraformAction, RequestedProfileNames]:
     ACTIONS = {"plan": action_plan, "apply": action_apply, "destroy": action_destroy}
     ALL_PROFILES = "*"
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "action", choices=["plan", "apply", "destroy"], help="Terraform step to execute"
-    )
+    parser.add_argument("action", choices=["plan", "apply", "destroy"], help="Terraform step to execute")
     parser.add_argument(
         "--profiles",
         required=True,
         help=f"Required. List of AWS profiles, eg. profile1,profile2,profile3. "
-        f'Use "{ALL_PROFILES}" to select all profiles',
+             f'Use "{ALL_PROFILES}" to select all profiles',
     )
     args = parser.parse_args()
-    return (
-        ACTIONS[args.action],
-        args.profiles.split(",") if args.profiles != ALL_PROFILES else None,
-    )
+    return ACTIONS[args.action], args.profiles.split(",") if args.profiles != ALL_PROFILES else None
 
 
 if __name__ == "__main__":

@@ -19,6 +19,7 @@ jobs:
         uses: github/super-linter@v4.9.2
         env:
           LINTER_RULES_PATH: /.github/linters
+          PYTHON_BLACK_CONFIG_FILE: pyproject.toml
           DEFAULT_BRANCH: master
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATE_TERRAFORM_TERRASCAN: false
