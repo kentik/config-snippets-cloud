@@ -103,6 +103,7 @@ variable "external_id" {
 }
 
 variable bucket_arn_list {
+  description = "List of all created buckets arn's - internal use only"
   type        = list(string)
   default     = null
 }
@@ -112,12 +113,8 @@ variable "create_bucket" {
   default = true
 }
 
-variable "bucket_name_list" {
-  type        = list(string)
-  default     = null
-}
-
-variable "regions" {
-  type        = list(string)
-  default     = null
+variable "bucket_region_name" {
+  description = "List of all created buckets names - internal use only"
+  type        = list(list(string))
+  default     = []
 }

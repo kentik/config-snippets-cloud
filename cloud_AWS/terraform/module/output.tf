@@ -12,7 +12,3 @@ output "bucket_name_list" {
 output "bucket_arn_list" {
   value = aws_s3_bucket.vpc_logs.*.arn
 }
-
-output "regions" {
-  value = [var.region]
-}

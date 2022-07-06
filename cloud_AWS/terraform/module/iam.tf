@@ -23,7 +23,7 @@ resource "aws_iam_policy" "kentik_ec2_access" {
 }
 
 resource "aws_iam_policy" "kentik_s3_policy" {
-  count       = var.create_role ? 1 : 0
+  count       = var.create_role ? (var.bucket_arn_list != null ? 1  : 0): 0
   name        = "${var.iam_role_prefix}S3PolicyAccess"
   description = "Defines accesses for Kentik platform to S3 resources"
   path        = "/"
@@ -38,7 +38,7 @@ resource "aws_iam_policy" "kentik_s3_policy" {
 }
 
 resource "aws_iam_policy_attachment" "kentik_s3_access" {
-  count      = var.create_role ? 1 : 0
+  count      = var.create_role ? (aws_iam_policy.kentik_s3_policy != [] ? 1 : 0): 0
   name       = "${var.iam_role_prefix}-s3-access"
   roles      = [aws_iam_role.kentik_role[0].name]
   policy_arn = aws_iam_policy.kentik_s3_policy[0].arn

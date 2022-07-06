@@ -1,6 +1,6 @@
-# Single VPC
+# Multiple VPC's from different regions
 
-Configuration in this directory creates configuration for two VPC's located in two different locations.
+The configuration in this directory creates a configuration for each VPC ID located in the input_data.json file.
 
 
 ## Requirements
@@ -21,27 +21,55 @@ Configuration in this directory creates configuration for two VPC's located in t
 Run the example:
 
 ```shell
-terraform init
-terraform apply --var vpc_id_1=<vpc-id-1> --var vpc_id_2=<vpc-id-2>
+terraform -chdir=./bucket init && terraform -chdir=./cloud_iam init
+python3 aws_multiregions.py apply
 ```
 
 Clean up created resources:
 
 ```shell
-terraform destroy --var vpc_id_1=<vpc-id-1> --var vpc_id_2=<vpc-id-2>
+python3 aws_multiregions.py destroy
 ```
 
 ## Inputs
 
-| Name      | Description                   | Type |
-|-----------|-------------------------------|------|
-| vpc\_id_1 | ID of first VPC to configure  | `string`|
-| vpc\_id_2 | ID of second VPC to configure | `string`|
+| Name             | Description                                                                                          | Type           | Required |
+|------------------|------------------------------------------------------------------------------------------------------|----------------|----------|
+| external_id      | Company ID assigned by Kentik passed to assume role policy of TerraformIngestRole ([External ID][1]) | `string`       | true     |
+| plan_id          | Billing plan ID.                                                                                     | `string`       | true     |
+| regions          | Dict object with key's as regions names                                                              | `dict`         | true     |
+| vpc_id_list      | List of VPC ids for which Kentik should gather logs                                                  | `list(string)` | true     |
+| s3_bucket_prefix | Prefix to use with s3 bucket name                                                                    | `string`       | false    |
+
+
+### Example input_data.json
+
+```json
+{
+  "external_id" : "12345",
+  "plan_id" : "55555",
+  "regions": {
+    "us-west-1": {
+      "vpc_id_list": [
+        "vpc-0f2f43b3fef212f3c",
+        "vpc-0ce56af6e5c980294"
+      ],
+      "s3_bucket_prefix": "tf-multi-region"
+    },
+    "eu-west-1": {
+      "vpc_id_list": [
+        "vpc-019399c7bcc3772d6"
+      ],
+      "s3_bucket_prefix": "tf-multi-region"
+      }
+  }
+}
+```
 
 ## Outputs
 
-| Name                 | Description                                |
-|----------------------|--------------------------------------------|
-| iam\_role\_arn       | ARN of created IAM role                    |
-| bucket\_name\_list_1 | List of all created buckets for first vpc  |
-| bucket\_name\_list_2 | List of all created buckets for second vpc |
+| Name                    | Description                                    |
+|-------------------------|------------------------------------------------|
+| iam_role_arn            | ARN of created IAM role                        |
+| kentik_bucket_name      | List of all created buckets for provided vpc's |
+| kentik_bucket_arn_list  | List of all created buckets arn's              |
