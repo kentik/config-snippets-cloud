@@ -27,3 +27,9 @@ variable "plan_id" {
   type        = string
   default     = ""
 }
+
+variable "region" {
+  description = "Specifies AWS provider region"
+  type        = string
+  default = ""
+}

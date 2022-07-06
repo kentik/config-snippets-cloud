@@ -3,6 +3,7 @@ data "aws_ami" "ubuntu" {
 
   filter {
     name   = "name"
+    # Make sure that given ami is not deprecated.
     values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
   }
 
@@ -29,6 +30,7 @@ curl -s https://packagecloud.io/install/repositories/kentik/ksynth/script.deb.sh
 apt-get install ksynth
 echo "KENTIK_COMPANY=${var.plan_id}" >> /etc/default/ksynth
 systemctl start ksynth
+# Restart agent after setting variables
 systemctl stop ksynth && systemctl start ksynth
 EOF
 
