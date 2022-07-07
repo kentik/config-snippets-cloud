@@ -1,5 +1,8 @@
 # config-snippets-cloud
 
+# Kentik swagger documents for creating Cloud Exports
+* https://portal.kentik.com/v4/core/api-tester/cloud_export-202101beta1/swagger
+
 # Automate AWS
 ## Terraform
 * [Terraform](https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/terraform)
