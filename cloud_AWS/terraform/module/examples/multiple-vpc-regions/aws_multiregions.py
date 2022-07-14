@@ -19,10 +19,9 @@ DFAULT_VPC_REGIONS_FILE_NAME: str = "input_data.json"
 
 TerraformVars = Dict[str, Any]  # variables passed in terraform plan/apply/destroy call
 TerraformAction = Callable[[Terraform, TerraformVars], bool]  # terraform plan/apply/destroy
-Region = Dict[str, Dict]
 
 
-def validate_input_data(vpc_regions: Dict[str, Region]) -> bool:
+def validate_input_data(vpc_regions: Dict[str, Any]) -> bool:
     if not vpc_regions.get("plan_id"):
         print_log("plan_id is required.")
         return False
@@ -35,22 +34,22 @@ def validate_input_data(vpc_regions: Dict[str, Region]) -> bool:
     return True
 
 
-def execute_action(action: TerraformAction, vpc_regions: Dict[str, Region]) -> bool:
+def execute_action(action: TerraformAction, vpc_regions: Dict[str, Any]) -> bool:
     """Execute an action for every region"""
 
     if not validate_input_data(vpc_regions):
-        return True
+        return False
 
     t_bucket = Terraform(working_dir="bucket/")
     bucket_region_name = []
     bucket_arn_list = []
-    no_err = True
+    execution_success = True
 
     # invoke action for each region on terraform configuration located in bucket/
     for region in vpc_regions["regions"]:
         print_log(f'Region: {region}, vpc ids: {vpc_regions["regions"][region]["vpc_id_list"]}')
         if not vpc_regions["regions"][region]["vpc_id_list"]:
-            no_err = False
+            execution_success = False
             print_log(f"{region} region contain invalid vpc_id_list. For each region must be at least one vpc ID.")
         else:
             tf_vars = {
@@ -60,7 +59,7 @@ def execute_action(action: TerraformAction, vpc_regions: Dict[str, Region]) -> b
             }
 
             if not (prepare_workspace(t_bucket, region) and action(t_bucket, tf_vars)):
-                no_err = False
+                return False
 
             if t_bucket.output().get("kentik_bucket_name") and t_bucket.output()["kentik_bucket_name"].get("value"):
                 for bucket_name in t_bucket.output()["kentik_bucket_name"]["value"]:
@@ -79,9 +78,9 @@ def execute_action(action: TerraformAction, vpc_regions: Dict[str, Region]) -> b
         "bucket_arn_list": bucket_arn_list
     }
     if not action(t_cloud_aim, tf_vars):
-        no_err = False
+        execution_success = False
 
-    return no_err
+    return execution_success
 
 
 def prepare_workspace(t: Terraform, workspace: str) -> bool:
@@ -162,7 +161,7 @@ def parse_cmd_line() -> Tuple[TerraformAction, str]:
     return ACTIONS[args.action], args.filename
 
 
-def load_vpc_regions_or_exit(file_path: str) -> Dict:
+def load_vpc_regions_or_exit(file_path: str) -> Dict[str, Any]:
     """
     Return input data dict on success
     Exit with code FAILED when file not found or file reading error
