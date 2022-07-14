@@ -1,6 +1,5 @@
 variable "vpc_id_list" {
   type        = list(string)
-  default     = [""]
 }
 
 variable "region" {

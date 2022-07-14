@@ -8,7 +8,7 @@ The configuration in this directory creates a configuration for each VPC ID loca
 - Installed and configured AWS CLI
     - [installation](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
     - [configuration](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html)
-- Created VPC
+- Created VPC (or default VPC)
 - Exported Kentik API credentials:
 
   ```shell
@@ -22,6 +22,7 @@ Run the example:
 
 ```shell
 terraform -chdir=./bucket init && terraform -chdir=./cloud_iam init
+python3 aws_multiregions.py plan
 python3 aws_multiregions.py apply
 ```
 

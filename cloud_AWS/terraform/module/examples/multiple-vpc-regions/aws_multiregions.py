@@ -19,33 +19,55 @@ DFAULT_VPC_REGIONS_FILE_NAME: str = "input_data.json"
 
 TerraformVars = Dict[str, Any]  # variables passed in terraform plan/apply/destroy call
 TerraformAction = Callable[[Terraform, TerraformVars], bool]  # terraform plan/apply/destroy
+Region = Dict[str, Dict]
 
 
-def execute_action(action: TerraformAction, vpc_regions: dict) -> bool:
+def validate_input_data(vpc_regions: Dict[str, Region]) -> bool:
+    if not vpc_regions.get("plan_id"):
+        print_log("plan_id is required.")
+        return False
+    if not vpc_regions.get("external_id"):
+        print_log("external_id is required.")
+        return False
+    if not vpc_regions.get("regions"):
+        print_log("At least one region is required.")
+        return False
+    return True
+
+
+def execute_action(action: TerraformAction, vpc_regions: Dict[str, Region]) -> bool:
     """Execute an action for every region"""
+
+    if not validate_input_data(vpc_regions):
+        return True
 
     t_bucket = Terraform(working_dir="bucket/")
     bucket_region_name = []
     bucket_arn_list = []
-    err_occur = False
+    no_err = True
 
     # invoke action for each region on terraform configuration located in bucket/
     for region in vpc_regions["regions"]:
         print_log(f'Region: {region}, vpc ids: {vpc_regions["regions"][region]["vpc_id_list"]}')
-        tf_vars = {
-            "region": region,
-            "vpc_id_list": vpc_regions["regions"][region]["vpc_id_list"],
-            "s3_bucket_prefix": vpc_regions["regions"][region].get("s3_bucket_prefix", "")
-        }
+        if not vpc_regions["regions"][region]["vpc_id_list"]:
+            no_err = False
+            print_log(f"{region} region contain invalid vpc_id_list. For each region must be at least one vpc ID.")
+        else:
+            tf_vars = {
+                "region": region,
+                "vpc_id_list": vpc_regions["regions"][region]["vpc_id_list"],
+                "s3_bucket_prefix": vpc_regions["regions"][region].get("s3_bucket_prefix", "")
+            }
 
-        if not (prepare_workspace(t_bucket, region) and action(t_bucket, tf_vars)):
-            err_occur = True
+            if not (prepare_workspace(t_bucket, region) and action(t_bucket, tf_vars)):
+                no_err = False
 
-        if t_bucket.output().get("kentik_bucket_name") and t_bucket.output()["kentik_bucket_name"].get("value"):
-            for bucket_name in t_bucket.output()["kentik_bucket_name"]["value"]:
-                bucket_region_name.append([region, bucket_name])
-        if t_bucket.output().get("kentik_bucket_arn_list") and t_bucket.output()["kentik_bucket_arn_list"].get("value"):
-            bucket_arn_list.extend(t_bucket.output()["kentik_bucket_arn_list"]["value"])
+            if t_bucket.output().get("kentik_bucket_name") and t_bucket.output()["kentik_bucket_name"].get("value"):
+                for bucket_name in t_bucket.output()["kentik_bucket_name"]["value"]:
+                    bucket_region_name.append([region, bucket_name])
+            if t_bucket.output().get("kentik_bucket_arn_list") \
+                    and t_bucket.output()["kentik_bucket_arn_list"].get("value"):
+                bucket_arn_list.extend(t_bucket.output()["kentik_bucket_arn_list"]["value"])
 
     # invoke action on terraform configuration located in cloud_iam/
     t_cloud_aim = Terraform(working_dir="cloud_iam/")
@@ -57,9 +79,9 @@ def execute_action(action: TerraformAction, vpc_regions: dict) -> bool:
         "bucket_arn_list": bucket_arn_list
     }
     if not action(t_cloud_aim, tf_vars):
-        err_occur = True
+        no_err = False
 
-    return err_occur
+    return no_err
 
 
 def prepare_workspace(t: Terraform, workspace: str) -> bool:
@@ -140,7 +162,7 @@ def parse_cmd_line() -> Tuple[TerraformAction, str]:
     return ACTIONS[args.action], args.filename
 
 
-def load_vpc_regions_or_exit(file_path: str) -> dict:
+def load_vpc_regions_or_exit(file_path: str) -> Dict:
     """
     Return input data dict on success
     Exit with code FAILED when file not found or file reading error

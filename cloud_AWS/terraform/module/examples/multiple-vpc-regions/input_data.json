@@ -1,6 +1,6 @@
 {
-  "external_id" : "",
-  "plan_id" : "",
+  "external_id" : "<external_id>",
+  "plan_id" : "<plan_id>",
   "regions": {
     "us-west-2": {
       "vpc_id_list": [

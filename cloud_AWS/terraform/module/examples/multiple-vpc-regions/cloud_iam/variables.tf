@@ -4,17 +4,18 @@ variable "region" {
 
 variable "plan_id" {
   type        = string
-  default = ""
 }
 
 variable "bucket_region_name" {
   type        = list(list(string))
   default     = []
+  description = "internal use only"
 }
 
 variable "bucket_arn_list" {
   type        = list(string)
   default     = null
+  description = "internal use only"
 }
 
 variable "iam_role_prefix" {
@@ -24,5 +25,4 @@ variable "iam_role_prefix" {
 
 variable "external_id" {
   type        = string
-  default     = ""
 }
