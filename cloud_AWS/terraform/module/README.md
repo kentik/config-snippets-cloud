@@ -31,29 +31,30 @@ Module creates:
 
 ## Inputs
 
-| Name                          | Description                                                                                                       | Type                 | Default                        | Required |
-|-------------------------------|-------------------------------------------------------------------------------------------------------------------|----------------------|--------------------------------|:--------:|
-| rw\_s3\_access                | If set to true, Kentik platform will be able to delete old logs from s3 buckets                                   | `bool`               | ` `                            |   yes    |
-| vpc\_id\_list                 | List of VPC ids for which Kentik should gather logs                                                               | `list(string)`       | `[]`                           |   yes    |
-| s3\_bucket\_prefix            | Prefix to use with s3 bucket name                                                                                 | `string`             | `kentik`                       |    no    |
-| s3\_use\_one\_bucket          | If we should use one or more buckets                                                                              | `bool`               | `true`                         |    no    |
-| s3\_flowlogs\_path            | Path on the S3 bucket for saving logs                                                                             | `string`             | ``                             |    no    |
-| s3\_base\_name                | Base name for s3 bucket. Used in single bucket mode                                                               | `string`             | `ingest-bucket`                |    no    |
-| s3_delete_nonempty_buckets    | On terraform destroy, delete bucket even if it is not empty                                                       | `bool`               | `false`                        |    no    |
-| iam\_role\_prefix             | Prefix to use with IAM roles                                                                                      | `string`             | `Kentik`                       |    no    |
-| store\_logs\_more\_frequently | Allows to chose how often save logs to s3. Default is once per 10 minutes. When enabled it saves once per minute  | `bool`               | `false`                        |    no    |
-| create\_role                  | If to create kentik role                                                                                          | `bool`               | `true`                         |    no    |
-| name                          | Cloudexport entry name in Kentik                                                                                  | `string`             | `terraform_aws_exported_cloud` |    no    |
-| enabled                       | If cloud exported to Kentik is enabled                                                                            | `bool`               | `true`                         |    no    |
-| description                   | Cloudexport entry description in Kentik                                                                           | `string`             | ``                             |    no    |
-| plan\_id                      | Billing plan ID.                                                                                                  | `string`             |                                |    no    |
-| delete\_after\_read           | If to delete after read                                                                                           | `bool`               | `false`                        |    no    |
-| multiple\_buckets             | If to use multiple buckets                                                                                        | `bool`               | `false`                        |    no    |
-| region                        | Specifies AWS region passed to Kentik Portal                                                                      | `string`             |                                |   yes    |
-| external_id                   | Company ID assigned by Kentik passed to assume role policy of TerraformIngestRole ([External ID][1])              | `string`             | ``                             |    no    |
-| bucket_arn_list               | List of all created buckets arn's - internal use only                                                             | `list(string)`       | `null`                         |    no    |
-| create_bucket                 | If to create bucket. Used in multi vpc regions                                                                    | `bool`               | `true`                         |    no    |
-| bucket_region_name            | List of all created buckets names - internal use only                                                             | `list(list(string))` | `null`                         |    no    |
+| Name                          | Description                                                                                                      | Type                 | Default                        | Required |
+|-------------------------------|------------------------------------------------------------------------------------------------------------------|----------------------|--------------------------------|:--------:|
+| rw\_s3\_access                | If set to true, Kentik platform will be able to delete old logs from s3 buckets                                  | `bool`               | ` `                            |   yes    |
+| vpc\_id\_list                 | List of VPC ids for which Kentik should gather logs                                                              | `list(string)`       | `[]`                           |   yes    |
+| s3\_bucket\_prefix            | Prefix to use with s3 bucket name                                                                                | `string`             | `kentik`                       |    no    |
+| s3\_use\_one\_bucket          | If we should use one or more buckets                                                                             | `bool`               | `true`                         |    no    |
+| s3\_flowlogs\_path            | Path on the S3 bucket for saving logs                                                                            | `string`             | ``                             |    no    |
+| s3\_base\_name                | Base name for s3 bucket. Used in single bucket mode                                                              | `string`             | `ingest-bucket`                |    no    |
+| s3_delete_nonempty_buckets    | On terraform destroy, delete bucket even if it is not empty                                                      | `bool`               | `false`                        |    no    |
+| iam\_role\_prefix             | Prefix to use with IAM roles                                                                                     | `string`             | `Kentik`                       |    no    |
+| store\_logs\_more\_frequently | Allows to chose how often save logs to s3. Default is once per 10 minutes. When enabled it saves once per minute | `bool`               | `false`                        |    no    |
+| create\_role                  | If to create kentik role                                                                                         | `bool`               | `true`                         |    no    |
+| name                          | Cloudexport entry name in Kentik                                                                                 | `string`             | `terraform_aws_exported_cloud` |    no    |
+| enabled                       | If cloud exported to Kentik is enabled                                                                           | `bool`               | `true`                         |    no    |
+| description                   | Cloudexport entry description in Kentik                                                                          | `string`             | ``                             |    no    |
+| plan\_id                      | Billing plan ID.                                                                                                 | `string`             |                                |    no    |
+| delete\_after\_read           | If to delete after read                                                                                          | `bool`               | `false`                        |    no    |
+| multiple\_buckets             | If to use multiple buckets                                                                                       | `bool`               | `false`                        |    no    |
+| region                        | Specifies AWS region passed to Kentik Portal                                                                     | `string`             |                                |   yes    |
+| external_id                   | Company ID assigned by Kentik passed to assume role policy of TerraformIngestRole ([External ID][1])             | `string`             | ``                             |    no    |
+| bucket_arn_list               | List of all created buckets arn's - internal use only                                                            | `list(string)`       | `null`                         |    no    |
+| create_bucket                 | If to create bucket. Used in multi vpc regions                                                                   | `bool`               | `true`                         |    no    |
+| bucket_region_name            | List of all created buckets names - internal use only                                                            | `list(list(string))` | `null`                         |    no    |
+| create_cloudexport            | If set to false it will not create CloudExport                                                                   | `bool`               | `true`                         |    no    |
 
 [1]: https://aws.amazon.com/blogs/security/how-to-use-external-id-when-granting-access-to-your-aws-resources/
 

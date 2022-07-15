@@ -118,3 +118,9 @@ variable "bucket_region_name" {
   type        = list(list(string))
   default     = []
 }
+
+variable "create_cloudexport" {
+  description = "If set to false it will not create CloudExport"
+  type    = bool
+  default = true
+}

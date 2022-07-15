@@ -8,7 +8,7 @@ terraform {
 
 resource "kentik-cloudexport_item" "aws_export" {
   # Create when bucket_name_list or plan_id is set
-  count = length(var.bucket_region_name) != 0 ? length(var.bucket_region_name) : var.plan_id == "" ? 0 : 1
+  count = length(var.bucket_region_name) != 0 ? length(var.bucket_region_name) : var.create_cloudexport ? 1 : 0
 
   name           = length(var.bucket_region_name) != 0 ? "${var.name}-${terraform.workspace}-${count.index}" : "${var.name}-${terraform.workspace}" # cloudexport name must be unique
   type           = "CLOUD_EXPORT_TYPE_KENTIK_MANAGED"

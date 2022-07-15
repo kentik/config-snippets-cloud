@@ -1,6 +1,6 @@
 # Multiple VPC's from different regions
 
-The configuration in this directory creates a configuration for each VPC ID located in the input_data.json file.
+The configuration in this directory creates a configuration for all vpc located in regions from multi_region_data.ini file.
 
 
 ## Requirements
@@ -22,49 +22,40 @@ Run the example:
 
 ```shell
 terraform -chdir=./bucket init && terraform -chdir=./cloud_iam init
-python3 aws_multiregions.py plan
-python3 aws_multiregions.py apply
+python3 aws_multi_regions.py plan
+python3 aws_multi_regions.py apply
 ```
 
 Clean up created resources:
 
 ```shell
-python3 aws_multiregions.py destroy
+python3 aws_multi_regions.py destroy
 ```
 
 ## Inputs
 
-| Name             | Description                                                                                          | Type           | Required |
-|------------------|------------------------------------------------------------------------------------------------------|----------------|----------|
-| external_id      | Company ID assigned by Kentik passed to assume role policy of TerraformIngestRole ([External ID][1]) | `string`       | true     |
-| plan_id          | Billing plan ID.                                                                                     | `string`       | true     |
-| regions          | Dict object with key's as regions names                                                              | `dict`         | true     |
-| vpc_id_list      | List of VPC ids for which Kentik should gather logs                                                  | `list(string)` | true     |
-| s3_bucket_prefix | Prefix to use with s3 bucket name                                                                    | `string`       | false    |
+| Name             | Description                                                                                          | Type     | Required |
+|------------------|------------------------------------------------------------------------------------------------------|----------|----------|
+| external_id      | Company ID assigned by Kentik passed to assume role policy of TerraformIngestRole ([External ID][1]) | `string` | true     |
+| plan_id          | Billing plan ID                                                                                      | `string` | true     |
+| region           | AWS region name                                                                                      | `string` | true     |
+| s3_bucket_prefix | Prefix to use with s3 bucket name                                                                    | `string` | false    |
 
 
-### Example input_data.json
+### Example multi_region_data.ini
 
-```json
-{
-  "external_id" : "12345",
-  "plan_id" : "55555",
-  "regions": {
-    "us-west-1": {
-      "vpc_id_list": [
-        "vpc-0f2f43b3fef212f3c",
-        "vpc-0ce56af6e5c980294"
-      ],
-      "s3_bucket_prefix": "tf-multi-region"
-    },
-    "eu-west-1": {
-      "vpc_id_list": [
-        "vpc-019399c7bcc3772d6"
-      ],
-      "s3_bucket_prefix": "tf-multi-region"
-      }
-  }
-}
+```ini
+[first-region]
+region = us-west-2
+external_id = 1234
+plan_id = 1234
+s3_bucket_prefix = tf-multi-region
+
+[second-region]
+region = eu-west-1
+external_id = 1234
+plan_id = 1234
+s3_bucket_prefix = tf-multi-region
 ```
 
 ## Outputs

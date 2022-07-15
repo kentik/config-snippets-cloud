@@ -1,43 +1,45 @@
 import argparse
 import logging
-import json
 import os
 import sys
-from typing import Any, Callable, Dict, Tuple
+from typing import Any, Callable, Dict, Tuple, List
 
 from python_terraform import IsFlagged, IsNotFlagged, Terraform
 
+from multi_region_data import MultiRegionData, load_multi_region_data
+
 log = logging.getLogger(__name__)
 logging.basicConfig(
-    format="%(asctime)s [%(name)s] %(levelname)s: %(message)s", level=logging.INFO, filename="multiregions.log"
+    format="%(asctime)s [%(name)s] %(levelname)s: %(message)s", level=logging.INFO, filename="multiregion.log"
 )
 
 EX_OK: int = 0  # exit code for successful command
 EX_FAILED: int = 1  # exit  code for failed command
 
-DFAULT_VPC_REGIONS_FILE_NAME: str = "input_data.json"
+DEFAULT_MULTI_REGION_DATA_FILE: str = "multi_region_data.ini"
 
 TerraformVars = Dict[str, Any]  # variables passed in terraform plan/apply/destroy call
 TerraformAction = Callable[[Terraform, TerraformVars], bool]  # terraform plan/apply/destroy
 
 
-def validate_input_data(vpc_regions: Dict[str, Any]) -> bool:
-    if not vpc_regions.get("plan_id"):
-        print_log("plan_id is required.")
-        return False
-    if not vpc_regions.get("external_id"):
-        print_log("external_id is required.")
-        return False
-    if not vpc_regions.get("regions"):
-        print_log("At least one region is required.")
-        return False
+def validate_multi_region_data(multi_region_data: List[MultiRegionData]) -> bool:
+    for region_data in multi_region_data:
+        if not region_data.plan_id:
+            print_log("plan_id is required.")
+            return False
+        if not region_data.external_id:
+            print_log("external_id is required.")
+            return False
+        if not region_data.region:
+            print_log("region is required.")
+            return False
     return True
 
 
-def execute_action(action: TerraformAction, vpc_regions: Dict[str, Any]) -> bool:
+def execute_action(action: TerraformAction, multi_region_data: List[MultiRegionData]) -> bool:
     """Execute an action for every region"""
 
-    if not validate_input_data(vpc_regions):
+    if not validate_multi_region_data(multi_region_data):
         return False
 
     t_bucket = Terraform(working_dir="bucket/")
@@ -46,38 +48,34 @@ def execute_action(action: TerraformAction, vpc_regions: Dict[str, Any]) -> bool
     execution_success = True
 
     # invoke action for each region on terraform configuration located in bucket/
-    for region in vpc_regions["regions"]:
-        print_log(f'Region: {region}, vpc ids: {vpc_regions["regions"][region]["vpc_id_list"]}')
-        if not vpc_regions["regions"][region]["vpc_id_list"]:
-            execution_success = False
-            print_log(f"{region} region contain invalid vpc_id_list. For each region must be at least one vpc ID.")
-        else:
-            tf_vars = {
-                "region": region,
-                "vpc_id_list": vpc_regions["regions"][region]["vpc_id_list"],
-                "s3_bucket_prefix": vpc_regions["regions"][region].get("s3_bucket_prefix", "")
-            }
+    for region_data in multi_region_data:
+        print_log(f'Region: {region_data.region}')
+        tf_vars = {
+            "region": region_data.region,
+            "s3_bucket_prefix": region_data.s3_bucket_prefix,
+            # "create_cloudexport": False
+        }
 
-            if not (prepare_workspace(t_bucket, region) and action(t_bucket, tf_vars)):
-                return False
+        if not (prepare_workspace(t_bucket, region_data.region) and action(t_bucket, tf_vars)):
+            return False
 
-            if t_bucket.output().get("kentik_bucket_name") and t_bucket.output()["kentik_bucket_name"].get("value"):
-                for bucket_name in t_bucket.output()["kentik_bucket_name"]["value"]:
-                    bucket_region_name.append([region, bucket_name])
-            if t_bucket.output().get("kentik_bucket_arn_list") \
-                    and t_bucket.output()["kentik_bucket_arn_list"].get("value"):
-                bucket_arn_list.extend(t_bucket.output()["kentik_bucket_arn_list"]["value"])
+        if t_bucket.output().get("kentik_bucket_name") and t_bucket.output()["kentik_bucket_name"].get("value"):
+            for bucket_name in t_bucket.output()["kentik_bucket_name"]["value"]:
+                bucket_region_name.append([region_data.region, bucket_name])
+        if t_bucket.output().get("kentik_bucket_arn_list") \
+                and t_bucket.output()["kentik_bucket_arn_list"].get("value"):
+            bucket_arn_list.extend(t_bucket.output()["kentik_bucket_arn_list"]["value"])
 
     # invoke action on terraform configuration located in cloud_iam/
-    t_cloud_aim = Terraform(working_dir="cloud_iam/")
+    t_cloud_iam = Terraform(working_dir="cloud_iam/")
     tf_vars = {
-        "region": list(vpc_regions["regions"].keys())[0],  # used only in provider region
-        "plan_id": vpc_regions.get("plan_id", ""),
-        "external_id": vpc_regions.get("external_id", ""),
+        "region": multi_region_data[0].region,  # used only in provider region
+        "plan_id": multi_region_data[0].plan_id,
+        "external_id": multi_region_data[0].external_id,
         "bucket_region_name": bucket_region_name,
         "bucket_arn_list": bucket_arn_list
     }
-    if not action(t_cloud_aim, tf_vars):
+    if not action(t_cloud_iam, tf_vars):
         execution_success = False
 
     return execution_success
@@ -156,14 +154,14 @@ def parse_cmd_line() -> Tuple[TerraformAction, str]:
     ACTIONS = {"plan": action_plan, "apply": action_apply, "destroy": action_destroy}
     parser = argparse.ArgumentParser()
     parser.add_argument("action", choices=["plan", "apply", "destroy"], help="Terraform step to execute")
-    parser.add_argument("--filename", default=DFAULT_VPC_REGIONS_FILE_NAME, help="Input data file name")
+    parser.add_argument("--filename", default=DEFAULT_MULTI_REGION_DATA_FILE, help="Input data file name")
     args = parser.parse_args()
     return ACTIONS[args.action], args.filename
 
 
-def load_vpc_regions_or_exit(file_path: str) -> Dict[str, Any]:
+def load_multi_regions_or_exit(file_path: str) -> List[MultiRegionData]:
     """
-    Return input data dict on success
+    Return MultiRegionData list on success
     Exit with code FAILED when file not found or file reading error
     """
 
@@ -172,12 +170,10 @@ def load_vpc_regions_or_exit(file_path: str) -> Dict[str, Any]:
         sys.exit(EX_FAILED)
 
     try:
-        with open(file_path) as json_file:
-            data = json.load(json_file)
-            return data
+        return load_multi_region_data(file_path)
 
     except (ValueError, TypeError) as err:
-        log.exception("Failed to read vpc\'s and regions file '%d'", file_path)
+        log.exception("Failed to read input file '%d'", file_path)
         print(err, file=sys.stderr)
         sys.exit(EX_FAILED)
 
@@ -188,8 +184,8 @@ def print_log(msg: str = "", level: int = logging.INFO, file=sys.stdout) -> None
 
 
 if __name__ == "__main__":
-    terraform_action, vpc_regions_file = parse_cmd_line()
-    vpc_regions_data = load_vpc_regions_or_exit(vpc_regions_file)
-    execution_successful = execute_action(terraform_action, vpc_regions_data)
+    terraform_action, multi_regions_file = parse_cmd_line()
+    multi_region_data = load_multi_regions_or_exit(multi_regions_file)
+    execution_successful = execute_action(terraform_action, multi_region_data)
     exit_code = EX_OK if execution_successful else EX_FAILED
     sys.exit(exit_code)
