@@ -31,4 +31,4 @@ def get_nsg_from_rg(query: Dict[str, str]) -> Dict[str, str]:
 
 
 if __name__ == "__main__":
-    get_nsg_from_rg()
+    get_nsg_from_rg()  # pylint: disable=no-value-for-parameter

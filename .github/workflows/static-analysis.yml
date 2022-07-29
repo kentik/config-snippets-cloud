@@ -1,0 +1,30 @@
+name: Static analysis
+
+on:
+  - pull_request
+  - push
+
+jobs:
+  super-linter:
+    name: Run Super-Linter
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          # Full git history is needed to get a proper list of changed files within `super-linter`
+          fetch-depth: 0
+      - name: Run Super-Linter
+        uses: github/super-linter/slim@v4.9.5
+        env:
+          DEFAULT_BRANCH: master
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VALIDATE_ANSIBLE: false # already configured in aws-ansible workflow; could be enabled here separately
+          VALIDATE_KUBERNETES_KUBEVAL: false # multiple issues - could be introduced separately
+          VALIDATE_MARKDOWN: false # multiple issues - could be introduced separately
+          VALIDATE_NATURAL_LANGUAGE: false # multiple issues - could be introduced separately
+          VALIDATE_PYTHON_BLACK: false # multiple issues - could be introduced separately
+          VALIDATE_PYTHON_FLAKE8: false # multiple issues - could be introduced separately
+          VALIDATE_PYTHON_ISORT: false # multiple issues - could be introduced separately
+          VALIDATE_TERRAFORM_TERRASCAN: false # multiple issues - could be introduced separately
+          VALIDATE_TERRAFORM_TFLINT: false # already configured in terraform workflows; could be enabled here separately
