@@ -1,31 +1,33 @@
 import configparser
-from dataclasses import dataclass, fields
-from typing import Any, Dict, List, Type, TypeVar
+from dataclasses import dataclass, field
+from typing import List
 
 
-MultiRegionDataType = TypeVar("MultiRegionDataType", bound="MultiRegionData")
+@dataclass
+class RegionData:
+    aws_region_name: str = ""
+    s3_bucket_prefix: str = ""
 
 
 @dataclass
 class MultiRegionData:
     external_id: str = ""
     plan_id: str = ""
-    region: str = ""
-    s3_bucket_prefix: str = ""
-
-    @classmethod
-    def from_dict(cls: Type[MultiRegionDataType], data: Dict[str, Any]) -> MultiRegionDataType:
-        for k in [f.name for f in fields(cls) if f.type == List[str] and f.name in data]:
-            data[k] = [name.strip() for name in data[k].split(",") if name]
-
-        return cls(**data)
+    regions: List[RegionData] = field(default_factory=list)
 
 
-def load_multi_region_data(file_path: str) -> List[MultiRegionData]:
+def load_multi_region_data(file_path: str) -> MultiRegionData:
     config = configparser.ConfigParser()
     try:
         config.read(file_path)
-    except configparser.Error as err:
+        external_id = config["DEFAULT"]["external_id"]
+        plan_id = config["DEFAULT"]["plan_id"]
+        regions = [
+            RegionData(aws_region_name=v["region"], s3_bucket_prefix=v.get("s3_bucket_prefix", ""))
+            for k, v in config.items()
+            if k != "DEFAULT"
+        ]
+    except (KeyError, configparser.Error) as err:
         raise Exception(f"Failed to load '{file_path}'") from err
-    return [MultiRegionData.from_dict(dict(v)) for k, v in config.items() if k != "DEFAULT"]
 
+    return MultiRegionData(external_id=external_id, plan_id=plan_id, regions=regions)

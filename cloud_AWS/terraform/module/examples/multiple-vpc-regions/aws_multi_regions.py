@@ -2,7 +2,7 @@ import argparse
 import logging
 import os
 import sys
-from typing import Any, Callable, Dict, Tuple, List
+from typing import Any, Callable, Dict, Tuple
 
 from python_terraform import IsFlagged, IsNotFlagged, Terraform
 
@@ -22,58 +22,58 @@ TerraformVars = Dict[str, Any]  # variables passed in terraform plan/apply/destr
 TerraformAction = Callable[[Terraform, TerraformVars], bool]  # terraform plan/apply/destroy
 
 
-def validate_multi_region_data(multi_region_data: List[MultiRegionData]) -> bool:
-    for region_data in multi_region_data:
-        if not region_data.plan_id:
-            print_log("plan_id is required.")
-            return False
-        if not region_data.external_id:
-            print_log("external_id is required.")
-            return False
-        if not region_data.region:
+def validate_multi_region_data(data: MultiRegionData) -> bool:
+    if not data.plan_id:
+        print_log("plan_id is required.")
+        return False
+    if not data.external_id:
+        print_log("external_id is required.")
+        return False
+    for region in data.regions:
+        if not region.aws_region_name:
             print_log("region is required.")
             return False
     return True
 
 
-def execute_action(action: TerraformAction, multi_region_data: List[MultiRegionData]) -> bool:
+def execute_action(action: TerraformAction, data: MultiRegionData) -> bool:
     """Execute an action for every region"""
 
-    if not validate_multi_region_data(multi_region_data):
+    if not validate_multi_region_data(data):
         return False
 
     t_bucket = Terraform(working_dir="bucket/")
     bucket_region_name = []
     bucket_arn_list = []
     execution_success = True
+    tf_vars: Dict[str, Any] = {}
 
     # invoke action for each region on terraform configuration located in bucket/
-    for region_data in multi_region_data:
-        print_log(f'Region: {region_data.region}')
+    for region in data.regions:
+        print_log(f"Region: {region.aws_region_name}")
         tf_vars = {
-            "region": region_data.region,
-            "s3_bucket_prefix": region_data.s3_bucket_prefix,
+            "region": region.aws_region_name,
+            "s3_bucket_prefix": region.s3_bucket_prefix,
             # "create_cloudexport": False
         }
 
-        if not (prepare_workspace(t_bucket, region_data.region) and action(t_bucket, tf_vars)):
+        if not (prepare_workspace(t_bucket, region.aws_region_name) and action(t_bucket, tf_vars)):
             return False
 
         if t_bucket.output().get("kentik_bucket_name") and t_bucket.output()["kentik_bucket_name"].get("value"):
             for bucket_name in t_bucket.output()["kentik_bucket_name"]["value"]:
-                bucket_region_name.append([region_data.region, bucket_name])
-        if t_bucket.output().get("kentik_bucket_arn_list") \
-                and t_bucket.output()["kentik_bucket_arn_list"].get("value"):
+                bucket_region_name.append([region.aws_region_name, bucket_name])
+        if t_bucket.output().get("kentik_bucket_arn_list") and t_bucket.output()["kentik_bucket_arn_list"].get("value"):
             bucket_arn_list.extend(t_bucket.output()["kentik_bucket_arn_list"]["value"])
 
     # invoke action on terraform configuration located in cloud_iam/
     t_cloud_iam = Terraform(working_dir="cloud_iam/")
     tf_vars = {
-        "region": multi_region_data[0].region,  # used only in provider region
-        "plan_id": multi_region_data[0].plan_id,
-        "external_id": multi_region_data[0].external_id,
+        "region": data.regions[0].aws_region_name,  # used only in provider region
+        "plan_id": data.plan_id,
+        "external_id": data.external_id,
         "bucket_region_name": bucket_region_name,
-        "bucket_arn_list": bucket_arn_list
+        "bucket_arn_list": bucket_arn_list,
     }
     if not action(t_cloud_iam, tf_vars):
         execution_success = False
@@ -159,7 +159,7 @@ def parse_cmd_line() -> Tuple[TerraformAction, str]:
     return ACTIONS[args.action], args.filename
 
 
-def load_multi_regions_or_exit(file_path: str) -> List[MultiRegionData]:
+def load_multi_regions_or_exit(file_path: str) -> MultiRegionData:
     """
     Return MultiRegionData list on success
     Exit with code FAILED when file not found or file reading error

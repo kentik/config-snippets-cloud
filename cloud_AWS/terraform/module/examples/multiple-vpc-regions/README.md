@@ -2,13 +2,14 @@
 
 The configuration in this directory creates a configuration for all vpc located in regions from multi_region_data.ini file.
 
+## Requirements (in addition to [module requirements](../../README.md#requirements))
 
-## Requirements
+1. python >= 3.7.0
 
 - Installed and configured AWS CLI
     - [installation](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
     - [configuration](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html)
-- Created VPC (or default VPC)
+- Existing VPC in each target region
 - Exported Kentik API credentials:
 
   ```shell
@@ -16,12 +17,20 @@ The configuration in this directory creates a configuration for all vpc located 
   export KTAPI_AUTH_TOKEN="token123"
   ```
 
+## Prepare
+
+Execute:
+```bash
+python3 -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+terraform -chdir=./bucket init && terraform -chdir=./cloud_iam init
+```
+
 ## Usage
 
 Run the example:
 
 ```shell
-terraform -chdir=./bucket init && terraform -chdir=./cloud_iam init
 python3 aws_multi_regions.py plan
 python3 aws_multi_regions.py apply
 ```
@@ -45,16 +54,16 @@ python3 aws_multi_regions.py destroy
 ### Example multi_region_data.ini
 
 ```ini
+[DEFAULT]
+external_id = 1234
+plan_id = 5678
+
 [first-region]
 region = us-west-2
-external_id = 1234
-plan_id = 1234
 s3_bucket_prefix = tf-multi-region
 
 [second-region]
 region = eu-west-1
-external_id = 1234
-plan_id = 1234
 s3_bucket_prefix = tf-multi-region
 ```
 
