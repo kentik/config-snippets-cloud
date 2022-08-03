@@ -44,6 +44,7 @@ jobs:
   # Dynamic analysis of the Terraform module and its code
   # Stuff like unit tests, E2E tests, etc.
   dynamic-analysis:
+    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     
     # The LocalStack mocks the AWS services, enabling
