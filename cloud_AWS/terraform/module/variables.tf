@@ -101,3 +101,26 @@ variable "external_id" {
   type        = string
   default     = ""
 }
+
+variable bucket_arn_list {
+  description = "List of all created buckets arn's - internal use only"
+  type        = list(string)
+  default     = null
+}
+
+variable "create_bucket" {
+  type    = bool
+  default = true
+}
+
+variable "bucket_region_name" {
+  description = "List of all created buckets names - internal use only"
+  type        = list(list(string))
+  default     = []
+}
+
+variable "create_cloudexport" {
+  description = "If set to false it will not create CloudExport"
+  type    = bool
+  default = true
+}
