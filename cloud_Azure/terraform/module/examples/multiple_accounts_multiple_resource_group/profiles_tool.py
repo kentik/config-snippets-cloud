@@ -54,6 +54,7 @@ def add_new_profiles(file_path: str, names: Iterable[str]) -> bool:
 
     cli_tell("[CTRL + D or CTRL + C] to finish")
     all_successful = True
+    # jscpd:ignore-start
     try:
         for name in names:
             successful = add_profile(name, profiles)
@@ -68,6 +69,7 @@ def add_new_profiles(file_path: str, names: Iterable[str]) -> bool:
 
     if not save_profiles(file_path, profiles):
         return False
+    # jscpd:ignore-end
 
     cli_tell("Finished adding profiles")
     return all_successful
@@ -132,6 +134,7 @@ def complete_existing_profiles(file_path: str) -> bool:
         cli_tell(f"No profiles were loaded from '{file_path}'")
         return True
 
+    # jscpd:ignore-start
     cli_tell("[CTRL + D or CTRL + C] to finish")
     all_successful = True
     try:
@@ -148,6 +151,7 @@ def complete_existing_profiles(file_path: str) -> bool:
 
     if not save_profiles(file_path, profiles):
         return False
+    # jscpd:ignore-stop
 
     cli_tell("Finished completing profiles")
     return all_successful

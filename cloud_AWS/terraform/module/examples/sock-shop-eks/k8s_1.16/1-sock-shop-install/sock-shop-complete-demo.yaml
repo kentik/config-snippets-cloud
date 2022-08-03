@@ -1,3 +1,4 @@
+# jscpd:ignore-start
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -729,3 +730,4 @@ spec:
     targetPort: 80
   selector:
     name: user
+# jscpd:ignore-end
