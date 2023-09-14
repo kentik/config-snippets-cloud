@@ -19,6 +19,14 @@ resource "aws_s3_bucket_policy" "policy" {
   })
 }
 
+resource "aws_s3_bucket_ownership_controls" "ownership" {
+  count  = (var.s3_use_one_bucket == false ? length(var.vpc_id_list) : 1)
+  bucket = aws_s3_bucket.vpc_logs[count.index].id
+  rule {
+    object_ownership = "ObjectWriter"
+  }
+}
+
 resource "aws_s3_bucket_public_access_block" "vpc_logs" {
   count                   = (var.s3_use_one_bucket == false ? length(var.vpc_id_list) : 1)
   bucket                  = aws_s3_bucket.vpc_logs[count.index].id
