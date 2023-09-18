@@ -8,6 +8,8 @@ resource "aws_s3_bucket_acl" "acl" {
   count  = (var.s3_use_one_bucket == false ? length(var.vpc_id_list) : 1)
   bucket = aws_s3_bucket.vpc_logs[count.index].id
   acl    = "private"
+  # This `depends_on` is to prevent "AccessControlListNotSupported: The bucket does not allow ACLs."
+  depends_on = [aws_s3_bucket_ownership_controls.ownership]
 }
 
 resource "aws_s3_bucket_policy" "policy" {
