@@ -1,7 +1,7 @@
 data "azuread_client_config" "current" {}
 
 data "azuread_service_principals" "existing_nsg_flow_exporter" {
-  application_ids = [var.flow_exporter_application_id]
+  client_ids = [var.flow_exporter_application_id]
   ignore_missing = true
 }
 
@@ -14,7 +14,7 @@ locals {
 resource "azuread_service_principal" "new_nsg_flow_exporter" {
   count = local.nsg_flow_exporter_already_exists ? 0 : 1
 
-  application_id               = var.flow_exporter_application_id
+  client_id               = var.flow_exporter_application_id
   app_role_assignment_required = false
   owners                       = [data.azuread_client_config.current.object_id]
 
