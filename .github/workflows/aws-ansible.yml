@@ -7,6 +7,7 @@ on:
     paths: 'cloud_AWS/ansible/**'
     branches: [ master ]
   pull_request:
+    paths: 'cloud_AWS/ansible/**'
     branches: [ master ]
 
 jobs:
