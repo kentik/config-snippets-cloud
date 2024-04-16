@@ -22,10 +22,6 @@ NetworkWatcher is automatically created by Azure when VirtualNetwork is created 
 * [All Network Security Groups in requested Resource Groups in single Azure Account](examples/single_account_multiple_resource_groups)
 * [All Network Security Groups in requested Resource Groups in multiple Azure Accounts](examples/multiple_accounts_multiple_resource_group)
 
-## Demo
-
-* [Demo showing how to add list of subnets to Kentik portal using this module](demo) (TBD)
-
 ## Requirements
 
 | Name | Version |
