@@ -101,3 +101,9 @@ variable "external_id" {
   type        = string
   default     = ""
 }
+
+variable "aws_iam_role_no_create" {
+  description = "AWS Role to use if create role is false"
+  type        = string
+  default     = ""
+}
