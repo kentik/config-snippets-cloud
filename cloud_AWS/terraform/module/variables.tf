@@ -39,6 +39,12 @@ variable "s3_delete_nonempty_buckets" {
   default     = false
 }
 
+variable "s3_apply_public_policy" {
+  description = "Only apply if set to true"
+  type        = bool
+  default     = true
+}
+
 variable "iam_role_prefix" {
   description = "Prefix to use with IAM roles"
   type        = string

@@ -30,7 +30,7 @@ resource "aws_s3_bucket_ownership_controls" "ownership" {
 }
 
 resource "aws_s3_bucket_public_access_block" "vpc_logs" {
-  count                   = (var.s3_use_one_bucket == false ? length(var.vpc_id_list) : 1)
+  count                   = (var.s3_use_one_bucket == false && var.s3.s3_apply_public_policy == true ? length(var.vpc_id_list) : (var.s3_use_one_bucket == true && var.s3.s3_apply_public_policy == true : 1 : 0))
   bucket                  = aws_s3_bucket.vpc_logs[count.index].id
   block_public_acls       = true
   block_public_policy     = true
