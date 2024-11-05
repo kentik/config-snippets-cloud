@@ -17,6 +17,8 @@ data "external" "nsg_data_source" {
   query = {
     resource_group_names = join(",", var.resource_group_names)
   }
+  # Ensures required dependencies are installed prior to running script
+  depends_on = [null_resource.install_dependencies]
 }
 
 # Convert map of string -> string:
@@ -46,7 +48,7 @@ locals {
 resource "azurerm_network_watcher_flow_log" "kentik_network_flow_log" {
   count = length(local.flat_nsgs)
 
-  name = "${var.name}_flow_log_${count.index}"
+  name                 = "${var.name}_flow_log_${count.index}"
   network_watcher_name = data.azurerm_network_watcher.network_watcher.name
   resource_group_name  = data.azurerm_network_watcher.network_watcher.resource_group_name
 
