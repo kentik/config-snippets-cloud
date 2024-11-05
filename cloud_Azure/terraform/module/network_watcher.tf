@@ -63,4 +63,5 @@ resource "azurerm_network_watcher_flow_log" "kentik_network_flow_log" {
   tags = {
     app = var.resource_tag
   }
+  depends_on = [data.external.nsg_data_source]
 }
