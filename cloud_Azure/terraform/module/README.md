@@ -13,18 +13,14 @@ Module creates:
 
 All resources created in Azure are tagged, see variable "resource_tag" in [variables.tf](./variables.tf)
 
-Module assumes that NetworkWatcher resource exists in NetworkWatcherRG resource group in specified Azure location (see variable "location" in [variables.tf](./variables.tf)).  
-For example, in location "eastus" there should be "NetworkWatcher_eastus" in "NetworkWatcherRG" resource group.  
+Module assumes that NetworkWatcher resource exists in NetworkWatcherRG resource group in specified Azure location (see variable "location" in [variables.tf](./variables.tf)).
+For example, in location "eastus" there should be "NetworkWatcher_eastus" in "NetworkWatcherRG" resource group.
 NetworkWatcher is automatically created by Azure when VirtualNetwork is created or updated, [as per documentation.](https://docs.microsoft.com/en-us/azure/network-watcher/network-watcher-create). This happens eg. when launching a new virtual machine.
 
 ## Usage examples
 
 * [All Network Security Groups in requested Resource Groups in single Azure Account](examples/single_account_multiple_resource_groups)
 * [All Network Security Groups in requested Resource Groups in multiple Azure Accounts](examples/multiple_accounts_multiple_resource_group)
-
-## Demo
-
-* [Demo showing how to add list of subnets to Kentik portal using this module](demo) (TBD)
 
 ## Requirements
 
@@ -46,10 +42,10 @@ NetworkWatcher is automatically created by Azure when VirtualNetwork is created 
 
 ## Python and dependencies
 
-This module uses Python script to list all Network Security Groups in specified Resource Groups and exposes the list to Terraform as external data source.  
+This module uses Python script to list all Network Security Groups in specified Resource Groups and exposes the list to Terraform as external data source.
 To install Python and required packages:
 * [Install Python and PIP](https://docs.python.org/3/using/index.html)
-* Install packages - in module directory, execute:  
+* Install packages - in module directory, execute:
     PowerShell:
     ```powershell
     pip install virtualenv
