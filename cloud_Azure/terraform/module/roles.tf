@@ -1,5 +1,5 @@
 # Provide service principal Contributor role to each storage account
-resource "azurerm_role_assignment" "kentic_role_contributor" {
+resource "azurerm_role_assignment" "kentik_role_contributor" {
   count = length(azurerm_storage_account.logs_storage_account)
 
   scope                = azurerm_storage_account.logs_storage_account[count.index].id
@@ -8,7 +8,7 @@ resource "azurerm_role_assignment" "kentic_role_contributor" {
 }
 
 # Provide service principal Reader role to each Resource Group
-resource "azurerm_role_assignment" "kentic_role_reader" {
+resource "azurerm_role_assignment" "kentik_role_reader" {
   count = length(var.resource_group_names)
 
   scope                = "/subscriptions/${var.subscription_id}/resourceGroups/${var.resource_group_names[count.index]}"

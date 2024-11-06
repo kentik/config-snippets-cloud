@@ -15,14 +15,3 @@ resource "null_resource" "feature_insights_register" {
     command = "az provider register -n Microsoft.Insights"
   }
 }
-
-# Install dependencies
-resource "null_resource" "install_dependencies" {
-  provisioner "local-exec" {
-    command = <<EOT
-      virtualenv venv
-      source venv/bin/activate
-      pip install -r requirements.txt
-    EOT
-  }
-}

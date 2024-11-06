@@ -5,55 +5,51 @@ data "azurerm_network_watcher" "network_watcher" {
   resource_group_name = "NetworkWatcherRG"
 }
 
-# Runs python script to gather network security groups from each requested resource group
-# This is required because no Terraform provider exposes such functionality
-# Resulting "data.external.nsg_data_source.results" is a map of string -> string, eg.
-# {
-#   "ResourceGroupName1" -> "NetworkSercurityGroupId1,NetworkSecurityGroupId2",
-#   "ResourceGroupName2" -> "NetworkSercurityGroupId3,NetworkSecurityGroupId4"
-# }
-data "external" "nsg_data_source" {
-  program = ["python3", "${path.module}/get_nsg.py"]
-  query = {
-    resource_group_names = join(",", var.resource_group_names)
-  }
-  # Ensures required dependencies are installed prior to running script
-  depends_on = [null_resource.install_dependencies]
+# Fetch all NSGs for each resource group
+data "azurerm_resources" "nsg" {
+  for_each            = toset(var.resource_group_names)
+  type                = "Microsoft.Network/networkSecurityGroups"
+  resource_group_name = each.key
 }
 
-# Convert map of string -> string:
-# {
-#   "ResourceGroupName1" -> "NetworkSercurityGroupId1,NetworkSecurityGroupId2",
-#   "ResourceGroupName2" -> "NetworkSercurityGroupId3,NetworkSecurityGroupId4"
-# }
+# Convert map of lists of maps:
+#{
+#  "ResourceGroupName1" = [
+#   {id = "NetworkSercurityGroupId1", rg = "ResourceGroupName1"},
+#   {id = "NetworkSercurityGroupId2", rg = "ResourceGroupName1"},
+#  ]
+#  "RG2" = [
+#   {id = "NetworkSercurityGroupId3", rg = "ResourceGroupName2"},
+#   {id = "NetworkSercurityGroupId4", rg = "ResourceGroupName2"}
+#  ]
+#}
 # to list of objects:
 # [
-#   {rg = "ResourceGroupName1", nsg = "NetworkSercurityGroupId1"},
-#   {rg = "ResourceGroupName1", nsg = "NetworkSercurityGroupId2"},
-#   {rg = "ResourceGroupName2", nsg = "NetworkSercurityGroupId3"},
-#   {rg = "ResourceGroupName2", nsg = "NetworkSercurityGroupId4"}
+#   {id = "NetworkSercurityGroupId1", rg = "ResourceGroupName1"},
+#   {id = "NetworkSercurityGroupId2", rg = "ResourceGroupName1"},
+#   {id = "NetworkSercurityGroupId3", rg = "ResourceGroupName2"},
+#   {id = "NetworkSercurityGroupId4", rg = "ResourceGroupName2"}
 # ]
 locals {
-  flat_nsgs = flatten([
-    for rg, nsg_list in data.external.nsg_data_source.result : [
-      for nsg in split(",", nsg_list) : {
-        rg  = rg  # Resource Group name
-        nsg = nsg # Network Security Group ID
+  flat_nsgs = [
+    for rg_name in var.resource_group_names : [
+      for nsg in data.azurerm_resources.nsg[rg_name].resources : {
+        id = nsg.id  # Network Security Group ID
+        rg = rg_name # Resource Group Name
       }
-    ] if length(nsg_list) > 0 # filter out Resource Groups that have no Network Security Groups
-  ])
+    ] if length(data.azurerm_resources.nsg[rg_name].resources) > 0 # filter out Resource Groups that have no Network Security Groups
+  ]
 }
 
 # Turns on flow logs for all network security groups in requested resource groups
 resource "azurerm_network_watcher_flow_log" "kentik_network_flow_log" {
-  count = length(local.flat_nsgs)
+  for_each = local.flat_nsgs
 
-  name                 = "${var.name}_flow_log_${count.index}"
-  network_watcher_name = data.azurerm_network_watcher.network_watcher.name
-  resource_group_name  = data.azurerm_network_watcher.network_watcher.resource_group_name
-
-  network_security_group_id = local.flat_nsgs[count.index].nsg
-  storage_account_id        = azurerm_storage_account.logs_storage_account[index(var.resource_group_names, local.flat_nsgs[count.index].rg)].id
+  name                      = "${var.name}_flow_log_${index(keys(local.flat_nsgs), each.key) + 1}"
+  network_watcher_name      = data.azurerm_network_watcher.network_watcher.name
+  resource_group_name       = each.value.rg
+  network_security_group_id = each.key
+  storage_account_id        = azurerm_storage_account.logs_storage_account[each.value.rg].id
   enabled                   = true
   version                   = 2
   retention_policy {
@@ -63,5 +59,4 @@ resource "azurerm_network_watcher_flow_log" "kentik_network_flow_log" {
   tags = {
     app = var.resource_tag
   }
-  depends_on = [data.external.nsg_data_source]
 }

@@ -12,7 +12,7 @@
 #### Single VPC, Single Region
 * [single-vpc](https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/terraform/module/examples/single-vpc)
 #### All VPC, Single Region
-* [all-vpc-from-region](https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/terraform/module/examples/all-vpc-from-region) 
+* [all-vpc-from-region](https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/terraform/module/examples/all-vpc-from-region)
 #### Deploy Sock Shop as an example micro-service architecture
 * [sock-shop-eks](https://github.com/kentik/config-snippets-cloud/tree/master/cloud_AWS/terraform/module/examples/sock-shop-eks)
 
@@ -28,8 +28,6 @@
 # Stage 2 - Automate GCP
 ## Terraform
 * [Terraform](https://github.com/kentik/config-snippets-cloud/tree/master/cloud_GCP/terraform)
-### Demo
-* [Terraform Demo](https://github.com/kentik/config-snippets-cloud/tree/master/cloud_GCP/terraform/module/demo) (TODO)
 ### Examples
 #### Subnet-list, Single region
 * [subnet-list](https://github.com/kentik/config-snippets-cloud/tree/master/cloud_GCP/terraform/module/examples/subnet-list)
@@ -38,14 +36,10 @@
 
 ## Ansible
 * [Ansible](https://github.com/kentik/config-snippets-cloud/tree/master/cloud_GCP/terraform)
-### Demo
-* [Ansible Demo](https://github.com/kentik/config-snippets-cloud/tree/master/cloud_GCP/terraform/module/demo)(TODO)
 
 # Stage 3 - Automate Azure
 ## Terraform
 * [Tearraform](https://github.com/kentik/config-snippets-cloud/tree/master/cloud_Azure/terraform)
-### Demo
-* [Terraform Demo](https://github.com/kentik/config-snippets-cloud/tree/master/cloud_Azure/terraform/module/demo) (TODO)
 ### Examples
 #### Subnet-list, Single region
 * [all_nsg](https://github.com/kentik/config-snippets-cloud/tree/master/cloud_Azure/terraform/module/examples/all_nsg)
@@ -56,8 +50,6 @@
 #### All NSG from resource group
 * [all_nsg](cloud_Azure/ansible/examples/all_nsg)
 
-# Stage 4 - Automate IBM Cloud
-## Timing TBD
 
 # General needs for automation
 ## Identity and Access Management
