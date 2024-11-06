@@ -9,7 +9,7 @@ output "resource_group_names" {
 }
 
 output "storage_accounts" {
-  value       = azurerm_storage_account.logs_storage_account[each.key].name
+  value       = [for sa in azurerm_storage_account.logs_storage_account : sa.name]
   description = "Storage Account names where flow logs will be collected"
 }
 
