@@ -1,8 +1,3 @@
-output "network_security_groups" {
-  value       = [for v in local.flat_nsgs : v.nsg]
-  description = "Id's of the Network Security Groups which flow logs will be collected"
-}
-
 output "subscription_id" {
   value       = var.subscription_id
   description = "Azure subscription ID"

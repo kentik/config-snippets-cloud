@@ -12,43 +12,55 @@ data "azurerm_resources" "nsg" {
   resource_group_name = each.key
 }
 
-# Convert map of lists of maps:
+# Convert nsg data output of map of lists of maps:
 #{
 #  "ResourceGroupName1" = [
-#   {id = "NetworkSercurityGroupId1", rg = "ResourceGroupName1"},
-#   {id = "NetworkSercurityGroupId2", rg = "ResourceGroupName1"},
+#   {id = "NetworkSercurityGroupId1", resource_group_name = "ResourceGroupName1"},
+#   {id = "NetworkSercurityGroupId2", resource_group_name = "ResourceGroupName1"},
 #  ]
-#  "RG2" = [
-#   {id = "NetworkSercurityGroupId3", rg = "ResourceGroupName2"},
-#   {id = "NetworkSercurityGroupId4", rg = "ResourceGroupName2"}
+#  "ResourceGroupName2" = [
+#   {id = "NetworkSercurityGroupId3", resource_group_name = "ResourceGroupName2"},
+#   {id = "NetworkSercurityGroupId4", resource_group_name = "ResourceGroupName2"}
 #  ]
 #}
-# to list of objects:
-# [
-#   {id = "NetworkSercurityGroupId1", rg = "ResourceGroupName1"},
-#   {id = "NetworkSercurityGroupId2", rg = "ResourceGroupName1"},
-#   {id = "NetworkSercurityGroupId3", rg = "ResourceGroupName2"},
-#   {id = "NetworkSercurityGroupId4", rg = "ResourceGroupName2"}
-# ]
+# to a list of objects:
+#{
+#  "ResourceGroupName1-NetworkSercurityGroupName1" = {
+#   {id = "NetworkSercurityGroupId1", name = "NetworkSercurityGroupName1", rg = "ResourceGroupName1"}
+#}
+#  "ResourceGroupName1-NetworkSercurityGroupName2" = {
+#   {id = "NetworkSercurityGroupId2", name = "NetworkSercurityGroupName2", rg = "ResourceGroupName1"}
+#}
+#  "ResourceGroupName2-NetworkSercurityGroupName3" = {
+#   {id = "NetworkSercurityGroupId3", name = "NetworkSercurityGroupName3", rg = "ResourceGroupName2"}
+#}
+#  "ResourceGroupName2-NetworkSercurityGroupName4" = {
+#   {id = "NetworkSercurityGroupId4", name = "NetworkSercurityGroupName4", rg = "ResourceGroupName2"}
+#}
+#}
 locals {
-  flat_nsgs = [
-    for rg_name in var.resource_group_names : [
-      for nsg in data.azurerm_resources.nsg[rg_name].resources : {
-        id = nsg.id  # Network Security Group ID
-        rg = rg_name # Resource Group Name
+  flat_nsgs = flatten([
+    for rg, nsg_data in data.azurerm_resources.nsg : [
+      for nsg in nsg_data.resources : {
+        key = "${nsg.resource_group_name}-${nsg.name}"
+        value = {
+          rg   = nsg.resource_group_name
+          name = nsg.name
+          id   = nsg.id
+        }
       }
-    ] if length(data.azurerm_resources.nsg[rg_name].resources) > 0 # filter out Resource Groups that have no Network Security Groups
-  ]
+    ]
+  ])
 }
 
 # Turns on flow logs for all network security groups in requested resource groups
 resource "azurerm_network_watcher_flow_log" "kentik_network_flow_log" {
-  for_each = local.flat_nsgs
+  for_each = { for i in local.flat_nsgs : i.key => i.value }
 
-  name                      = "${var.name}_flow_log_${index(keys(local.flat_nsgs), each.key) + 1}"
+  name                      = "${var.name}_flow_log_${each.value.name}"
   network_watcher_name      = data.azurerm_network_watcher.network_watcher.name
   resource_group_name       = each.value.rg
-  network_security_group_id = each.key
+  network_security_group_id = each.value.id
   storage_account_id        = azurerm_storage_account.logs_storage_account[each.value.rg].id
   enabled                   = true
   version                   = 2
