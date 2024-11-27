@@ -17,7 +17,3 @@ output "principal_id" {
   value       = local.kentik_nsg_flow_exporter_id
   description = "Service Principal ID created for Kentik NSG Flow Exporter application"
 }
-
-output "flat_nsgs_keys" {
-  value = local.flat_nsgs
-}
