@@ -4,8 +4,13 @@ locals {
   _names                          = [for name in var.resource_group_names : "${name}${var.subscription_id}"]
   _lowercase_names                = [for name in local._names : lower(name)]
   _alphanum_lowercase_names       = [for name in local._lowercase_names : join("", regexall("[[:alnum:]]+", name))]
-  generated_storage_account_names = [for i, name in local._alphanum_lowercase_names : substr(name, 0, 24)]
+  generated_storage_account_names = [for name in local._alphanum_lowercase_names : substr(name, 0, 24)]
+  # Generate a map of NSG keys to storage account names
+  nsg_to_storage_account_name = {
+    for i, nsg in local.flat_nsgs : nsg.key => local.generated_storage_account_names[i]
+  }
 }
+
 
 # Creates one storage account per nsg per resource group to store flow logs
 # StorageAccounts are mapped 1:1+:1 to nsg(s) and resource_group_names
@@ -14,7 +19,7 @@ resource "azurerm_storage_account" "logs_storage_account" {
   for_each = { for nsg in local.flat_nsgs : nsg.key => nsg.value }
 
   # generate storage account per nsg(s) in each rg
-  name                     = local.generated_storage_account_names[lookup(local.flat_nsgs, each.key, 0)]
+  name                     = local.nsg_to_storage_account_name[each.key]
   resource_group_name      = each.value.rg
   location                 = var.location
   account_tier             = "Standard"
