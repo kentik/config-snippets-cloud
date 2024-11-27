@@ -9,9 +9,9 @@ resource "azurerm_role_assignment" "kentik_role_contributor" {
 
 # Provide service principal Reader role to each Resource Group
 resource "azurerm_role_assignment" "kentik_role_reader" {
-  count = length(var.resource_group_names)
+  for_each = toset(var.resource_group_names)
 
-  scope                = "/subscriptions/${var.subscription_id}/resourceGroups/${var.resource_group_names[count.index]}"
+  scope                = "/subscriptions/${var.subscription_id}/resourceGroups/${each.value}"
   role_definition_name = "Reader"
   principal_id         = local.kentik_nsg_flow_exporter_id
 }
