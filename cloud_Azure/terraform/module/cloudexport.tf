@@ -16,7 +16,7 @@ provider "kentik-cloudexport" {
 resource "kentik-cloudexport_item" "azure_export" {
   for_each = toset(var.resource_group_names)
 
-  name           = "${var.name}-${var.resource_group_names[each.value]}-${var.subscription_id}" # resource group name + subscription id make the name unique
+  name           = "${var.name}-${each.value}-${var.subscription_id}" # resource group name + subscription id make the name unique
   type           = "CLOUD_EXPORT_TYPE_KENTIK_MANAGED"
   enabled        = var.enabled
   description    = var.description
@@ -25,7 +25,7 @@ resource "kentik-cloudexport_item" "azure_export" {
   azure {
     subscription_id            = var.subscription_id
     location                   = var.location
-    resource_group             = var.resource_group_names[each.value]
+    resource_group             = each.value
     storage_account            = azurerm_storage_account.logs_storage_account[each.value].name # storage accounts are mapped to resource groups 1:1
     security_principal_enabled = true
   }
