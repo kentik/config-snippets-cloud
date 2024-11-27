@@ -14,7 +14,7 @@ provider "kentik-cloudexport" {
 
 # Creates one Kentik CloudExport for every requested Resource Group
 resource "kentik-cloudexport_item" "azure_export" {
-  for_each = { for idx, rg in var.resource_group_names : rg => idx }
+  for_each = { for item, rg in var.resource_group_names : rg => item }
 
   name           = "${var.name}-${var.resource_group_names[each.value]}-${var.subscription_id}" # resource group name + subscription id make the name unique
   type           = "CLOUD_EXPORT_TYPE_KENTIK_MANAGED"
