@@ -55,7 +55,7 @@ locals {
 
 # Turns on flow logs for all network security groups in requested resource groups
 resource "azurerm_network_watcher_flow_log" "kentik_network_flow_log" {
-  for_each = { for i in local.flat_nsgs : i.key => i.value }
+  for_each = { for nsg in local.flat_nsgs : nsg.key => nsg.value }
 
   name                      = "${var.name}_flow_log_${each.value.name}"
   network_watcher_name      = data.azurerm_network_watcher.network_watcher.name
