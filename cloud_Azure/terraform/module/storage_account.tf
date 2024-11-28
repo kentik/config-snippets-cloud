@@ -1,7 +1,7 @@
 # Prepare names that meet Azure Storage Account naming restrictions (only alphanum letters, max 24 length, Azure-wide unique)
 # Each output name is concatenation of Resource Group name and Subscription ID, adjusted to naming restrictions
 locals {
-  _names                          = [for name in var.resource_group_names : "${name}${var.subscription_id}"]
+  _names                          = [for nsg in local.flat_nsgs : "${nsg.name}${var.subscription_id}"]
   _lowercase_names                = [for name in local._names : lower(name)]
   _alphanum_lowercase_names       = [for name in local._lowercase_names : join("", regexall("[[:alnum:]]+", name))]
   generated_storage_account_names = [for name in local._alphanum_lowercase_names : substr(name, 0, 24)]
