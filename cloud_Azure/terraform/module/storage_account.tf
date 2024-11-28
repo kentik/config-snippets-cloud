@@ -4,7 +4,7 @@ locals {
   _names                          = [for nsg in local.flat_nsgs : tostring("${nsg.value.name}${var.subscription_id}")]
   _lowercase_names                = [for name in local._names : lower(name)]
   _alphanum_lowercase_names       = [for name in local._lowercase_names : join("", regexall("[[:alnum:]]+", name))]
-  generated_storage_account_names = [for name in local._alphanum_lowercase_names : substr(tostring(name, 0, 24))]
+  generated_storage_account_names = [for name in local._alphanum_lowercase_names : substr(name, 0, 24)]
   # Generate a map of NSG keys to storage account names
   nsg_to_storage_account_name = {
     for nsg in local.flat_nsgs : nsg.key => local.generated_storage_account_names
