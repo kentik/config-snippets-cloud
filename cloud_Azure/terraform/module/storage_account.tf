@@ -19,7 +19,7 @@ resource "azurerm_storage_account" "logs_storage_account" {
   for_each = { for nsg in local.flat_nsgs : nsg.key => nsg.value }
 
   # Generate storage account per nsg(s) in each rg
-  name                     = local.nsg_to_storage_account_name
+  name                     = local.generated_storage_account_names
   resource_group_name      = each.value.rg
   location                 = var.location
   account_tier             = "Standard"
