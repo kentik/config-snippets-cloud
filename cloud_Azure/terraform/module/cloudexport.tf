@@ -26,7 +26,7 @@ resource "kentik-cloudexport_item" "azure_export" {
     subscription_id            = var.subscription_id
     location                   = var.location
     resource_group             = each.value
-    storage_account            = azurerm_storage_account.logs_storage_account[each.value].name # storage accounts are mapped to resource groups 1:1
+    storage_account            = azurerm_storage_account.logs_storage_account[each.key].name # storage accounts are mapped 1:1+:1 to nsg(s) and resource_group_names
     security_principal_enabled = true
   }
 }

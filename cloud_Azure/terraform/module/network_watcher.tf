@@ -61,7 +61,7 @@ resource "azurerm_network_watcher_flow_log" "kentik_network_flow_log" {
   network_watcher_name      = data.azurerm_network_watcher.network_watcher.name
   resource_group_name       = "NetworkWatcherRG"
   network_security_group_id = each.value.id
-  storage_account_id        = azurerm_storage_account.logs_storage_account[each.value.rg].id
+  storage_account_id        = azurerm_storage_account.logs_storage_account[each.key].id
   enabled                   = true
   version                   = 2
   retention_policy {
