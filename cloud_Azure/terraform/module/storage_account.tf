@@ -16,11 +16,11 @@ locals {
 # StorageAccounts are mapped 1:1+:1 to nsg(s) and resource_group_names
 # Note that only one flow log can be associated with a storage account per region
 resource "azurerm_storage_account" "logs_storage_account" {
-  for_each = local.nsg_to_storage_account_name
+  for_each = { for nsg in local.flat_nsgs : nsg.key => nsg.value }
 
   # Generate storage account per nsg(s) in each rg
-  name                     = each.value
-  resource_group_name      = local.flat_nsgs[each.key].rg
+  name                     = local.generated_storage_account_names
+  resource_group_name      = each.value.rg
   location                 = var.location
   account_tier             = "Standard"
   account_replication_type = "GRS"
