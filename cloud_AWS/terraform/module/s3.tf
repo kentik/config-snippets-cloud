@@ -88,7 +88,7 @@ resource "aws_s3_bucket_policy" "policy" {
   policy = templatefile(
     "${path.module}/templates/flowLogsS3Policy.json.tmpl",
     {
-      bucket = each.key
+      bucket = each.value
     }
   )
 }
