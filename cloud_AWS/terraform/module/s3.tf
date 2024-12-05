@@ -26,7 +26,7 @@ locals {
   flow_logs = {
     for id, flow_log in local.sources :
     id => merge(flow_log, {
-      destination = var.s3_usvar.s3_use_one_bucket ? join(
+      destination = var.s3_use_one_bucket ? join(
         "/",
         concat(
           [
