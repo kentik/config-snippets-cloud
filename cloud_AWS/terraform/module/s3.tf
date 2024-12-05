@@ -30,7 +30,7 @@ locals {
         "/",
         concat(
           [
-            aws_s3_bucket.vpc_logs.default.arn,
+            aws_s3_bucket.vpc_logs["default"].arn,
             id,
           ],
           var.s3_flowlogs_path != "" ? [var.s3_flowlogs_path] : []
