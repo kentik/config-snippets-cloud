@@ -3,10 +3,34 @@ variable "rw_s3_access" {
   type        = bool
 }
 
-variable "vpc_id_list" {
+variable "enable_flow_logs" {
+  description = "Globally enable the creation of flow logs"
+  type        = bool
+  default     = true
+}
+
+variable "include_workspace" {
+  description = "Interpolate the workspace name into the bucket name"
+  type        = bool
+  default     = true
+}
+
+variable "vpc_ids" {
   description = "List of VPC ids for which Kentik should gather logs"
   type        = list(string)
-  default     = [""]
+  default     = []
+}
+
+variable "subnet_ids" {
+  description = "List of Subnet ids for the which Kentik should gather logs"
+  type        = list(string)
+  default     = []
+}
+
+variable "eni_ids" {
+  description = "List of ENIs for which Kentik should gather logs"
+  type        = list(string)
+  default     = []
 }
 
 variable "s3_bucket_prefix" {
