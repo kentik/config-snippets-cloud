@@ -33,7 +33,7 @@ locals {
 resource "azurerm_network_watcher_flow_log" "kentik_network_flow_log" {
   for_each = { for vnet in local.flat_vnets : vnet.key => vnet.value }
 
-  name                 = "${var.name}_flow_log_${each.value.name}"
+  name                 = "${var.name}-flowLog-${each.value.name}"
   network_watcher_name = data.azurerm_network_watcher.network_watcher.name
   resource_group_name  = "NetworkWatcherRG"
 
