@@ -18,9 +18,12 @@ locals {
   flat_vnets = flatten([
     for rg in var.resource_group_names : [
       for vnet in data.azurerm_resources.vnet[rg].resources : {
-        rg   = rg
-        vnet = vnet.name
-        id   = vnet.id
+        key = "${rg}-${vnet.name}"
+        value = {
+          rg   = rg
+          vnet = vnet.name
+          id   = vnet.id
+        }
       }
     ] if length(data.azurerm_resources.vnet[rg].resources) > 0 # filter out resource groups without VNets
   ])

@@ -1,4 +1,4 @@
-# provideres: azurerm & azuread
+# providers: azurerm & azuread
 variable "subscription_id" {
   type        = string
   description = "Azure subscription ID"
