@@ -5,55 +5,39 @@ data "azurerm_network_watcher" "network_watcher" {
   resource_group_name = "NetworkWatcherRG"
 }
 
-# Runs python script to gather network security groups from each requested resource group
-# This is required because no Terraform provider exposes such functionality
-# Resulting "data.external.nsg_data_source.results" is a map of string -> string, eg.
-# {
-#   "ResourceGroupName1" -> "NetworkSercurityGroupId1,NetworkSecurityGroupId2",
-#   "ResourceGroupName2" -> "NetworkSercurityGroupId3,NetworkSecurityGroupId4"
-# }
-data "external" "nsg_data_source" {
-  program = ["python3", "${path.module}/get_nsg.py"]
-  query = {
-    resource_group_names = join(",", var.resource_group_names)
-  }
+# Fetch all VNets for each resource group
+data "azurerm_resources" "vnet" {
+  for_each            = toset(var.resource_group_names)
+  type                = "Microsoft.Network/virtualNetworks"
+  resource_group_name = each.key
 }
 
-# Convert map of string -> string:
-# {
-#   "ResourceGroupName1" -> "NetworkSercurityGroupId1,NetworkSecurityGroupId2",
-#   "ResourceGroupName2" -> "NetworkSercurityGroupId3,NetworkSecurityGroupId4"
-# }
-# to list of objects:
-# [
-#   {rg = "ResourceGroupName1", nsg = "NetworkSercurityGroupId1"},
-#   {rg = "ResourceGroupName1", nsg = "NetworkSercurityGroupId2"},
-#   {rg = "ResourceGroupName2", nsg = "NetworkSercurityGroupId3"},
-#   {rg = "ResourceGroupName2", nsg = "NetworkSercurityGroupId4"}
-# ]
+# Map resource group names to their corresponding VNets
+# Flatten map to list of objects
 locals {
-  flat_nsgs = flatten([
-    for rg, nsg_list in data.external.nsg_data_source.result : [
-      for nsg in split(",", nsg_list) : {
-        rg  = rg  # Resource Group name
-        nsg = nsg # Network Security Group ID
+  flat_vnets = flatten([
+    for rg in var.resource_group_names : [
+      for vnet in data.azurerm_resources.vnet[rg].resources : {
+        rg   = rg
+        vnet = vnet.name
+        id   = vnet.id
       }
-    ] if length(nsg_list) > 0 # filter out Resource Groups that have no Network Security Groups
+    ]
   ])
 }
 
-# Turns on flow logs for all network security groups in requested resource groups
+# Turns on vnet flow logs for all vnets in requested resource groups
 resource "azurerm_network_watcher_flow_log" "kentik_network_flow_log" {
-  count = length(local.flat_nsgs)
+  for_each = { for vnet in local.flat_vnets : vnet.name => vnet }
 
-  name = "${var.name}_flow_log_${count.index}"
+  name                 = format("${var.name}-flowLogs-%s", each.key)
   network_watcher_name = data.azurerm_network_watcher.network_watcher.name
-  resource_group_name  = data.azurerm_network_watcher.network_watcher.resource_group_name
+  resource_group_name  = each.value.rg
 
-  network_security_group_id = local.flat_nsgs[count.index].nsg
-  storage_account_id        = azurerm_storage_account.logs_storage_account[index(var.resource_group_names, local.flat_nsgs[count.index].rg)].id
-  enabled                   = true
-  version                   = 2
+  target_resource_id = each.value.id
+  storage_account_id = azurerm_storage_account.logs_storage_account[each.value.rg].id
+  enabled            = true
+  version            = 2
   retention_policy {
     enabled = true
     days    = 7

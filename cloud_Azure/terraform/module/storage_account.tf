@@ -7,14 +7,24 @@ locals {
   generated_storage_account_names = [for name in local._alphanum_lowercase_names : substr(name, 0, 24)]
 }
 
-# Creates one storage account per resource group to store flow logs
-# StorageAccounts are mapped 1:1 to resource_group_names and this fact is used to get storage account id for given resource group name 
-resource "azurerm_storage_account" "logs_storage_account" {
-  count = length(var.resource_group_names)
+locals {
+  # Create a map of resource group names to storage account names
+  resource_group_to_storage_account = {
+    for rg in var.resource_group_names : rg => (
+      length(var.storage_account_names) == length(var.resource_group_names) ?
+      var.storage_account_names[index(var.resource_group_names, rg)] :
+      local.generated_storage_account_names[index(var.resource_group_names, rg)]
+    )
+  }
+}
 
-  # use either custom name if one is provided, or generated one
-  name                     = length(var.storage_account_names) == length(var.resource_group_names) ? var.storage_account_names[count.index] : local.generated_storage_account_names[count.index]
-  resource_group_name      = var.resource_group_names[count.index]
+# Creates one storage account per resource group to store flow logs
+# StorageAccounts are mapped 1:1 to resource_group_names and this fact is used to get storage account id for given resource group name
+resource "azurerm_storage_account" "logs_storage_account" {
+  for_each = local.resource_group_to_storage_account
+
+  name                     = each.value
+  resource_group_name      = each.key
   location                 = var.location
   account_tier             = "Standard"
   account_replication_type = "GRS"

@@ -1,8 +1,3 @@
-output "network_security_groups" {
-  value       = [for v in local.flat_nsgs : v.nsg]
-  description = "Id's of the Network Security Groups which flow logs will be collected"
-}
-
 output "subscription_id" {
   value       = var.subscription_id
   description = "Azure subscription ID"
@@ -14,7 +9,7 @@ output "resource_group_names" {
 }
 
 output "storage_accounts" {
-  value       = azurerm_storage_account.logs_storage_account[*].name
+  value       = [for sa in azurerm_storage_account.logs_storage_account : sa.name]
   description = "Storage Account names where flow logs will be collected"
 }
 
