@@ -21,7 +21,7 @@ locals {
         key = "${rg}-${vnet.name}"
         value = {
           rg   = rg
-          vnet = vnet.name
+          name = vnet.name
           id   = vnet.id
         }
       }
