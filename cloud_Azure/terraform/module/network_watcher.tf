@@ -31,11 +31,11 @@ locals {
 
 # Turns on vnet flow logs for all vnets in requested resource groups
 resource "azurerm_network_watcher_flow_log" "kentik_network_flow_log" {
-  for_each = { for vnet in local.flat_vnets : vnet.name => vnet }
+  for_each = { for vnet in local.flat_vnets : vnet.key => vnet.value }
 
-  name                 = format("${var.name}-flowLogs-%s", each.key)
+  name                 = "${var.name}_flow_log_${each.value.name}"
   network_watcher_name = data.azurerm_network_watcher.network_watcher.name
-  resource_group_name  = each.value.rg
+  resource_group_name  = "NetworkWatcherRG"
 
   target_resource_id = each.value.id
   storage_account_id = azurerm_storage_account.logs_storage_account[each.value.rg].id
