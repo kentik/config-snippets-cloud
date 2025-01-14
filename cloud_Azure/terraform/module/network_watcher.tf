@@ -22,7 +22,7 @@ locals {
         vnet = vnet.name
         id   = vnet.id
       }
-    ]
+    ] if length(data.azurerm_resources.vnet[rg].resources) > 0 # filter out resource groups without VNets
   ])
 }
 
