@@ -62,7 +62,7 @@ NetworkWatcher is automatically created by Azure when VirtualNetwork is created 
 
 | Name | Description |
 |------|-------------|
-| network_security_groups | Id's of the Virtual Networks which to collect flow logs |
+| vnet_ids | Id's of the Virtual Networks which to collect flow logs |
 | subscription_id | Azure subscription ID |
 | resource_group_names | Names of Resource Groups from which to collect flow logs |
 | storage_accounts | Storage Account names where flow logs will be collected |

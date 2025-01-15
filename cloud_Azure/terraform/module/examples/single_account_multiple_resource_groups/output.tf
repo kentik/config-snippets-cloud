@@ -1,7 +1,7 @@
 
-output "network_security_groups" {
-  value       = module.kentik_azure_integration.network_security_groups
-  description = "Id's of the Network Security Groups which flow logs will be collected"
+output "vnet_ids" {
+  value       = module.kentik_azure_integration.vnet_ids
+  description = "Id's of the Virtual Networks from which to collect flow logs"
 }
 
 output "subscription_id" {
