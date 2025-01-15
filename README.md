@@ -41,8 +41,8 @@
 ## Terraform
 * [Tearraform](https://github.com/kentik/config-snippets-cloud/tree/master/cloud_Azure/terraform)
 ### Examples
-#### Subnet-list, Single region
-* [all_nsg](https://github.com/kentik/config-snippets-cloud/tree/master/cloud_Azure/terraform/module/examples/all_nsg)
+#### All Virtual Networks from multiple Resource Groups
+* [single_account_multiple_resource_groups](https://github.com/kentik/config-snippets-cloud/tree/master/cloud_Azure/terraform/module/examples/single_account_multiple_resource_groups)
 
 ## Ansible
 * [Ansible](cloud_Azure/ansible/roles/kentik_az)

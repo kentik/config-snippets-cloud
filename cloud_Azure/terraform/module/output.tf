@@ -19,6 +19,6 @@ output "storage_accounts" {
 }
 
 output "principal_id" {
-  value       = local.kentik_nsg_flow_exporter_id
-  description = "Service Principal ID created for Kentik NSG Flow Exporter application"
+  value       = local.kentik_vnet_flow_exporter_id
+  description = "Service Principal ID created for Kentik VNet Flow Exporter application"
 }

@@ -19,7 +19,7 @@ NetworkWatcher is automatically created by Azure when VirtualNetwork is created 
 
 ## Usage examples
 
-* [All Network Security Groups in requested Resource Groups in single Azure Account](examples/single_account_multiple_resource_groups)
+* [All Virtual Networks in requested Resource Groups in single Azure Account](examples/single_account_multiple_resource_groups)
 * [All Network Security Groups in requested Resource Groups in multiple Azure Accounts](examples/multiple_accounts_multiple_resource_group)
 
 ## Requirements
