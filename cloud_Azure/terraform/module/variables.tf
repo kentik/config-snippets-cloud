@@ -62,5 +62,5 @@ variable "enabled" {
 variable "flow_exporter_application_id" {
   type        = string
   default     = "a20ce222-63c0-46db-86d5-58551eeee89f"
-  description = "Kentik NSG Flow Exporter application ID"
+  description = "Kentik VNet Flow Exporter application ID"
 }
