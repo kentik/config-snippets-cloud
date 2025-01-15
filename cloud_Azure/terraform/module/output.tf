@@ -1,3 +1,8 @@
+output "vnet_ids" {
+  value       = [for vnet in local.flat_vnets : vnet.value.id]
+  description = "Id's of the Virtual Networks from which to collect flow logs"
+}
+
 output "subscription_id" {
   value       = var.subscription_id
   description = "Azure subscription ID"
