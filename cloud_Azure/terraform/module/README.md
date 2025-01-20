@@ -50,12 +50,12 @@ NetworkWatcher is automatically created by Azure when VirtualNetwork is created 
 | email | Kentik account email | `string` | none | yes |
 | token | Kentik account token | `string` | none | yes |
 | plan_id | Kentik billing plan ID | `string` | none | yes |
-| name | Cloudexport entry name in Kentik | `string` | none | yes |
+| name | Cloudexport entry name in Kentik will be appended with: resource_group_names and subscription_id to ensure uniqueness | `string` | none | yes |
 | enabled | Defines if cloud export to Kentik is enabled | `bool` | true | no |
 | description | Cloudexport entry description in Kentik | `string` | `Created using Terraform` | no |
 | resource_tag | Azure Tag value to apply to created resources | `string` | `flow_log_exporter` | no |
 | flow_exporter_application_id | Kentik VNet Flow Exporter application ID | `string` | `a20ce222-63c0-46db-86d5-58551eeee89f` | no |
-| storage_account_names | Names of Storage Accounts for storing flow logs. Names must meet Azure Storage Account naming restrictions.<br>The list should either contain 1 Storage Account name for each Resource Group, or be empty, in which case names will be generated automatically. | `list of strings` | `[]` | no |
+| storage_account_names | Names of Storage Accounts to be created for storing flow logs. Names must meet Azure Storage Account naming restrictions.<br>The list should either contain 1 Storage Account name for each Resource Group, or be empty, in which case names will be generated automatically. | `list of strings` | `[]` | no |
 
 
 ## Outputs
