@@ -1,5 +1,6 @@
 # Prepare names that meet Azure Storage Account naming restrictions (only alphanum letters, max 24 length, Azure-wide unique)
 resource "random_id" "storage_account_id" {
+  count       = length(var.resource_group_names)
   byte_length = 6 # 6 bytes = 12 characters when base64 encoded
 }
 
