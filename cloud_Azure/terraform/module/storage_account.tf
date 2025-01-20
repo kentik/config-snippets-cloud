@@ -3,10 +3,10 @@ resource "random_id" "storage_account_id" {
   byte_length = 6 # 6 bytes = 12 characters when base64 encoded
 }
 
-# Each output name is concatenation of the exporter name and a random id, adjusted to naming restrictions
+# Each output name is concatenation of the exporter name truncated to 12 chars and a random id of 12 chars, adjusted to naming restrictions
 locals {
   truncated_name                  = substr(var.name, 0, 12)
-  _names                          = [for name in var.resource_group_names : "${local.truncated_name}${random_id.storage_account_id.hex}"]
+  _names                          = [for name in var.resource_group_names : "${local.truncated_name}${random_id.storage_account_id[idx].hex}"]
   _lowercase_names                = [for name in local._names : lower(name)]
   _alphanum_lowercase_names       = [for name in local._lowercase_names : join("", regexall("[[:alnum:]]+", name))]
   generated_storage_account_names = [for name in local._alphanum_lowercase_names : substr(name, 0, 24)]
@@ -15,10 +15,10 @@ locals {
 # Create a map of resource group names to storage account names
 locals {
   resource_group_to_storage_account = {
-    for rg in var.resource_group_names : rg => (
+    for idx, rg in var.resource_group_names : rg => (
       length(var.storage_account_names) == length(var.resource_group_names) ?
-      var.storage_account_names[index(var.resource_group_names, rg)] :
-      local.generated_storage_account_names[index(var.resource_group_names, rg)]
+      var.storage_account_names[idx] :
+      local.generated_storage_account_names[idx]
     )
   }
 }
