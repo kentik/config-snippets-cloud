@@ -6,7 +6,7 @@ resource "random_id" "storage_account_id" {
 # Each output name is concatenation of the exporter name and a random id, adjusted to naming restrictions
 locals {
   truncated_name                  = substr(var.name, 0, 12)
-  _names                          = [for name in var.resource_group_names : "${truncated_name}${random_id.storage_account_id.hex}"]
+  _names                          = [for name in var.resource_group_names : "${local.truncated_name}${random_id.storage_account_id.hex}"]
   _lowercase_names                = [for name in local._names : lower(name)]
   _alphanum_lowercase_names       = [for name in local._lowercase_names : join("", regexall("[[:alnum:]]+", name))]
   generated_storage_account_names = [for name in local._alphanum_lowercase_names : substr(name, 0, 24)]
