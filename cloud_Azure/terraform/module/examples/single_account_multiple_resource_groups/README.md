@@ -15,7 +15,7 @@ None.
     location = "eastus"
     resource_group_names = ["resource-group-1", "resource-group-2", "resource-group-3"] # groups must exist in selected location
     storage_account_names = []
-    
+
     # Kentik
     email = "dummy@test.mail"
     token = "dummy_token"
@@ -29,8 +29,6 @@ None.
 
 1. Execute:
     ```bash
-    virtualenv venv && source venv/bin/activate
-    pip install -r ../../requirements.txt
     terraform init
     ```
 

@@ -1,6 +1,6 @@
-output "network_security_groups" {
-  value       = [for v in local.flat_nsgs : v.nsg]
-  description = "Id's of the Network Security Groups which flow logs will be collected"
+output "vnet_ids" {
+  value       = [for vnet in local.flat_vnets : vnet.value.id]
+  description = "Id's of the Virtual Networks from which to collect flow logs"
 }
 
 output "subscription_id" {
@@ -14,11 +14,11 @@ output "resource_group_names" {
 }
 
 output "storage_accounts" {
-  value       = azurerm_storage_account.logs_storage_account[*].name
+  value       = [for sa in azurerm_storage_account.logs_storage_account : sa.name]
   description = "Storage Account names where flow logs will be collected"
 }
 
 output "principal_id" {
-  value       = local.kentik_nsg_flow_exporter_id
-  description = "Service Principal ID created for Kentik NSG Flow Exporter application"
+  value       = local.kentik_vnet_flow_exporter_id
+  description = "Service Principal ID created for Kentik VNet Flow Exporter application"
 }
