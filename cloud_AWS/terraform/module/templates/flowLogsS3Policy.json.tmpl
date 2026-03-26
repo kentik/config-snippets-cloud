@@ -11,7 +11,8 @@
       "Resource": "arn:aws:s3:::${bucket}/*",
       "Condition": {
         "StringEquals": {
-          "s3:x-amz-acl": "bucket-owner-full-control"
+          "s3:x-amz-acl": "bucket-owner-full-control",
+          "aws:SourceAccount": "${account_id}"
         }
       }
     },
@@ -22,7 +23,12 @@
         "Service": "delivery.logs.amazonaws.com"
       },
       "Action": "s3:GetBucketAcl",
-      "Resource": "arn:aws:s3:::${bucket}"
+      "Resource": "arn:aws:s3:::${bucket}",
+      "Condition": {
+        "StringEquals": {
+          "aws:SourceAccount": "${account_id}"
+        }
+      }
     },
     {
       "Sid": "KentikRoleAccess",
