@@ -1,3 +1,5 @@
+data "aws_caller_identity" "current" {}
+
 resource "aws_s3_bucket" "vpc_logs" {
   count         = (var.s3_use_one_bucket == false ? length(var.vpc_id_list) : 1)
   bucket        = join("-", [var.s3_bucket_prefix, (var.s3_use_one_bucket == false ? var.vpc_id_list[count.index] : var.s3_base_name), "flow-logs", terraform.workspace]) # bucket name must be globally unique
@@ -17,8 +19,12 @@ resource "aws_s3_bucket_policy" "policy" {
   bucket = aws_s3_bucket.vpc_logs[count.index].id
   policy = templatefile(
     "${path.module}/templates/flowLogsS3Policy.json.tmpl",
-    { bucket = join("-", [var.s3_bucket_prefix, (var.s3_use_one_bucket == false ? var.vpc_id_list[count.index] : var.s3_base_name), "flow-logs", terraform.workspace]) # bucket name must be globally unique
-  })
+    {
+      bucket       = join("-", [var.s3_bucket_prefix, (var.s3_use_one_bucket == false ? var.vpc_id_list[count.index] : var.s3_base_name), "flow-logs", terraform.workspace]) # bucket name must be globally unique
+      iam_role_arn = var.create_role ? aws_iam_role.kentik_role[0].arn : var.aws_iam_role_no_create
+      account_id   = data.aws_caller_identity.current.account_id
+    }
+  )
 }
 
 resource "aws_s3_bucket_ownership_controls" "ownership" {
