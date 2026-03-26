@@ -4,31 +4,41 @@
     {
       "Sid": "AWSLogDeliveryWrite",
       "Effect": "Allow",
-      "Principal": 
-      {
+      "Principal": {
         "Service": "delivery.logs.amazonaws.com"
       },
       "Action": "s3:PutObject",
       "Resource": "arn:aws:s3:::${bucket}/*",
-      "Condition": 
-      {
-        "StringEquals": 
-	{
+      "Condition": {
+        "StringEquals": {
           "s3:x-amz-acl": "bucket-owner-full-control"
-	}
+        }
       }
     },
     {
-      "Sid": "AWSLogDeliveryAclCheck", 
+      "Sid": "AWSLogDeliveryAclCheck",
       "Effect": "Allow",
-      "Principal": 
-      {
+      "Principal": {
         "Service": "delivery.logs.amazonaws.com"
       },
       "Action": "s3:GetBucketAcl",
       "Resource": "arn:aws:s3:::${bucket}"
+    },
+    {
+      "Sid": "KentikRoleAccess",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "${iam_role_arn}"
+      },
+      "Action": [
+        "s3:GetObject",
+        "s3:ListBucket",
+        "s3:DeleteObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::${bucket}",
+        "arn:aws:s3:::${bucket}/*"
+      ]
     }
-
-
   ]
 }
