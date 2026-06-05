@@ -1,0 +1,10 @@
+# Sensitive values — never commit actual tfvars
+terraform.tfvars
+
+# Terraform working directories
+.terraform/
+.terraform.lock.hcl
+
+# State files
+*.tfstate
+*.tfstate.backup
