@@ -1,0 +1,25 @@
+# OCI provider authentication
+oci_user_id          = "ocid1.user.oc1..aaaa..."
+oci_fingerprint      = "xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx"
+oci_private_key_path = "~/.oci/oci_api_key.pem"
+
+# OCI tenancy / compartment
+tenancy_id     = "ocid1.tenancy.oc1..aaaa..."
+compartment_id = "ocid1.compartment.oc1..aaaa..."
+region         = "us-ashburn-1"
+
+# VCNs
+vcn_id_list = ["ocid1.vcn.oc1.iad.aaaa..."]
+
+# IAM
+iam_prefix  = "kentik-staging"
+create_user = true
+
+# Kentik — email for the OCI IAM user; after first apply add the public key from the portal and re-apply
+kentik_user_email     = "you@example.com"
+kentik_api_public_key = ""
+
+# Kentik cloud export
+name        = "oci-staging"
+description = "OCI staging flow log export"
+plan_id     = "your-kentik-plan-id"
